@@ -1,18 +1,26 @@
 export const settings = {
-  siteName: import.meta.env.VITE_SITE_NAME || 'My App',
-  siteDescription: import.meta.env.VITE_SITE_DESCRIPTION || 'A great application',
+  siteName: import.meta.env.VITE_SITE_NAME || 'GambiaFund',
+  siteDescription: import.meta.env.VITE_SITE_DESCRIPTION || 'Crowdfunding for The Gambia',
   apiUrl: import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1',
-
+  currency: 'GMD',
+  currencySymbol: 'D',
+  country: 'The Gambia',
   defaultTheme: 'system',
 
   features: {
     enableNotifications: true,
     enableMarketingEmails: false,
     enableSocialLogin: false,
+    demoMode: true,
   },
 
   pagination: {
-    defaultPageSize: 20,
-    pageSizeOptions: [10, 20, 50, 100],
+    defaultPageSize: 12,
+    pageSizeOptions: [12, 24, 48],
+  },
+
+  donate: {
+    presets: [100, 250, 500, 1000, 2500, 5000],
+    minAmount: 50,
   },
 }

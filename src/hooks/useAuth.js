@@ -8,7 +8,18 @@ export function useMe() {
   return useQuery({
     queryKey: queryKeys.auth.me(),
     queryFn: userApi.getMe,
+    enabled: Boolean(localStorage.getItem('access_token')),
     retry: false,
+  })
+}
+
+export function useUpdateMe() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: userApi.updateMe,
+    onSuccess: (data) => {
+      queryClient.setQueryData(queryKeys.auth.me(), (prev) => ({ ...prev, ...data }))
+    },
   })
 }
 

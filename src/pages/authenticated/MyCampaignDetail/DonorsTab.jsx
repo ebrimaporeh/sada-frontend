@@ -1,0 +1,79 @@
+import { useState } from 'react'
+import { Users, SearchX } from 'lucide-react'
+import { formatGMD, timeAgo } from '@/utils/formatters'
+
+export function DonorsTab({ donors }) {
+  const [search, setSearch] = useState('')
+
+  const filtered = donors.filter((d) => {
+    if (!search) return true
+    const q = search.toLowerCase()
+    const isAnon = d.is_anonymous ?? d.anonymous
+    return (
+      (!isAnon && (d.donor_name || d.donor || '').toLowerCase().includes(q)) ||
+      (d.message && d.message.toLowerCase().includes(q))
+    )
+  })
+
+  const total = donors.reduce((s, d) => s + Number(d.amount ?? 0), 0)
+  const anon = donors.filter((d) => d.is_anonymous ?? d.anonymous).length
+
+  return (
+    <div className="space-y-5">
+      <div className="grid grid-cols-3 gap-3">
+        {[
+          { label: 'Total donations', value: donors.length },
+          { label: 'Total raised', value: formatGMD(total) },
+          { label: 'Anonymous', value: anon },
+        ].map(({ label, value }) => (
+          <div key={label} className="border rounded-xl p-4 bg-card text-center">
+            <p className="text-xl font-extrabold">{value}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{label}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="relative">
+        <input
+          type="text"
+          placeholder="Search donors or messages…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full pl-10 pr-4 py-2.5 border rounded-xl text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+        />
+        <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+      </div>
+
+      <div className="border rounded-2xl bg-card divide-y overflow-hidden">
+        {filtered.length === 0 ? (
+          <div className="py-12 text-center">
+            <SearchX className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">No donors match your search.</p>
+          </div>
+        ) : (
+          filtered.map((d) => {
+            const isAnon = d.is_anonymous ?? d.anonymous
+            const name = isAnon ? 'Anonymous' : (d.donor_name || d.donor || 'Unknown')
+            return (
+              <div key={d.id} className="flex items-start gap-3 px-5 py-4 hover:bg-muted/30 transition-colors">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary flex-shrink-0">
+                  {isAnon ? '?' : name[0].toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="font-semibold text-sm">{name}</p>
+                    <p className="font-bold text-primary text-sm flex-shrink-0">{formatGMD(d.amount)}</p>
+                  </div>
+                  {d.message && (
+                    <p className="text-sm text-muted-foreground mt-1 italic">"{d.message}"</p>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-1">{timeAgo(d.paid_at || d.created_at || d.date)}</p>
+                </div>
+              </div>
+            )
+          })
+        )}
+      </div>
+    </div>
+  )
+}

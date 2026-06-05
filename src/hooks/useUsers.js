@@ -20,9 +20,23 @@ export function useUser(id) {
 export function useUpdateMe() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: userApi.updateMe,
+    mutationFn: (data) => {
+      const hasFile = Object.values(data).some((v) => v instanceof File)
+      if (hasFile) {
+        const form = new FormData()
+        Object.entries(data).forEach(([k, v]) => {
+          if (v !== undefined && v !== null) form.append(k, v)
+        })
+        return import('@/api/client').then(({ apiClient }) =>
+          apiClient.patch('/users/me/', form, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          }).then((r) => r.data),
+        )
+      }
+      return userApi.updateMe(data)
+    },
     onSuccess: (data) => {
-      queryClient.setQueryData(queryKeys.auth.me(), data.data)
+      queryClient.setQueryData(queryKeys.auth.me(), (prev) => ({ ...prev, ...data }))
     },
   })
 }

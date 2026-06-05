@@ -53,6 +53,14 @@ apiClient.interceptors.response.use(
     const originalRequest = error.config
 
     if (error.response?.status === 401 && !originalRequest._retry) {
+      const refreshToken = localStorage.getItem('refresh_token')
+
+      // No refresh token means the user was never authenticated — let the
+      // error propagate so React Query can handle it without redirecting.
+      if (!refreshToken) {
+        return Promise.reject(error)
+      }
+
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject })
@@ -66,14 +74,6 @@ apiClient.interceptors.response.use(
 
       originalRequest._retry = true
       isRefreshing = true
-
-      const refreshToken = localStorage.getItem('refresh_token')
-
-      if (!refreshToken) {
-        isRefreshing = false
-        _clearAuthAndRedirect()
-        return Promise.reject(error)
-      }
 
       try {
         const { data } = await axios.post(`${BASE_URL}/auth/refresh/`, {

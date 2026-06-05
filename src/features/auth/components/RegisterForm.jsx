@@ -21,7 +21,7 @@ export function RegisterForm() {
   }
 
   return (
-    <div className="w-full max-w-sm space-y-6">
+    <div className="w-full space-y-6">
       <div className="space-y-2 text-center">
         <h1 className="text-2xl font-bold">Create account</h1>
         <p className="text-muted-foreground">Start your journey today</p>
