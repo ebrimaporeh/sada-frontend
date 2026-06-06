@@ -74,19 +74,19 @@ function CampaignRow({ campaign }) {
 function RecentDonationRow({ donation }) {
   const donor = donation.donor_name || donation.donor || 'Anonymous'
   return (
-    <div className="flex items-center justify-between py-3 border-b last:border-0">
-      <div className="flex items-center gap-3 min-w-0">
-        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary flex-shrink-0">
+    <div className="flex items-start justify-between gap-3 py-3 border-b last:border-0">
+      <div className="flex items-start gap-3 min-w-0 flex-1">
+        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary flex-shrink-0 mt-0.5">
           {donor[0].toUpperCase()}
         </div>
         <div className="min-w-0">
           <p className="text-sm font-medium truncate">{donor}</p>
-          <p className="text-xs text-muted-foreground truncate">{donation.campaign_title || donation.campaign}</p>
+          <p className="text-xs text-muted-foreground line-clamp-2 break-words">{donation.campaign_title || donation.campaign}</p>
         </div>
       </div>
-      <div className="text-right flex-shrink-0 ml-3">
-        <p className="text-sm font-bold text-primary">{formatGMD(donation.amount)}</p>
-        <p className="text-xs text-muted-foreground">{timeAgo(donation.paid_at || donation.created_at || donation.date)}</p>
+      <div className="text-right flex-shrink-0">
+        <p className="text-sm font-bold text-primary whitespace-nowrap">{formatGMD(donation.amount)}</p>
+        <p className="text-xs text-muted-foreground whitespace-nowrap">{timeAgo(donation.paid_at || donation.created_at || donation.date)}</p>
       </div>
     </div>
   )
@@ -168,7 +168,7 @@ export function Dashboard() {
 
         <div className="lg:col-span-2 space-y-4">
           <h2 className="font-bold text-lg">Recent Donations</h2>
-          <div className="border rounded-xl bg-card p-4">
+          <div className="border rounded-xl bg-card p-4 overflow-hidden">
             {donations.length === 0 ? (
               <div className="py-8 text-center">
                 <Heart className="w-8 h-8 mx-auto text-muted-foreground" />
