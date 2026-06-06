@@ -65,20 +65,13 @@ export function useCampaign(slug) {
 
 export function useFeaturedCampaigns() {
   const query = useQuery({
-    queryKey: [...queryKeys.campaigns.list({ featured: true }), 'featured'],
-    queryFn: () => campaignApi.getCampaigns({ page_size: 6 }),
-    select: (res) => {
-      const all = res?.results ?? []
-      return {
-        featured: all.filter((c) => c.is_featured).slice(0, 3),
-        urgent: all.filter((c) => c.is_urgent && !c.is_featured).slice(0, 3),
-      }
-    },
+    queryKey: queryKeys.campaigns.featured(),
+    queryFn: campaignApi.getFeatured,
+    select: (res) => res?.data?.campaigns ?? [],
+    staleTime: 60_000,
   })
   return {
-    featured: query.data?.featured ?? [],
-    urgent: query.data?.urgent ?? [],
-    data: query.data,
+    campaigns: query.data ?? [],
     isLoading: query.isLoading,
   }
 }

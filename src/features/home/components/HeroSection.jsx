@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router'
 import { ArrowRight, Heart, Shield, Zap, MapPin, Flame } from 'lucide-react'
 import { ROUTES } from '@/constants'
 import { CampaignCard } from '@/components/custom/CampaignCard'
+import { CampaignCardSkeleton } from '@/components/custom/CampaignCardSkeleton'
 import { useFeaturedCampaigns } from '@/hooks/useCampaigns'
 
 const trust = [
@@ -11,8 +12,8 @@ const trust = [
 ]
 
 export function HeroSection() {
-  const { data } = useFeaturedCampaigns()
-  const heroCard = data?.featured?.[0] ?? null
+  const { campaigns, isLoading } = useFeaturedCampaigns()
+  const heroCard = campaigns[0] ?? null
 
   return (
     <section className="bg-gradient-to-br from-green-50 via-background to-emerald-50 overflow-hidden">
@@ -66,10 +67,11 @@ export function HeroSection() {
           <div className="relative hidden lg:block">
             <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-primary/10 rounded-3xl -rotate-2 scale-105" />
             <div className="relative">
-              <div className="absolute -top-3 -right-3 bg-donate text-donate-foreground text-xs font-bold px-3 py-1.5 rounded-full shadow-lg z-10">
+              <div className="absolute -top-3 -right-3 bg-donate text-donate-foreground text-xs font-bold px-3 py-1.5 rounded-full shadow-lg z-10 flex items-center gap-1">
                 <Flame className="w-3 h-3" /> Trending Now
               </div>
-              {heroCard && <CampaignCard campaign={heroCard} className="max-w-sm mx-auto shadow-xl" />}
+              {isLoading && <CampaignCardSkeleton className="max-w-sm mx-auto shadow-xl" />}
+              {!isLoading && heroCard && <CampaignCard campaign={heroCard} className="max-w-sm mx-auto shadow-xl" />}
             </div>
           </div>
         </div>

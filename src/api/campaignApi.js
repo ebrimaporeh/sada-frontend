@@ -8,6 +8,9 @@ export const campaignApi = {
   getCampaigns: (params) =>
     apiClient.get('/campaigns/', { params }).then((r) => r.data),
 
+  getFeatured: () =>
+    apiClient.get('/campaigns/featured/').then((r) => r.data),
+
   getCampaign: (slug) =>
     apiClient.get(`/campaigns/${slug}/`).then((r) => r.data),
 

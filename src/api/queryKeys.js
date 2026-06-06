@@ -14,6 +14,7 @@ export const queryKeys = {
     mine: () => ['campaigns', 'mine'],
     myDetail: (slug) => ['campaigns', 'mine', slug],
     categories: () => ['campaigns', 'categories'],
+    featured: () => ['campaigns', 'featured'],
     adminList: (params) => ['campaigns', 'admin', params],
   },
   donations: {
