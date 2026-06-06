@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { Outlet, Link, useRouter } from '@tanstack/react-router'
-import { Heart, Menu, X, ChevronRight, MapPin } from 'lucide-react'
+import { Heart, Menu, X, ChevronRight, MapPin, LayoutDashboard } from 'lucide-react'
 import { settings } from '@/settings'
 import { ROUTES } from '@/constants'
+import { useMe } from '@/hooks/useAuth'
 
 export function PublicLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const { data: me } = useMe()
 
   const navLinks = [
     { label: 'Campaigns', to: ROUTES.CAMPAIGNS },
@@ -41,9 +43,19 @@ export function PublicLayout() {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center gap-3">
-            <Link to={ROUTES.LOGIN} className="text-sm font-medium hover:text-primary transition-colors">
-              Sign in
-            </Link>
+            {me ? (
+              <Link
+                to={ROUTES.DASHBOARD}
+                className="inline-flex items-center gap-1.5 text-sm font-medium hover:text-primary transition-colors"
+              >
+                <LayoutDashboard className="w-4 h-4" />
+                Dashboard
+              </Link>
+            ) : (
+              <Link to={ROUTES.LOGIN} className="text-sm font-medium hover:text-primary transition-colors">
+                Sign in
+              </Link>
+            )}
             <Link
               to={ROUTES.CAMPAIGNS}
               className="inline-flex items-center gap-1.5 text-sm font-semibold bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors"
@@ -76,9 +88,19 @@ export function PublicLayout() {
               </Link>
             ))}
             <div className="pt-2 border-t flex flex-col gap-2">
-              <Link to={ROUTES.LOGIN} className="text-sm font-medium text-center py-2 border rounded-lg">
-                Sign in
-              </Link>
+              {me ? (
+                <Link
+                  to={ROUTES.DASHBOARD}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-sm font-medium text-center py-2 border rounded-lg"
+                >
+                  Dashboard
+                </Link>
+              ) : (
+                <Link to={ROUTES.LOGIN} className="text-sm font-medium text-center py-2 border rounded-lg">
+                  Sign in
+                </Link>
+              )}
               <Link
                 to={ROUTES.CAMPAIGN_NEW}
                 className="text-sm font-semibold text-center py-2 bg-primary text-primary-foreground rounded-lg"
