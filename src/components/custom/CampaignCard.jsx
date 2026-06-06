@@ -21,6 +21,13 @@ export function CampaignCard({ campaign, className }) {
     >
       {/* Image area */}
       <div className={cn('relative h-44 bg-gradient-to-br', campaign.gradient || 'from-primary/60 to-primary')}>
+        {campaign.cover_image_url && (
+          <img
+            src={campaign.cover_image_url}
+            alt={campaign.title}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        )}
         {/* Badges */}
         <div className="absolute top-3 left-3 right-3 flex items-start justify-between">
           <span className="inline-flex items-center gap-1 bg-black/40 backdrop-blur-sm text-white text-xs font-medium px-2 py-1 rounded-full">
