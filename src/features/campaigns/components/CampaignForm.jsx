@@ -1,10 +1,15 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { AlertCircle, CheckCircle2, ChevronRight, ChevronLeft, Info, ImagePlus, X, Loader2 } from 'lucide-react'
 import { useCategories, useCreateCampaign, useUpdateCampaignMedia } from '@/hooks/useCampaigns'
 import { GAMBIA_REGIONS, ROUTES } from '@/constants'
 import { PageHeader } from '@/components/custom/PageHeader'
+import { MarkdownEditor } from '@/components/custom/MarkdownEditor'
 import { cn } from '@/utils/cn'
+
+const STORAGE_KEY = 'campaign_draft'
+const IMAGES_STORAGE_KEY = 'campaign_draft_images'
+const MAX_IMAGE_SIZE = 500 * 1024 // 500KB per image
 
 const STEPS = ['Campaign Info', 'Your Story', 'Goal & Deadline', 'Review & Submit']
 
@@ -162,11 +167,71 @@ export function CampaignForm() {
   const createCampaign = useCreateCampaign()
   const updateMedia = useUpdateCampaignMedia()
   const [step, setStep] = useState(0)
-  const [form, setForm] = useState(INITIAL)
-  const [images, setImages] = useState([])
+  const [form, setForm] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEY)
+    return saved ? JSON.parse(saved) : INITIAL
+  })
+  const [images, setImages] = useState(() => {
+    const saved = localStorage.getItem(IMAGES_STORAGE_KEY)
+    if (!saved) return []
+    try {
+      const parsed = JSON.parse(saved)
+      return parsed.map((img) => ({
+        ...img,
+        url: img.base64,
+      }))
+    } catch (e) {
+      return []
+    }
+  })
   const [errors, setErrors] = useState({})
   const [submitted, setSubmitted] = useState(false)
   const [submitError, setSubmitError] = useState('')
+
+  const saveImagesToStorage = (imgs) => {
+    const toSave = imgs
+      .filter((img) => img.base64 || img.file)
+      .slice(0, 5)
+      .map((img) => ({
+        base64: img.base64,
+        name: img.name,
+      }))
+    localStorage.setItem(IMAGES_STORAGE_KEY, JSON.stringify(toSave))
+  }
+
+  const convertImageToBase64 = (file) => {
+    return new Promise((resolve) => {
+      if (file.size > MAX_IMAGE_SIZE) {
+        resolve(null)
+        return
+      }
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result)
+      reader.onerror = () => resolve(null)
+      reader.readAsDataURL(file)
+    })
+  }
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(form))
+  }, [form])
+
+  useEffect(() => {
+    const saveImages = async () => {
+      const imagesWithBase64 = await Promise.all(
+        images.map(async (img) => {
+          if (img.base64) return img
+          if (img.file) {
+            const base64 = await convertImageToBase64(img.file)
+            return { ...img, base64 }
+          }
+          return img
+        })
+      )
+      saveImagesToStorage(imagesWithBase64)
+    }
+    saveImages()
+  }, [images])
 
   const set = (field) => (e) => {
     const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value
@@ -238,6 +303,8 @@ export function CampaignForm() {
             // media upload failure is non-fatal
           }
         }
+        localStorage.removeItem(STORAGE_KEY)
+        localStorage.removeItem(IMAGES_STORAGE_KEY)
         setSubmitted(true)
         if (slug) setTimeout(() => navigate({ to: '/my-campaigns/$slug', params: { slug } }), 2500)
         else setTimeout(() => navigate({ to: ROUTES.MY_CAMPAIGNS }), 2500)
@@ -325,7 +392,11 @@ export function CampaignForm() {
           </FieldGroup>
 
           <FieldGroup label="Your Full Story *" hint="Tell donors why this matters. Be specific and personal. Include background, the situation, how funds will be used, and your plan." error={errors.story}>
-            <Textarea value={form.story} onChange={set('story')} placeholder={`Write your full story here...\n\nTips:\n- Explain the situation clearly\n- Describe who the beneficiary is\n- Explain exactly how the money will be used\n- Show the urgency if applicable`} rows={10} />
+            <MarkdownEditor
+              value={form.story}
+              onChange={set('story')}
+              placeholder={`Write your full story here...\n\nTips:\n- Explain the situation clearly\n- Describe who the beneficiary is\n- Explain exactly how the money will be used\n- Show the urgency if applicable\n\nSupports markdown: **bold**, *italic*, # headings, - lists, and [links](url)`}
+            />
             <p className="text-xs text-muted-foreground text-right">{form.story.length} characters (min 100)</p>
           </FieldGroup>
 

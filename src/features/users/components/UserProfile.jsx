@@ -102,8 +102,8 @@ export function UserProfile() {
       <div className="border rounded-2xl p-6 bg-card flex flex-col sm:flex-row items-center sm:items-start gap-6">
         <div className="relative flex-shrink-0">
           <div className="w-20 h-20 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xl font-bold overflow-hidden">
-            {avatarPreview
-              ? <img src={avatarPreview} alt="avatar" className="w-full h-full object-cover" />
+            {avatarPreview || user?.avatar
+              ? <img src={avatarPreview || user?.avatar} alt="avatar" className="w-full h-full object-cover" />
               : initials(displayName || user?.email)
             }
           </div>

@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { Heart, ChevronLeft, CheckCircle2, AlertCircle, Lock, Smartphone } from 'lucide-react'
 import { ProgressBar } from '@/components/custom/ProgressBar'
 import { formatGMD, progressPercent, daysLeft } from '@/utils/formatters'
 import { useDonateToCampaign } from '@/hooks/useDonations'
+import { useMe } from '@/hooks/useAuth'
 import { settings } from '@/settings'
 import { PAYMENT_METHODS } from '@/constants'
 import { cn } from '@/utils/cn'
@@ -35,10 +36,11 @@ function CampaignSummaryCard({ campaign }) {
 
 export function DonateCheckout({ campaign }) {
   const navigate = useNavigate()
+  const { data: me } = useMe()
   const [amount, setAmount] = useState('')
-  const [customAmount, setCustomAmount] = useState(false)
   const [provider, setProvider] = useState('modempay')
   const [phone, setPhone] = useState('')
+  const [donorName, setDonorName] = useState('')
   const [anonymous, setAnonymous] = useState(false)
   const [message, setMessage] = useState('')
   const [step, setStep] = useState('amount') // amount | payment | confirm
@@ -46,21 +48,45 @@ export function DonateCheckout({ campaign }) {
   const [error, setError] = useState('')
 
   const donateToCampaign = useDonateToCampaign()
+  const isAuthenticated = Boolean(me)
 
-  const presets = settings.donate.presets
+  // Seed user data if authenticated
+  const seeded = useRef(false)
+  useEffect(() => {
+    if (me && !seeded.current) {
+      seeded.current = true
+      setDonorName(me.full_name)
+    }
+  }, [me])
+
   const numAmount = Number(amount)
   const fee = numAmount ? Math.ceil(numAmount * 0.015) : 0
   const total = numAmount + fee
 
+  // Calculate percentage-based suggestions
+  const remaining = campaign.goal - campaign.raised
+  const percentages = [5, 10, 20, 50]
+  const suggestions = percentages
+    .map(pct => ({ pct, amount: Math.ceil(remaining * (pct / 100)) }))
+    .filter(s => s.amount >= settings.donate.minAmount)
+
+  // Add remaining amount button if not already in suggestions
+  const allRemaining = remaining >= settings.donate.minAmount
+  const suggestionAmounts = suggestions.map(s => s.amount)
+  const remainingButton = allRemaining && remaining >= settings.donate.minAmount
+
   function selectPreset(v) {
     setAmount(String(v))
-    setCustomAmount(false)
     setError('')
   }
 
   function goToPayment() {
     if (!numAmount || numAmount < settings.donate.minAmount) {
       setError(`Minimum donation is ${formatGMD(settings.donate.minAmount)}`)
+      return
+    }
+    if (!anonymous && !donorName.trim()) {
+      setError('Please enter your name or choose to donate anonymously')
       return
     }
     setError('')
@@ -88,6 +114,7 @@ export function DonateCheckout({ campaign }) {
         phone: `+220${phone.trim()}`,
         is_anonymous: anonymous,
         message: message.trim() || undefined,
+        donor_name: anonymous ? '' : donorName.trim(),
       },
       {
         onSuccess: () => {
@@ -124,46 +151,57 @@ export function DonateCheckout({ campaign }) {
           {step === 'amount' && (
             <div className="space-y-5">
               <div>
-                <p className="text-sm font-medium mb-3">Choose an amount (GMD)</p>
-                <div className="grid grid-cols-3 gap-2 mb-3">
-                  {presets.map((p) => (
-                    <button
-                      key={p}
-                      onClick={() => selectPreset(p)}
-                      className={cn(
-                        'py-2.5 rounded-lg border text-sm font-semibold transition-colors',
-                        amount === String(p) && !customAmount
-                          ? 'bg-primary text-primary-foreground border-primary'
-                          : 'hover:border-primary hover:text-primary',
-                      )}
-                    >
-                      {formatGMD(p)}
-                    </button>
-                  ))}
-                </div>
-                <button
-                  onClick={() => { setCustomAmount(true); setAmount(''); }}
-                  className={cn(
-                    'w-full py-2.5 rounded-lg border text-sm font-medium transition-colors',
-                    customAmount ? 'border-primary text-primary' : 'hover:border-primary hover:text-primary',
-                  )}
-                >
-                  Enter custom amount
-                </button>
-                {customAmount && (
-                  <div className="relative mt-3">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-muted-foreground">D</span>
-                    <input
-                      type="number"
-                      value={amount}
-                      onChange={(e) => { setAmount(e.target.value); setError('') }}
-                      placeholder="0"
-                      min={settings.donate.minAmount}
-                      className="w-full pl-8 pr-4 py-2.5 border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring text-lg font-bold"
-                      autoFocus
-                    />
+                <p className="text-sm font-medium mb-3">Choose an amount to donate</p>
+
+                {/* Suggested amounts based on percentages */}
+                {suggestions.length > 0 && (
+                  <div className="grid grid-cols-2 gap-2 mb-3">
+                    {suggestions.map(({ pct, amount: sugAmount }) => (
+                      <button
+                        key={pct}
+                        onClick={() => selectPreset(sugAmount)}
+                        className={cn(
+                          'py-2.5 rounded-lg border text-sm font-semibold transition-colors',
+                          amount === String(sugAmount)
+                            ? 'bg-primary text-primary-foreground border-primary'
+                            : 'hover:border-primary hover:text-primary',
+                        )}
+                      >
+                        <div className="text-xs text-muted-foreground">{pct}%</div>
+                        {formatGMD(sugAmount)}
+                      </button>
+                    ))}
                   </div>
                 )}
+
+                {/* Remaining amount button */}
+                {remainingButton && (
+                  <button
+                    onClick={() => selectPreset(remaining)}
+                    className={cn(
+                      'w-full py-2.5 rounded-lg border text-sm font-semibold transition-colors mb-3',
+                      amount === String(remaining)
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'hover:border-primary hover:text-primary',
+                    )}
+                  >
+                    <div className="text-xs text-muted-foreground">Help complete this goal</div>
+                    {formatGMD(remaining)} remaining
+                  </button>
+                )}
+
+                {/* Custom amount input */}
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-muted-foreground">D</span>
+                  <input
+                    type="number"
+                    value={amount}
+                    onChange={(e) => { setAmount(e.target.value); setError('') }}
+                    placeholder="Enter custom amount"
+                    min={settings.donate.minAmount}
+                    className="w-full pl-8 pr-4 py-2.5 border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring text-lg font-bold"
+                  />
+                </div>
               </div>
 
               {numAmount > 0 && (
@@ -184,6 +222,19 @@ export function DonateCheckout({ campaign }) {
               )}
 
               <div className="space-y-3">
+                {/* Donor name input */}
+                <div>
+                  <label className="text-sm font-medium block mb-1.5">Your name</label>
+                  <input
+                    type="text"
+                    value={donorName}
+                    onChange={(e) => setDonorName(e.target.value)}
+                    placeholder="Full name"
+                    disabled={anonymous}
+                    className="w-full px-3 py-2 border rounded-lg text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+                  />
+                </div>
+
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" checked={anonymous} onChange={(e) => setAnonymous(e.target.checked)} className="rounded" />
                   <span className="text-sm">Donate anonymously</span>
@@ -313,8 +364,8 @@ export function DonateCheckout({ campaign }) {
                     <p className="font-medium text-sm">+220 {phone}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground mb-1">Identity</p>
-                    <p className="font-medium text-sm">{anonymous ? 'Anonymous' : 'Public'}</p>
+                    <p className="text-xs text-muted-foreground mb-1">Donor</p>
+                    <p className="font-medium text-sm">{anonymous ? 'Anonymous' : donorName || 'Not provided'}</p>
                   </div>
                 </div>
                 {message && (

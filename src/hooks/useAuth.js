@@ -74,3 +74,18 @@ export function useLogout() {
 export function useChangePassword() {
   return useMutation({ mutationFn: authApi.changePassword })
 }
+
+export function useGoogleOAuth() {
+  const queryClient = useQueryClient()
+  const navigate = useNavigate()
+
+  return useMutation({
+    mutationFn: (idToken) => authApi.googleOAuth(idToken),
+    onSuccess: (data) => {
+      localStorage.setItem('access_token', data.data.tokens.access)
+      localStorage.setItem('refresh_token', data.data.tokens.refresh)
+      queryClient.setQueryData(queryKeys.auth.me(), data.data.user)
+      navigate({ to: '/dashboard' })
+    },
+  })
+}

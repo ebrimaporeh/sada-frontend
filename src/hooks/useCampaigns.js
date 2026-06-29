@@ -201,6 +201,33 @@ export function useAddCampaignUpdate() {
   })
 }
 
+export function useEditCampaignUpdate() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ slug, updateId, data }) => campaignApi.editUpdate(slug, updateId, data),
+    onSuccess: (_, { slug }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.myDetail(slug) })
+    },
+  })
+}
+
+export function useDeleteCampaignUpdate() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ slug, updateId }) => campaignApi.deleteUpdate(slug, updateId),
+    onSuccess: (_, { slug }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.myDetail(slug) })
+    },
+  })
+}
+
+export function useReportCampaign() {
+  return useMutation({
+    mutationFn: ({ slug, reason, description }) =>
+      campaignApi.reportCampaign(slug, { reason, description }),
+  })
+}
+
 export function useTogglePauseCampaign() {
   const queryClient = useQueryClient()
   return useMutation({

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
-import { useLogin } from '@/hooks/useAuth'
+import { GoogleLogin } from '@react-oauth/google'
+import { useLogin, useGoogleOAuth } from '@/hooks/useAuth'
 import { ROUTES } from '@/constants'
 
 const TEST_ACCOUNTS = [
@@ -27,6 +28,7 @@ export function LoginForm() {
   const [password, setPassword] = useState('')
   const [activeDemo, setActiveDemo] = useState(null)
   const login = useLogin()
+  const googleOAuth = useGoogleOAuth()
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -83,6 +85,18 @@ export function LoginForm() {
             )
           })}
         </div>
+      </div>
+
+      {/* Google OAuth */}
+      <div className="flex justify-center">
+        <GoogleLogin
+          onSuccess={(credentialResponse) => {
+            googleOAuth.mutate(credentialResponse.credential)
+          }}
+          onError={() => {
+            console.log('Google login failed')
+          }}
+        />
       </div>
 
       {/* Divider */}

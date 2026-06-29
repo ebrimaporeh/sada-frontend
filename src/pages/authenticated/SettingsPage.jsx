@@ -87,7 +87,8 @@ export function SettingsPage() {
   const [pwError, setPwError] = useState('')
   const [pwSaved, setPwSaved] = useState(false)
 
-  // Notifications
+  // Notifications — seed once when me first loads
+  const notifSeeded = useRef(false)
   const [notif, setNotif] = useState({
     donations_received: true,
     campaign_approved: true,
@@ -97,6 +98,23 @@ export function SettingsPage() {
     new_update: false,
     marketing: false,
   })
+  const [notifSaved, setNotifSaved] = useState(false)
+  const [notifError, setNotifError] = useState('')
+
+  useEffect(() => {
+    if (me && !notifSeeded.current) {
+      notifSeeded.current = true
+      setNotif({
+        donations_received: me.notify_donations_received ?? true,
+        campaign_approved: me.notify_campaign_approved ?? true,
+        campaign_rejected: me.notify_campaign_rejected ?? true,
+        goal_reached: me.notify_goal_reached ?? true,
+        new_comment: me.notify_new_comment ?? false,
+        new_update: me.notify_new_update ?? false,
+        marketing: me.notify_marketing ?? false,
+      })
+    }
+  }, [me])
 
   // Theme
   const [theme, setTheme] = useState('system')
@@ -152,35 +170,33 @@ export function SettingsPage() {
     )
   }
 
-  const themes = [
-    { id: 'light', icon: Sun, label: 'Light' },
-    { id: 'dark', icon: Moon, label: 'Dark' },
-    { id: 'system', icon: Monitor, label: 'System' },
-  ]
+  function handleNotificationSave(e) {
+    e.preventDefault()
+    setNotifError('')
+    updateMe.mutate(
+      {
+        notify_donations_received: notif.donations_received,
+        notify_campaign_approved: notif.campaign_approved,
+        notify_campaign_rejected: notif.campaign_rejected,
+        notify_goal_reached: notif.goal_reached,
+        notify_new_comment: notif.new_comment,
+        notify_new_update: notif.new_update,
+        notify_marketing: notif.marketing,
+      },
+      {
+        onSuccess: () => { setNotifSaved(true); setTimeout(() => setNotifSaved(false), 3000) },
+        onError: (err) => setNotifError(err?.response?.data?.message || 'Failed to save notification preferences.'),
+      },
+    )
+  }
+
+
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <PageHeader title="Settings" description="Manage your account preferences and security." />
 
-      {/* Appearance */}
-      <Section title="Appearance" description="Choose how GambiaFund looks for you.">
-        <div className="flex gap-3">
-          {themes.map(({ id, icon: Icon, label }) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => setTheme(id)}
-              className={cn(
-                'flex-1 flex flex-col items-center gap-2 p-3 rounded-xl border text-sm font-medium transition-colors',
-                theme === id ? 'bg-primary/10 border-primary text-primary' : 'hover:bg-muted',
-              )}
-            >
-              <Icon className="w-5 h-5" />
-              {label}
-            </button>
-          ))}
-        </div>
-      </Section>
+     
 
       {/* Payment settings */}
       <Section title="Payment Settings" description="Set your default mobile money account for campaign withdrawals.">
@@ -298,7 +314,7 @@ export function SettingsPage() {
 
       {/* Notifications */}
       <Section title="Notifications" description="Choose what you'd like to be notified about.">
-        <div className="space-y-4">
+        <form onSubmit={handleNotificationSave} className="space-y-4">
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Campaign Activity</p>
           <div className="space-y-4 pl-1">
             <Toggle
@@ -357,16 +373,28 @@ export function SettingsPage() {
             </div>
           </div>
 
-          <div className="pt-2 flex justify-end">
+          {notifError && (
+            <p className="text-sm text-destructive flex items-center gap-1.5">
+              <AlertCircle className="w-4 h-4" /> {notifError}
+            </p>
+          )}
+
+          <div className="flex items-center justify-between gap-4 pt-2">
+            {notifSaved ? (
+              <span className="text-sm text-green-600 flex items-center gap-1.5 font-medium">
+                <CheckCircle2 className="w-4 h-4" /> Notification preferences saved
+              </span>
+            ) : <span />}
             <button
-              type="button"
-              onClick={() => {}}
-              className="text-sm bg-primary text-primary-foreground font-medium px-5 py-2 rounded-xl hover:bg-primary/90 transition-colors"
+              type="submit"
+              disabled={updateMe.isPending}
+              className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold px-5 py-2 rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50 text-sm"
             >
-              Save Preferences
+              <Bell className="w-4 h-4" />
+              {updateMe.isPending ? 'Saving…' : 'Save Preferences'}
             </button>
           </div>
-        </div>
+        </form>
       </Section>
 
       {/* Danger zone */}

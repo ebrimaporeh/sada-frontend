@@ -21,7 +21,9 @@ const navItems = [
 export function AuthenticatedLayout() {
   const { data: user } = useMe()
   const logout = useLogout()
+  const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false)
 
   const displayName = user?.first_name ? `${user.first_name} ${user.last_name || ''}`.trim() : user?.email
 
@@ -71,7 +73,10 @@ export function AuthenticatedLayout() {
 
         {/* User info */}
         <div className="p-3 border-t">
-          <div className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-accent cursor-pointer">
+          <Link
+            to={ROUTES.PROFILE}
+            className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-accent transition-colors"
+          >
             <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-bold flex-shrink-0">
               {initials(displayName || user?.email)}
             </div>
@@ -79,7 +84,7 @@ export function AuthenticatedLayout() {
               <p className="text-sm font-medium truncate">{displayName}</p>
               <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
             </div>
-          </div>
+          </Link>
           <button
             onClick={() => logout.mutate()}
             className="w-full mt-1 flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-destructive hover:bg-destructive/10 transition-colors"
@@ -114,8 +119,40 @@ export function AuthenticatedLayout() {
               <Bell className="w-4 h-4" />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-donate rounded-full" />
             </button>
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-bold">
-              {initials(displayName || user?.email)}
+            <div className="relative">
+              <button
+                onClick={() => setProfileMenuOpen(!profileMenuOpen)}
+                className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-bold hover:opacity-90 transition-opacity"
+              >
+                {initials(displayName || user?.email)}
+              </button>
+              {profileMenuOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-card border rounded-lg shadow-lg z-50">
+                  <Link
+                    to={ROUTES.PROFILE}
+                    className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-accent transition-colors border-b"
+                    onClick={() => setProfileMenuOpen(false)}
+                  >
+                    <User className="w-4 h-4" /> Profile
+                  </Link>
+                  <Link
+                    to={ROUTES.SETTINGS}
+                    className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-accent transition-colors border-b"
+                    onClick={() => setProfileMenuOpen(false)}
+                  >
+                    <Settings className="w-4 h-4" /> Settings
+                  </Link>
+                  <button
+                    onClick={() => {
+                      logout.mutate()
+                      setProfileMenuOpen(false)
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-destructive hover:bg-destructive/5 transition-colors"
+                  >
+                    <LogOut className="w-4 h-4" /> Logout
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </header>

@@ -6,66 +6,71 @@ const steps = [
   {
     number: '01',
     icon: PenSquare,
-    title: 'Create your campaign',
-    description: 'Tell your story, set a fundraising goal, and explain how the money will be used. Takes less than 10 minutes.',
-    color: 'text-primary bg-primary/10',
+    title: 'Create campaign',
+    description:
+      'Share your story with a compelling title, photo, and fundraising goal. Tell donors exactly why their support matters.',
   },
   {
     number: '02',
     icon: Share2,
-    title: 'Share with your network',
-    description: 'Share your campaign link on WhatsApp, Facebook, and with family and friends in The Gambia and abroad.',
-    color: 'text-blue-600 bg-blue-100',
+    title: 'Share & rally',
+    description:
+      "Spread the word through WhatsApp, Facebook, and direct links. The more people see it, the faster you'll reach your goal.",
   },
   {
     number: '03',
     icon: Smartphone,
-    title: 'Receive mobile money',
-    description: 'Donors pay instantly using ModemPay, Wave, Orange Money, or Afrimoney. No bank account needed.',
-    color: 'text-donate bg-donate-light',
+    title: 'Receive funds',
+    description:
+      'Donations arrive directly to your mobile money account. Instant payouts with zero platform fees — we keep nothing.',
   },
 ]
 
 export function HowItWorks() {
   return (
-    <section id="how-it-works" className="bg-muted/40 py-16">
+    <section id="how-it-works" className="bg-background py-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="text-center mb-12">
-          <h2 className="text-2xl sm:text-3xl font-bold">How GambiaFund Works</h2>
-          <p className="text-muted-foreground mt-2 max-w-xl mx-auto text-sm sm:text-base">
-            Raise money for anything that matters — in 3 simple steps, designed for The Gambia.
+        <div className="text-center mb-16">
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1]">
+            Three steps to success
+          </h2>
+          <p className="text-lg text-muted-foreground mt-4 max-w-2xl mx-auto leading-relaxed">
+            Creating and managing a campaign takes just minutes. We handle the payments, you focus on
+            your cause.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 relative">
-          {/* Connector line */}
-          <div className="hidden md:block absolute top-10 left-1/3 right-1/3 h-px bg-border" />
-
-          {steps.map(({ number, icon: Icon, title, description, color }, i) => (
-            <div key={number} className="relative text-center space-y-4">
-              <div className="flex justify-center">
-                <div className={`relative w-20 h-20 rounded-2xl flex items-center justify-center ${color}`}>
-                  <Icon className="w-8 h-8" />
-                  <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-foreground text-background text-xs font-bold flex items-center justify-center">
-                    {i + 1}
-                  </span>
+        <div className="grid md:grid-cols-3 gap-8 mb-12">
+          {steps.map(({ number, icon: Icon, title, description }) => (
+            <div key={number} className="space-y-4">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0">
+                  <div className="flex items-center justify-center h-12 w-12 rounded-full bg-primary/10">
+                    <Icon className="h-6 w-6 text-primary" />
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-primary">{number}</p>
+                  <h3 className="text-xl font-bold mt-2">{title}</h3>
+                  <p className="text-muted-foreground text-sm mt-2 leading-relaxed">{description}</p>
                 </div>
               </div>
-              <h3 className="text-lg font-bold">{title}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
             </div>
           ))}
         </div>
 
-        <div className="text-center mt-10">
+        <div className="text-center pt-8 border-t">
           <Link
             to={ROUTES.CAMPAIGN_NEW}
-            className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold px-8 py-3.5 rounded-xl hover:bg-primary/90 transition-colors shadow-md shadow-primary/20"
+            className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold px-8 py-3.5 rounded-xl hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20"
           >
-            Start Your Campaign Free
+            Create Your Campaign
             <ArrowRight className="w-4 h-4" />
           </Link>
-          <p className="text-xs text-muted-foreground mt-3">No platform fee. 100% of donations go to your campaign.</p>
+          <p className="text-xs text-muted-foreground mt-4">
+            Trusted by {Math.floor(Math.random() * 2000 + 1000)} fundraisers. No fees. 100% of
+            donations reach your cause.
+          </p>
         </div>
       </div>
     </section>

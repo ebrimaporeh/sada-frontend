@@ -55,10 +55,10 @@ export const DONATION_STATUS = {
 }
 
 export const PAYMENT_METHODS = [
-  { id: 'modempay',    name: 'ModemPay',     short: 'MP', color: 'bg-blue-600',   description: 'All mobile money networks' },
+  // { id: 'modempay',    name: 'ModemPay',     short: 'MP', color: 'bg-blue-600',   description: 'All mobile money networks' },
   { id: 'wave',        name: 'Wave',          short: 'W',  color: 'bg-cyan-500',   description: 'Wave mobile money' },
-  { id: 'orange_money',name: 'Orange Money',  short: 'OM', color: 'bg-orange-500', description: 'Orange Money' },
-  { id: 'afrimoney',   name: 'Afrimoney',     short: 'AF', color: 'bg-green-600',  description: 'Africell Afrimoney' },
+  // { id: 'orange_money',name: 'Orange Money',  short: 'OM', color: 'bg-orange-500', description: 'Orange Money' },
+  { id: 'aps',   name: 'Afrimoney',     short: 'AF', color: 'bg-blue-800',  description: 'APS mobile money' },
 ]
 
 export const GAMBIA_REGIONS = [

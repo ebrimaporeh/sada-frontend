@@ -1,57 +1,69 @@
+import { Smartphone, Shield, Zap, HeartHandshake } from 'lucide-react'
+
 const providers = [
-  { name: 'ModemPay', color: 'bg-blue-600', short: 'MP' },
-  { name: 'Wave', color: 'bg-cyan-500', short: 'W' },
-  { name: 'Orange Money', color: 'bg-orange-500', short: 'OM' },
-  { name: 'Afrimoney', color: 'bg-green-600', short: 'AF' },
+  { name: 'ModemPay', icon: '💳' },
+  { name: 'Wave', icon: '🌊' },
+  { name: 'Orange Money', icon: '🟠' },
+  { name: 'Afrimoney', icon: '💰' },
+]
+
+const benefits = [
+  {
+    icon: Zap,
+    title: 'Instant',
+    description: 'Donations arrive in seconds, not days.',
+  },
+  {
+    icon: Shield,
+    title: 'Secure',
+    description: 'Bank-level encryption protects every transaction.',
+  },
+  {
+    icon: HeartHandshake,
+    title: 'Diaspora-friendly',
+    description: 'Support from The Gambia and abroad with the same simplicity.',
+  },
 ]
 
 export function MobileMoneySection() {
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 py-14">
-      <div className="bg-gradient-to-br from-primary to-primary/80 rounded-3xl p-8 sm:p-12 text-primary-foreground overflow-hidden relative">
-        {/* Decorative circles */}
-        <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-white/5 -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full bg-white/5 translate-y-1/2 -translate-x-1/2" />
+    <section className="bg-gradient-to-br from-primary/5 via-background to-primary/5 py-24 border-t border-b">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="text-center mb-16">
+          <div className="inline-flex items-center gap-2 bg-primary/10 text-primary text-sm font-semibold px-3 py-1.5 rounded-full mb-4">
+            <Smartphone className="w-3.5 h-3.5" /> Mobile Money
+          </div>
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1]">
+            Donate with one tap
+          </h2>
+          <p className="text-muted-foreground mt-4 text-lg max-w-2xl mx-auto">
+            Send funds instantly using ModemPay, Wave, Orange Money, or Afrimoney — from The Gambia or
+            anywhere in the diaspora.
+          </p>
+        </div>
 
-        <div className="relative grid md:grid-cols-2 gap-8 items-center">
-          <div className="space-y-4">
-            <p className="text-sm font-semibold text-primary-foreground/70 uppercase tracking-wider">
-              No bank account needed
-            </p>
-            <h2 className="text-2xl sm:text-3xl font-bold leading-tight">
-              Pay with your phone in seconds
-            </h2>
-            <p className="text-primary-foreground/80 leading-relaxed">
-              GambiaFund uses ModemPay to accept donations from all major Gambian mobile money providers. Donate from anywhere — inside The Gambia or from the diaspora.
-            </p>
-            <div className="flex flex-wrap gap-3 pt-2">
-              {providers.map(({ name, color, short }) => (
-                <div key={name} className="flex items-center gap-2 bg-white/15 backdrop-blur rounded-lg px-3 py-2">
-                  <div className={`w-6 h-6 rounded flex items-center justify-center text-white text-xs font-bold ${color}`}>
-                    {short}
-                  </div>
-                  <span className="text-sm font-medium">{name}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="bg-white/10 rounded-2xl p-6 space-y-4">
-            <p className="text-sm font-semibold text-primary-foreground/70">Payment flow</p>
-            {[
-              'Donor selects amount',
-              'Chooses mobile money provider',
-              'Receives prompt on phone',
-              'Confirms with PIN',
-              'Donation confirmed ✓',
-            ].map((step, i) => (
-              <div key={step} className="flex items-center gap-3">
-                <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-xs font-bold flex-shrink-0">
-                  {i + 1}
-                </div>
-                <span className="text-sm">{step}</span>
+        <div className="grid md:grid-cols-3 gap-8 mb-16">
+          {benefits.map(({ icon: Icon, title, description }) => (
+            <div key={title} className="flex flex-col items-center text-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <Icon className="w-6 h-6 text-primary" />
               </div>
-            ))}
-          </div>
+              <h3 className="font-semibold text-lg">{title}</h3>
+              <p className="text-muted-foreground text-sm leading-relaxed">{description}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex justify-center gap-2 flex-wrap">
+          {providers.map(({ name, icon }) => (
+            <div
+              key={name}
+              className="inline-flex items-center gap-2 bg-card border border-border/50 px-4 py-2 rounded-full hover:border-primary/50 transition-colors"
+            >
+              <span className="text-lg">{icon}</span>
+              <span className="font-medium text-sm">{name}</span>
+            </div>
+          ))}
         </div>
       </div>
     </section>

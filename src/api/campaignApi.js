@@ -54,8 +54,21 @@ export const campaignApi = {
   deleteGalleryImage: (slug, imageId) =>
     apiClient.delete(`/campaigns/my/${slug}/media/${imageId}/`).then((r) => r.data),
 
-  addUpdate: (slug, data) =>
-    apiClient.post(`/campaigns/my/${slug}/updates/`, data).then((r) => r.data),
+  addUpdate: (slug, { data }) =>
+    apiClient.post(`/campaigns/my/${slug}/updates/`, data, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }).then((r) => r.data),
+
+  editUpdate: (slug, updateId, data) =>
+    apiClient.patch(`/campaigns/my/${slug}/updates/${updateId}/`, data, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }).then((r) => r.data),
+
+  deleteUpdate: (slug, updateId) =>
+    apiClient.delete(`/campaigns/my/${slug}/updates/${updateId}/`).then((r) => r.data),
+
+  reportCampaign: (slug, data) =>
+    apiClient.post(`/campaigns/${slug}/report/`, data).then((r) => r.data),
 
   togglePause: (slug) =>
     apiClient.post(`/campaigns/my/${slug}/pause/`).then((r) => r.data),

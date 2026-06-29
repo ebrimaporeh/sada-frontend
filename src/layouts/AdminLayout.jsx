@@ -2,24 +2,26 @@ import { Outlet, Link, useRouter } from '@tanstack/react-router'
 import { useMe } from '@/hooks/useAuth'
 import { ROLES, ROUTES } from '@/constants'
 import { Navigate } from '@tanstack/react-router'
-import { Users, Flag, Heart, LayoutDashboard, ArrowLeft, Home } from 'lucide-react'
+import { Users, Flag, Heart, LayoutDashboard, ArrowLeft, Home, User, LogOut } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import { settings } from '@/settings'
-
-const adminNav = [
-  { label: 'Dashboard', to: ROUTES.ADMIN_USERS, icon: LayoutDashboard, exact: false },
-  { label: 'Users', to: ROUTES.ADMIN_USERS, icon: Users },
-  { label: 'Campaigns', to: ROUTES.ADMIN_CAMPAIGNS, icon: Flag },
-  { label: 'Donations', to: ROUTES.ADMIN_DONATIONS, icon: Heart },
-]
+import { useState } from 'react'
 
 export function AdminLayout() {
   const { data: user, isLoading } = useMe()
+  const router = useRouter()
+  const [showProfileMenu, setShowProfileMenu] = useState(false)
 
   if (isLoading) return null
 
   if (!user || user.role !== ROLES.ADMIN) {
     return <Navigate to={ROUTES.DASHBOARD} />
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('access_token')
+    localStorage.removeItem('refresh_token')
+    router.navigate({ to: ROUTES.LOGIN })
   }
 
   return (
@@ -62,6 +64,12 @@ export function AdminLayout() {
         </nav>
         <div className="p-3 border-t space-y-0.5">
           <Link
+            to={ROUTES.PROFILE}
+            className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-accent"
+          >
+            <User className="w-4 h-4" /> Profile
+          </Link>
+          <Link
             to={ROUTES.DASHBOARD}
             className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
           >
@@ -75,9 +83,45 @@ export function AdminLayout() {
           </Link>
         </div>
       </aside>
-      <main className="flex-1 p-6 overflow-auto">
-        <Outlet />
-      </main>
+      <div className="flex-1 flex flex-col">
+        <header className="border-b bg-card px-6 py-4 flex items-center justify-between">
+          <h1 className="text-lg font-bold">Admin Dashboard</h1>
+          <div className="relative">
+            <button
+              onClick={() => setShowProfileMenu(!showProfileMenu)}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-accent transition-colors"
+            >
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">
+                {user?.full_name?.charAt(0) || '?'}
+              </div>
+              <span className="text-sm font-medium max-w-[100px] truncate">{user?.full_name || user?.email}</span>
+            </button>
+            {showProfileMenu && (
+              <div className="absolute right-0 mt-2 w-48 bg-card border rounded-lg shadow-lg z-50">
+                <Link
+                  to={ROUTES.PROFILE}
+                  className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-accent transition-colors border-b"
+                  onClick={() => setShowProfileMenu(false)}
+                >
+                  <User className="w-4 h-4" /> Profile
+                </Link>
+                <button
+                  onClick={() => {
+                    handleLogout()
+                    setShowProfileMenu(false)
+                  }}
+                  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-destructive hover:bg-destructive/5 transition-colors"
+                >
+                  <LogOut className="w-4 h-4" /> Logout
+                </button>
+              </div>
+            )}
+          </div>
+        </header>
+        <main className="flex-1 p-6 overflow-auto">
+          <Outlet />
+        </main>
+      </div>
     </div>
   )
 }
