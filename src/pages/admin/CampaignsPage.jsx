@@ -3,6 +3,7 @@ import { Link } from '@tanstack/react-router'
 import { CheckCircle2, XCircle, Eye, Search, Loader2, SearchX, ChevronLeft, ChevronRight, EyeOff } from 'lucide-react'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { ProgressBar } from '@/components/custom/ProgressBar'
+import { Sheet } from '@/components/custom/Sheet'
 import { formatGMD, formatDate, progressPercent } from '@/utils/formatters'
 import { useAdminCampaigns, useAdminCampaignAction } from '@/hooks/useCampaigns'
 import { useCampaignsStats } from '@/hooks/useAdmin'
@@ -26,7 +27,14 @@ export function CampaignsPage() {
   const [actioningId, setActioningId] = useState(null)
   const [page, setPage] = useState(1)
   const [showStats, setShowStats] = useState(true)
+  const [selectedCampaign, setSelectedCampaign] = useState(null)
+  const [isSheetOpen, setIsSheetOpen] = useState(false)
   const limit = 10
+
+  const handleSelectCampaign = (campaign) => {
+    setSelectedCampaign(campaign)
+    setIsSheetOpen(true)
+  }
 
   const { data: statsData, isLoading: statsLoading } = useCampaignsStats()
   const { data, isLoading } = useAdminCampaigns()
@@ -152,7 +160,11 @@ export function CampaignsPage() {
                   const isActioning = actioningId === c.id
                   const categoryName = c.category_name ?? c.category ?? '—'
                   return (
-                    <tr key={c.id} className="hover:bg-muted/30 transition-colors">
+                    <tr
+                      key={c.id}
+                      onClick={() => handleSelectCampaign(c)}
+                      className="hover:bg-muted/30 transition-colors cursor-pointer"
+                    >
                       <td className="px-4 py-3 max-w-[200px]">
                         <p className="font-medium line-clamp-1">{c.title}</p>
                         <p className="text-xs text-muted-foreground">{c.beneficiary}</p>
@@ -265,6 +277,58 @@ export function CampaignsPage() {
           </div>
         </div>
       )}
+
+      {/* Campaign Detail Sheet */}
+      <Sheet
+        isOpen={isSheetOpen}
+        onClose={() => setIsSheetOpen(false)}
+        title={selectedCampaign?.title}
+        footer={
+          <button
+            onClick={() => setIsSheetOpen(false)}
+            className="w-full px-4 py-2 rounded-lg border hover:bg-accent transition-colors text-sm font-medium"
+          >
+            Close
+          </button>
+        }
+      >
+        {selectedCampaign && (
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">BENEFICIARY</label>
+              <p className="text-sm mt-1">{selectedCampaign.beneficiary || '—'}</p>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">REGION</label>
+              <p className="text-sm mt-1">{selectedCampaign.region || '—'}</p>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">CATEGORY</label>
+              <p className="text-sm mt-1">{selectedCampaign.category_name || '—'}</p>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">GOAL</label>
+              <p className="text-sm mt-1">{formatGMD(selectedCampaign.goal)}</p>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">RAISED</label>
+              <p className="text-sm mt-1">{formatGMD(selectedCampaign.raised)}</p>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">PROGRESS</label>
+              <p className="text-sm mt-1">{progressPercent(selectedCampaign.raised, selectedCampaign.goal)}%</p>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">STATUS</label>
+              <p className="text-sm mt-1 capitalize">{selectedCampaign.status}</p>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">DEADLINE</label>
+              <p className="text-sm mt-1">{formatDate(selectedCampaign.deadline)}</p>
+            </div>
+          </div>
+        )}
+      </Sheet>
     </div>
   )
 }

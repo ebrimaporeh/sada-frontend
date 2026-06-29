@@ -1,20 +1,28 @@
 import { useState } from 'react'
-import { ChevronLeft, ChevronRight, Eye, EyeOff } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Eye, EyeOff, Loader2 } from 'lucide-react'
 import { useUsers } from '@/hooks/useUsers'
 import { useUsersStats } from '@/hooks/useAdmin'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
 import { EmptyState } from '@/components/custom/EmptyState'
 import { StatSkeleton } from '@/components/custom/StatSkeleton'
+import { Sheet } from '@/components/custom/Sheet'
 import { formatDate } from '@/utils/formatters'
 
 export function UsersPage() {
   const [page, setPage] = useState(1)
   const [showStats, setShowStats] = useState(true)
+  const [selectedUser, setSelectedUser] = useState(null)
+  const [isSheetOpen, setIsSheetOpen] = useState(false)
   const limit = 10
 
   const { data: statsData, isLoading: statsLoading } = useUsersStats()
   const { data, isLoading } = useUsers({ limit, offset: (page - 1) * limit })
+
+  const handleSelectUser = (user) => {
+    setSelectedUser(user)
+    setIsSheetOpen(true)
+  }
 
   const users = data?.results || []
   const totalPages = Math.ceil((data?.count || 0) / limit)
@@ -81,7 +89,11 @@ export function UsersPage() {
                     </tr>
                   ) : (
                     users.map((user) => (
-                      <tr key={user.id} className="hover:bg-muted/50">
+                      <tr
+                        key={user.id}
+                        onClick={() => handleSelectUser(user)}
+                        className="hover:bg-muted/50 cursor-pointer transition-colors"
+                      >
                         <td className="px-4 py-3">{user.full_name || '—'}</td>
                         <td className="px-4 py-3">{user.email}</td>
                         <td className="px-4 py-3 capitalize">{user.role}</td>
@@ -135,6 +147,42 @@ export function UsersPage() {
           )}
         </>
       )}
+
+      {/* User Detail Sheet */}
+      <Sheet
+        isOpen={isSheetOpen}
+        onClose={() => setIsSheetOpen(false)}
+        title={selectedUser?.full_name || selectedUser?.email}
+        footer={
+          <button
+            onClick={() => setIsSheetOpen(false)}
+            className="w-full px-4 py-2 rounded-lg border hover:bg-accent transition-colors text-sm font-medium"
+          >
+            Close
+          </button>
+        }
+      >
+        {selectedUser && (
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">EMAIL</label>
+              <p className="text-sm mt-1">{selectedUser.email}</p>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">FULL NAME</label>
+              <p className="text-sm mt-1">{selectedUser.full_name || '—'}</p>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">ROLE</label>
+              <p className="text-sm mt-1 capitalize">{selectedUser.role}</p>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">JOINED</label>
+              <p className="text-sm mt-1">{formatDate(selectedUser.created_at)}</p>
+            </div>
+          </div>
+        )}
+      </Sheet>
     </div>
   )
 }

@@ -3,6 +3,7 @@ import { AlertCircle, Flag, TrendingUp, CheckCircle, Clock, Loader2, Eye, EyeOff
 import { cn } from '@/utils/cn'
 import { useAdminReports, useReportsStats } from '@/hooks/useAdmin'
 import { StatSkeleton } from '@/components/custom/StatSkeleton'
+import { Sheet } from '@/components/custom/Sheet'
 import { formatDate } from '@/utils/formatters'
 
 const reasonLabels = {
@@ -24,6 +25,7 @@ const statusConfig = {
 export function ReportsPage() {
   const [filter, setFilter] = useState('all')
   const [selectedReport, setSelectedReport] = useState(null)
+  const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [page, setPage] = useState(1)
   const [showStats, setShowStats] = useState(true)
   const limit = 10
@@ -34,6 +36,11 @@ export function ReportsPage() {
   const allReports = reportsData?.results || []
   const totalPages = Math.ceil(allReports.length / limit)
   const filteredReports = allReports.slice((page - 1) * limit, page * limit)
+
+  const handleSelectReport = (report) => {
+    setSelectedReport(report)
+    setIsSheetOpen(true)
+  }
 
   return (
     <div className="space-y-6">
@@ -107,9 +114,7 @@ export function ReportsPage() {
       </div>
 
       {/* Reports Grid */}
-      <div className="grid lg:grid-cols-3 gap-4">
-        {/* Reports List */}
-        <div className="lg:col-span-2 space-y-3">
+      <div className="space-y-3">
           {isLoading ? (
             <div className="border rounded-xl p-12 text-center flex items-center justify-center">
               <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
@@ -137,10 +142,9 @@ export function ReportsPage() {
               return (
                 <button
                   key={report.id}
-                  onClick={() => setSelectedReport(report)}
+                  onClick={() => handleSelectReport(report)}
                   className={cn(
-                    'w-full border rounded-xl p-4 text-left hover:shadow-md transition-all',
-                    selectedReport?.id === report.id && 'border-primary bg-primary/5'
+                    'w-full border rounded-xl p-4 text-left hover:shadow-md transition-all cursor-pointer'
                   )}
                 >
                   <div className="flex items-start justify-between mb-3">
@@ -209,87 +213,77 @@ export function ReportsPage() {
           )}
         </div>
 
-        {/* Report Details */}
-        <div className="lg:col-span-1">
-          {selectedReport ? (
-            <div className="border rounded-xl p-5 bg-card space-y-5 sticky top-20">
+      {/* Report Detail Sheet */}
+      <Sheet
+        isOpen={isSheetOpen}
+        onClose={() => setIsSheetOpen(false)}
+        title={selectedReport?.campaign?.title || 'Report Details'}
+        footer={
+          <button
+            onClick={() => setIsSheetOpen(false)}
+            className="w-full px-4 py-2 rounded-lg border hover:bg-accent transition-colors text-sm font-medium"
+          >
+            Close
+          </button>
+        }
+      >
+        {selectedReport && (
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">REPORTER</label>
+              <p className="text-sm mt-1">{selectedReport.reported_by?.full_name || selectedReport.reporter_name || 'Anonymous'}</p>
+            </div>
+
+            {selectedReport.reported_by?.email && (
               <div>
-                <h2 className="font-bold text-lg line-clamp-2">{selectedReport.campaign?.title || 'Unknown Campaign'}</h2>
-                <p className="text-sm text-muted-foreground mt-1">Campaign Report Details</p>
+                <label className="text-xs font-semibold text-muted-foreground">EMAIL</label>
+                <p className="text-sm mt-1 text-muted-foreground">{selectedReport.reported_by.email}</p>
               </div>
+            )}
 
-              <div className="space-y-4">
-                <div>
-                  <p className="text-xs font-semibold text-muted-foreground mb-1">REPORTER</p>
-                  <p className="text-sm">{selectedReport.reported_by?.full_name || selectedReport.reporter_name || 'Anonymous'}</p>
-                </div>
-
-                {selectedReport.reported_by?.email && (
-                  <div>
-                    <p className="text-xs font-semibold text-muted-foreground mb-1">EMAIL</p>
-                    <p className="text-sm text-muted-foreground">{selectedReport.reported_by.email}</p>
-                  </div>
-                )}
-
-                {selectedReport.reporter_phone && (
-                  <div>
-                    <p className="text-xs font-semibold text-muted-foreground mb-1">PHONE</p>
-                    <p className="text-sm text-muted-foreground">{selectedReport.reporter_phone}</p>
-                  </div>
-                )}
-
-                <div>
-                  <p className="text-xs font-semibold text-muted-foreground mb-1">REASON</p>
-                  <div className={cn('inline-block px-3 py-1.5 rounded-lg text-xs font-semibold', reasonLabels[selectedReport.reason]?.color)}>
-                    {reasonLabels[selectedReport.reason]?.label || selectedReport.reason}
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-xs font-semibold text-muted-foreground mb-2">DESCRIPTION</p>
-                  <p className="text-sm text-foreground/90 leading-relaxed">{selectedReport.description}</p>
-                </div>
-
-                <div>
-                  <p className="text-xs font-semibold text-muted-foreground mb-1">STATUS</p>
-                  <div className={cn('inline-flex items-center gap-2 px-3 py-1.5 rounded-lg', statusConfig[selectedReport.status]?.bgColor)}>
-                    {(() => {
-                      const StatusIcon = statusConfig[selectedReport.status]?.icon || AlertCircle
-                      return (
-                        <>
-                          <StatusIcon className={`w-4 h-4 ${statusConfig[selectedReport.status]?.color}`} />
-                          <span className={`text-sm font-medium ${statusConfig[selectedReport.status]?.color}`}>
-                            {statusConfig[selectedReport.status]?.label || selectedReport.status}
-                          </span>
-                        </>
-                      )
-                    })()}
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-xs font-semibold text-muted-foreground mb-1">REPORTED ON</p>
-                  <p className="text-sm text-muted-foreground">{formatDate(selectedReport.created_at)}</p>
-                </div>
+            {selectedReport.reporter_phone && (
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground">PHONE</label>
+                <p className="text-sm mt-1 text-muted-foreground">{selectedReport.reporter_phone}</p>
               </div>
+            )}
 
-              <div className="border-t pt-4 space-y-2">
-                <button className="w-full px-4 py-2.5 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors text-sm">
-                  Take Action
-                </button>
-                <button className="w-full px-4 py-2.5 border rounded-lg hover:bg-accent transition-colors text-sm font-medium">
-                  View Campaign
-                </button>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">REASON</label>
+              <div className={cn('inline-block px-3 py-1.5 rounded-lg text-xs font-semibold mt-1', reasonLabels[selectedReport.reason]?.color)}>
+                {reasonLabels[selectedReport.reason]?.label || selectedReport.reason}
               </div>
             </div>
-          ) : (
-            <div className="border rounded-xl p-8 text-center space-y-3 text-muted-foreground">
-              <AlertCircle className="w-12 h-12 mx-auto opacity-30" />
-              <p>Select a report to view details</p>
+
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">DESCRIPTION</label>
+              <p className="text-sm mt-2 text-foreground/90 leading-relaxed">{selectedReport.description}</p>
             </div>
-          )}
-        </div>
-      </div>
+
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">STATUS</label>
+              <div className={cn('inline-flex items-center gap-2 px-3 py-1.5 rounded-lg mt-1', statusConfig[selectedReport.status]?.bgColor)}>
+                {(() => {
+                  const StatusIcon = statusConfig[selectedReport.status]?.icon || AlertCircle
+                  return (
+                    <>
+                      <StatusIcon className={`w-4 h-4 ${statusConfig[selectedReport.status]?.color}`} />
+                      <span className={`text-sm font-medium ${statusConfig[selectedReport.status]?.color}`}>
+                        {statusConfig[selectedReport.status]?.label || selectedReport.status}
+                      </span>
+                    </>
+                  )
+                })()}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">REPORTED ON</label>
+              <p className="text-sm mt-1 text-muted-foreground">{formatDate(selectedReport.created_at)}</p>
+            </div>
+          </div>
+        )}
+      </Sheet>
     </div>
   )
 }

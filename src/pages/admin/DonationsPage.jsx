@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Search, Loader2, SearchX, Eye, EyeOff, ChevronLeft, ChevronRight } from 'lucide-react'
 import { PageHeader } from '@/components/custom/PageHeader'
+import { Sheet } from '@/components/custom/Sheet'
 import { formatGMD, formatDateTime } from '@/utils/formatters'
 import { useAdminDonations } from '@/hooks/useDonations'
 import { useDonationsStats } from '@/hooks/useAdmin'
@@ -20,7 +21,14 @@ export function DonationsPage() {
   const [statusFilter, setStatusFilter] = useState('all')
   const [page, setPage] = useState(1)
   const [showStats, setShowStats] = useState(true)
+  const [selectedDonation, setSelectedDonation] = useState(null)
+  const [isSheetOpen, setIsSheetOpen] = useState(false)
   const limit = 10
+
+  const handleSelectDonation = (donation) => {
+    setSelectedDonation(donation)
+    setIsSheetOpen(true)
+  }
 
   const { data: statsData, isLoading: statsLoading } = useDonationsStats()
   const { data, isLoading } = useAdminDonations()
@@ -139,7 +147,11 @@ export function DonationsPage() {
                   const campaignTitle = d.campaign_title ?? d.campaign ?? '—'
                   const date = d.paid_at ?? d.created_at ?? d.date
                   return (
-                    <tr key={d.id} className="hover:bg-muted/30 transition-colors">
+                    <tr
+                      key={d.id}
+                      onClick={() => handleSelectDonation(d)}
+                      className="hover:bg-muted/30 transition-colors cursor-pointer"
+                    >
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary flex-shrink-0">
@@ -212,6 +224,46 @@ export function DonationsPage() {
           </div>
         </div>
       )}
+
+      {/* Donation Detail Sheet */}
+      <Sheet
+        isOpen={isSheetOpen}
+        onClose={() => setIsSheetOpen(false)}
+        title={selectedDonation ? `Donation: ${formatGMD(selectedDonation.amount)}` : 'Donation Details'}
+        footer={
+          <button
+            onClick={() => setIsSheetOpen(false)}
+            className="w-full px-4 py-2 rounded-lg border hover:bg-accent transition-colors text-sm font-medium"
+          >
+            Close
+          </button>
+        }
+      >
+        {selectedDonation && (
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">DONOR</label>
+              <p className="text-sm mt-1">{selectedDonation.is_anonymous ? 'Anonymous' : (selectedDonation.donor_name || '—')}</p>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">CAMPAIGN</label>
+              <p className="text-sm mt-1">{selectedDonation.campaign_title || '—'}</p>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">AMOUNT</label>
+              <p className="text-sm mt-1 font-bold text-primary">{formatGMD(selectedDonation.amount)}</p>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">STATUS</label>
+              <p className="text-sm mt-1 capitalize">{selectedDonation.status || 'paid'}</p>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">DATE</label>
+              <p className="text-sm mt-1">{formatDateTime(selectedDonation.paid_at || selectedDonation.created_at)}</p>
+            </div>
+          </div>
+        )}
+      </Sheet>
     </div>
   )
 }
