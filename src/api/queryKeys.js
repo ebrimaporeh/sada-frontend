@@ -29,4 +29,10 @@ export const queryKeys = {
     list: () => ['notifications'],
     unreadCount: () => ['notifications', 'unread-count'],
   },
+  admin: {
+    stats: () => ['admin', 'stats'],
+    full: () => ['admin', 'dashboard'],
+    reports: (params) => ['admin', 'reports', params],
+    finances: () => ['admin', 'finances'],
+  },
 }
