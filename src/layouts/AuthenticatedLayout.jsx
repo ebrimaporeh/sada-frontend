@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { Outlet, Link, useRouter } from '@tanstack/react-router'
+import { Outlet, Link, useRouter, Navigate } from '@tanstack/react-router'
 import { useMe, useLogout } from '@/hooks/useAuth'
 import { settings } from '@/settings'
-import { ROUTES } from '@/constants'
+import { ROUTES, ROLES } from '@/constants'
 import { initials } from '@/utils/formatters'
 import { cn } from '@/utils/cn'
 import {
@@ -19,11 +19,24 @@ const navItems = [
 ]
 
 export function AuthenticatedLayout() {
-  const { data: user } = useMe()
+  const { data: user, isLoading } = useMe()
   const logout = useLogout()
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
+
+  // Redirect admins to admin layout
+  if (!isLoading && user?.role === ROLES.ADMIN) {
+    return <Navigate to="/admin" />
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-muted/30 flex items-center justify-center">
+        <div className="text-muted-foreground">Loading...</div>
+      </div>
+    )
+  }
 
   const displayName = user?.first_name ? `${user.first_name} ${user.last_name || ''}`.trim() : user?.email
 

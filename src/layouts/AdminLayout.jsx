@@ -1,7 +1,6 @@
-import { Outlet, Link, useRouter } from '@tanstack/react-router'
+import { Outlet, Link, useRouter, Navigate } from '@tanstack/react-router'
 import { useMe } from '@/hooks/useAuth'
 import { ROLES, ROUTES } from '@/constants'
-import { Navigate } from '@tanstack/react-router'
 import { Users, Flag, Heart, LayoutDashboard, ArrowLeft, Home, LogOut, AlertCircle, BarChart3 } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import { settings } from '@/settings'
@@ -12,7 +11,13 @@ export function AdminLayout() {
   const router = useRouter()
   const [showProfileMenu, setShowProfileMenu] = useState(false)
 
-  if (isLoading) return null
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-muted/30 flex items-center justify-center">
+        <div className="text-muted-foreground">Loading...</div>
+      </div>
+    )
+  }
 
   if (!user || user.role !== ROLES.ADMIN) {
     return <Navigate to={ROUTES.DASHBOARD} />
