@@ -28,9 +28,12 @@ import { CampaignNewPage } from '@/pages/authenticated/CampaignNewPage'
 import { SettingsPage } from '@/pages/authenticated/SettingsPage'
 
 // Pages — admin
+import { AdminDashboardPage } from '@/pages/admin/DashboardPage'
 import { UsersPage } from '@/pages/admin/UsersPage'
 import { CampaignsPage as AdminCampaignsPage } from '@/pages/admin/CampaignsPage'
 import { DonationsPage as AdminDonationsPage } from '@/pages/admin/DonationsPage'
+import { ReportsPage } from '@/pages/admin/ReportsPage'
+import { FinancesPage } from '@/pages/admin/FinancesPage'
 
 import { ROLES, ROUTES } from '@/constants'
 
@@ -196,6 +199,24 @@ const adminDonationsRoute = createRoute({
   component: AdminDonationsPage,
 })
 
+const adminDashboardRoute = createRoute({
+  getParentRoute: () => adminLayout,
+  path: '/admin',
+  component: AdminDashboardPage,
+})
+
+const adminReportsRoute = createRoute({
+  getParentRoute: () => adminLayout,
+  path: '/admin/reports',
+  component: ReportsPage,
+})
+
+const adminFinancesRoute = createRoute({
+  getParentRoute: () => adminLayout,
+  path: '/admin/finances',
+  component: FinancesPage,
+})
+
 // ─── Router ───────────────────────────────────────────────────────────────────
 
 const routeTree = rootRoute.addChildren([
@@ -221,9 +242,12 @@ const routeTree = rootRoute.addChildren([
     campaignNewRoute,
   ]),
   adminLayout.addChildren([
+    adminDashboardRoute,
     adminUsersRoute,
     adminCampaignsRoute,
     adminDonationsRoute,
+    adminReportsRoute,
+    adminFinancesRoute,
   ]),
 ])
 

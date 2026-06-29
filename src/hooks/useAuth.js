@@ -3,6 +3,7 @@ import { useNavigate } from '@tanstack/react-router'
 import { queryKeys } from '@/api/queryKeys'
 import { authApi } from '@/api/authApi'
 import { userApi } from '@/api/userApi'
+import { ROLES } from '@/constants'
 
 export function useMe() {
   return useQuery({
@@ -33,7 +34,8 @@ export function useLogin() {
       localStorage.setItem('access_token', data.data.tokens.access)
       localStorage.setItem('refresh_token', data.data.tokens.refresh)
       queryClient.setQueryData(queryKeys.auth.me(), data.data.user)
-      navigate({ to: '/dashboard' })
+      const destination = data.data.user.role === ROLES.ADMIN ? '/admin' : '/dashboard'
+      navigate({ to: destination })
     },
   })
 }
@@ -48,7 +50,8 @@ export function useRegister() {
       localStorage.setItem('access_token', data.data.tokens.access)
       localStorage.setItem('refresh_token', data.data.tokens.refresh)
       queryClient.setQueryData(queryKeys.auth.me(), data.data.user)
-      navigate({ to: '/dashboard' })
+      const destination = data.data.user.role === ROLES.ADMIN ? '/admin' : '/dashboard'
+      navigate({ to: destination })
     },
   })
 }
@@ -85,7 +88,8 @@ export function useGoogleOAuth() {
       localStorage.setItem('access_token', data.data.tokens.access)
       localStorage.setItem('refresh_token', data.data.tokens.refresh)
       queryClient.setQueryData(queryKeys.auth.me(), data.data.user)
-      navigate({ to: '/dashboard' })
+      const destination = data.data.user.role === ROLES.ADMIN ? '/admin' : '/dashboard'
+      navigate({ to: destination })
     },
   })
 }

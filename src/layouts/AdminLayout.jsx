@@ -2,7 +2,7 @@ import { Outlet, Link, useRouter } from '@tanstack/react-router'
 import { useMe } from '@/hooks/useAuth'
 import { ROLES, ROUTES } from '@/constants'
 import { Navigate } from '@tanstack/react-router'
-import { Users, Flag, Heart, LayoutDashboard, ArrowLeft, Home, User, LogOut } from 'lucide-react'
+import { Users, Flag, Heart, LayoutDashboard, ArrowLeft, Home, LogOut, AlertCircle, BarChart3 } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import { settings } from '@/settings'
 import { useState } from 'react'
@@ -38,40 +38,61 @@ export function AdminLayout() {
         </div>
         <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
           <Link
-            to={ROUTES.ADMIN_USERS}
-            className={cn('flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-accent')}
+            to="/admin"
+            className={cn('flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-accent [&.active]:bg-primary/10 [&.active]:text-primary')}
           >
-            <LayoutDashboard className="w-4 h-4" /> Overview
+            <LayoutDashboard className="w-4 h-4" /> Dashboard
           </Link>
+
+          <div className="px-3 py-2 mt-4">
+            <p className="text-xs font-semibold text-muted-foreground uppercase">Management</p>
+          </div>
+
           <Link
             to={ROUTES.ADMIN_USERS}
-            className={cn('flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-accent')}
+            className={cn('flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-accent [&.active]:bg-primary/10 [&.active]:text-primary')}
           >
             <Users className="w-4 h-4" /> Users
           </Link>
           <Link
             to={ROUTES.ADMIN_CAMPAIGNS}
-            className={cn('flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-accent')}
+            className={cn('flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-accent [&.active]:bg-primary/10 [&.active]:text-primary')}
           >
             <Flag className="w-4 h-4" /> Campaigns
           </Link>
           <Link
             to={ROUTES.ADMIN_DONATIONS}
-            className={cn('flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-accent')}
+            className={cn('flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-accent [&.active]:bg-primary/10 [&.active]:text-primary')}
           >
             <Heart className="w-4 h-4" /> Donations
+          </Link>
+
+          <div className="px-3 py-2 mt-4">
+            <p className="text-xs font-semibold text-muted-foreground uppercase">Moderation</p>
+          </div>
+
+          <Link
+            to="/admin/reports"
+            className={cn('flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-accent [&.active]:bg-primary/10 [&.active]:text-primary')}
+          >
+            <AlertCircle className="w-4 h-4" /> Reports
+          </Link>
+
+          <div className="px-3 py-2 mt-4">
+            <p className="text-xs font-semibold text-muted-foreground uppercase">Analytics</p>
+          </div>
+
+          <Link
+            to="/admin/finances"
+            className={cn('flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-accent [&.active]:bg-primary/10 [&.active]:text-primary')}
+          >
+            <BarChart3 className="w-4 h-4" /> Finances
           </Link>
         </nav>
         <div className="p-3 border-t space-y-0.5">
           <Link
-            to={ROUTES.PROFILE}
-            className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-accent"
-          >
-            <User className="w-4 h-4" /> Profile
-          </Link>
-          <Link
             to={ROUTES.DASHBOARD}
-            className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+            className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-accent"
           >
             <ArrowLeft className="w-4 h-4" /> Back to App
           </Link>
