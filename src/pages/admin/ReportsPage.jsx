@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { AlertCircle, Flag, TrendingUp, CheckCircle, Clock, Loader2 } from 'lucide-react'
+import { AlertCircle, Flag, TrendingUp, CheckCircle, Clock, Loader2, Eye, EyeOff, ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@/utils/cn'
-import { useAdminReports } from '@/hooks/useAdmin'
+import { useAdminReports, useReportsStats } from '@/hooks/useAdmin'
+import { StatSkeleton } from '@/components/custom/StatSkeleton'
 import { formatDate } from '@/utils/formatters'
 
 const reasonLabels = {
@@ -23,21 +24,69 @@ const statusConfig = {
 export function ReportsPage() {
   const [filter, setFilter] = useState('all')
   const [selectedReport, setSelectedReport] = useState(null)
+  const [page, setPage] = useState(1)
+  const [showStats, setShowStats] = useState(true)
+  const limit = 10
+
+  const { data: statsData, isLoading: statsLoading } = useReportsStats()
   const { data: reportsData, isLoading } = useAdminReports({ status: filter === 'all' ? undefined : filter })
 
   const allReports = reportsData?.results || []
-  const filteredReports = allReports
+  const totalPages = Math.ceil(allReports.length / limit)
+  const filteredReports = allReports.slice((page - 1) * limit, page * limit)
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold flex items-center gap-2">
-          <Flag className="w-8 h-8" />
-          Campaign Reports
-        </h1>
-        <p className="text-muted-foreground mt-2">Review and manage campaign complaints and flags</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            <Flag className="w-8 h-8" />
+            Campaign Reports
+          </h1>
+          <p className="text-muted-foreground mt-2">Review and manage campaign complaints and flags</p>
+        </div>
+        <button
+          onClick={() => setShowStats(!showStats)}
+          className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-accent transition-colors text-sm font-medium"
+        >
+          {showStats ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+          {showStats ? 'Hide Stats' : 'Show Stats'}
+        </button>
       </div>
+
+      {/* Stats Grid */}
+      {showStats && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {statsLoading ? (
+            <>
+              <StatSkeleton />
+              <StatSkeleton />
+              <StatSkeleton />
+              <StatSkeleton />
+            </>
+          ) : (
+            <>
+              <div className="border rounded-xl p-4 bg-card">
+                <p className="text-2xl font-extrabold text-blue-600">{statsData?.total_reports || 0}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Total Reports</p>
+              </div>
+              <div className="border rounded-xl p-4 bg-card">
+                <p className="text-2xl font-extrabold text-amber-600">{statsData?.pending_reports || 0}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Pending Review</p>
+              </div>
+              <div className="border rounded-xl p-4 bg-card">
+                <p className="text-2xl font-extrabold text-blue-600">{statsData?.investigating_reports || 0}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Investigating</p>
+              </div>
+              <div className="border rounded-xl p-4 bg-card">
+                <p className="text-2xl font-extrabold text-green-600">{statsData?.resolved_reports || 0}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Resolved</p>
+              </div>
+            </>
+          )}
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex gap-2 flex-wrap">
@@ -117,6 +166,46 @@ export function ReportsPage() {
                 </button>
               )
             })
+          )}
+
+          {/* Pagination */}
+          {allReports.length > 0 && totalPages > 1 && (
+            <div className="flex items-center justify-between pt-4 border-t">
+              <p className="text-sm text-muted-foreground">
+                Page {page} of {totalPages}
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setPage(Math.max(1, page - 1))}
+                  disabled={page === 1}
+                  className="p-2 rounded-lg border hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                    <button
+                      key={p}
+                      onClick={() => setPage(p)}
+                      className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
+                        p === page
+                          ? 'bg-primary text-primary-foreground'
+                          : 'border hover:bg-accent'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={() => setPage(Math.min(totalPages, page + 1))}
+                  disabled={page === totalPages}
+                  className="p-2 rounded-lg border hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
           )}
         </div>
 

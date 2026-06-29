@@ -28,6 +28,79 @@ export const adminApi = {
     }
   },
 
+  // Stats by page
+  getUsersStats: async () => {
+    try {
+      const users = await apiClient.get('/users/?limit=1').then(r => r.data)
+      return { total_users: users.count || 0 }
+    } catch {
+      return { total_users: 0 }
+    }
+  },
+
+  getCampaignsStats: async () => {
+    try {
+      const campaigns = await apiClient.get('/campaigns/admin/all/?limit=1').then(r => r.data)
+      const allCampaigns = campaigns.results || []
+      return {
+        total_campaigns: campaigns.count || 0,
+        active_campaigns: allCampaigns.filter(c => c.status === 'active').length,
+        pending_campaigns: allCampaigns.filter(c => c.status === 'pending').length,
+        completed_campaigns: allCampaigns.filter(c => c.status === 'completed').length,
+      }
+    } catch {
+      return { total_campaigns: 0, active_campaigns: 0, pending_campaigns: 0, completed_campaigns: 0 }
+    }
+  },
+
+  getDonationsStats: async () => {
+    try {
+      const donations = await apiClient.get('/donations/admin/all/?limit=1000').then(r => r.data)
+      const allDonations = donations.results || []
+      const totalRaised = allDonations.reduce((sum, d) => sum + (d.amount || 0), 0)
+      const avgDonation = allDonations.length > 0 ? Math.round(totalRaised / allDonations.length) : 0
+      return {
+        total_donations: donations.count || 0,
+        total_raised: totalRaised,
+        average_donation: avgDonation,
+        anonymous_count: allDonations.filter(d => d.is_anonymous).length,
+      }
+    } catch {
+      return { total_donations: 0, total_raised: 0, average_donation: 0, anonymous_count: 0 }
+    }
+  },
+
+  getFinancesStats: async () => {
+    try {
+      const donations = await apiClient.get('/donations/admin/all/?limit=1000').then(r => r.data)
+      const allDonations = donations.results || []
+      const totalRaised = allDonations.reduce((sum, d) => sum + (d.amount || 0), 0)
+      const avgDonation = allDonations.length > 0 ? Math.round(totalRaised / allDonations.length) : 0
+      return {
+        total_donations: totalRaised,
+        total_payouts: 0,
+        platform_fees: 0,
+        average_donation: avgDonation,
+      }
+    } catch {
+      return { total_donations: 0, total_payouts: 0, platform_fees: 0, average_donation: 0 }
+    }
+  },
+
+  getReportsStats: async () => {
+    try {
+      const reports = await apiClient.get('/campaigns/admin/reports/?limit=1').then(r => r.data)
+      return {
+        total_reports: reports.count || 0,
+        pending_reports: reports.results?.filter(r => r.status === 'pending').length || 0,
+        investigating_reports: reports.results?.filter(r => r.status === 'investigating').length || 0,
+        resolved_reports: reports.results?.filter(r => r.status === 'resolved').length || 0,
+      }
+    } catch {
+      return { total_reports: 0, pending_reports: 0, investigating_reports: 0, resolved_reports: 0 }
+    }
+  },
+
   // Reports with filtering and pagination
   getReports: (params = {}) =>
     apiClient.get('/campaigns/admin/reports/', { params }).then(r => r.data),

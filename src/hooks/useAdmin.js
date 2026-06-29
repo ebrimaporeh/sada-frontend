@@ -29,3 +29,39 @@ export function useFinancialOverview() {
     queryFn: adminApi.getFinancialOverview,
   })
 }
+
+// Separate stats hooks for individual pages
+export function useUsersStats() {
+  return useQuery({
+    queryKey: ['admin', 'stats', 'users'],
+    queryFn: adminApi.getUsersStats,
+  })
+}
+
+export function useCampaignsStats() {
+  return useQuery({
+    queryKey: ['admin', 'stats', 'campaigns'],
+    queryFn: adminApi.getCampaignsStats,
+  })
+}
+
+export function useDonationsStats() {
+  return useQuery({
+    queryKey: ['admin', 'stats', 'donations'],
+    queryFn: adminApi.getDonationsStats,
+  })
+}
+
+export function useFinancesStats() {
+  return useQuery({
+    queryKey: ['admin', 'stats', 'finances'],
+    queryFn: adminApi.getFinancesStats,
+  })
+}
+
+export function useReportsStats() {
+  return useQuery({
+    queryKey: ['admin', 'stats', 'reports'],
+    queryFn: adminApi.getReportsStats,
+  })
+}

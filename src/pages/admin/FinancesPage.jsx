@@ -1,10 +1,21 @@
-import { TrendingUp, TrendingDown, DollarSign, ArrowUpRight, ArrowDownLeft, Loader2 } from 'lucide-react'
+import { useState } from 'react'
+import { TrendingUp, TrendingDown, DollarSign, ArrowUpRight, ArrowDownLeft, Loader2, Eye, EyeOff, ChevronLeft, ChevronRight } from 'lucide-react'
 import { formatGMD, progressPercent } from '@/utils/formatters'
-import { useFinancialOverview } from '@/hooks/useAdmin'
+import { useFinancialOverview, useFinancesStats } from '@/hooks/useAdmin'
+import { StatSkeleton } from '@/components/custom/StatSkeleton'
 import { CAMPAIGN_STATUS } from '@/constants'
 
 export function FinancesPage() {
+  const [showStats, setShowStats] = useState(true)
+  const [page, setPage] = useState(1)
+  const limit = 5
+
+  const { data: statsData, isLoading: statsLoading } = useFinancesStats()
   const { data: financialData, isLoading } = useFinancialOverview()
+
+  const topCampaigns = financialData?.top_campaigns || []
+  const totalPages = Math.ceil(topCampaigns.length / limit)
+  const paginatedTopCampaigns = topCampaigns.slice((page - 1) * limit, page * limit)
 
   if (isLoading) {
     return (
@@ -57,7 +68,15 @@ export function FinancesPage() {
     { source: 'Premium Features', amount: formatGMD(0), percentage: 0, icon: '⭐' },
   ]
 
-  const topCampaigns = (stats.top_campaigns || []).map((campaign) => ({
+  const topCampaignsFormatted = topCampaigns.map((campaign) => ({
+    name: campaign.title,
+    raised: formatGMD(campaign.raised || 0),
+    goal: formatGMD(campaign.goal || 0),
+    donations: campaign.donations_count || 0,
+    status: campaign.status === CAMPAIGN_STATUS.ACTIVE ? 'Active' : 'Completed',
+  }))
+
+  const paginatedTopCampaignsFormatted = paginatedTopCampaigns.map((campaign) => ({
     name: campaign.title,
     raised: formatGMD(campaign.raised || 0),
     goal: formatGMD(campaign.goal || 0),
@@ -71,27 +90,47 @@ export function FinancesPage() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold flex items-center gap-2">
-          <DollarSign className="w-8 h-8" />
-          Financial Overview
-        </h1>
-        <p className="text-muted-foreground mt-2">Platform finances and transaction monitoring</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            <DollarSign className="w-8 h-8" />
+            Financial Overview
+          </h1>
+          <p className="text-muted-foreground mt-2">Platform finances and transaction monitoring</p>
+        </div>
+        <button
+          onClick={() => setShowStats(!showStats)}
+          className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-accent transition-colors text-sm font-medium"
+        >
+          {showStats ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+          {showStats ? 'Hide Stats' : 'Show Stats'}
+        </button>
       </div>
 
-      {/* Key Financial Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {financialStats.map(({ label, value, change, icon: Icon, color }) => (
-          <div key={label} className="border rounded-xl p-5 bg-card hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-sm text-muted-foreground font-medium">{label}</p>
-              <Icon className={`w-5 h-5 ${color}`} />
-            </div>
-            <p className="text-2xl font-bold mb-2">{value}</p>
-            <p className="text-xs text-muted-foreground">{change}</p>
-          </div>
-        ))}
-      </div>
+      {/* Stats Grid */}
+      {showStats && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {statsLoading ? (
+            <>
+              <StatSkeleton />
+              <StatSkeleton />
+              <StatSkeleton />
+              <StatSkeleton />
+            </>
+          ) : (
+            financialStats.map(({ label, value, change, icon: Icon, color }) => (
+              <div key={label} className="border rounded-xl p-5 bg-card hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-sm text-muted-foreground font-medium">{label}</p>
+                  <Icon className={`w-5 h-5 ${color}`} />
+                </div>
+                <p className="text-2xl font-bold mb-2">{value}</p>
+                <p className="text-xs text-muted-foreground">{change}</p>
+              </div>
+            ))
+          )}
+        </div>
+      )}
 
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Revenue Breakdown */}
@@ -165,7 +204,7 @@ export function FinancesPage() {
       {/* Top Fundraising Campaigns */}
       <div className="border rounded-xl p-5 bg-card space-y-4">
         <h2 className="text-lg font-bold">Top Fundraising Campaigns</h2>
-        {topCampaigns.length === 0 ? (
+        {topCampaignsFormatted.length === 0 ? (
           <div className="py-8 text-center text-muted-foreground">
             <p>No campaigns yet</p>
           </div>
@@ -182,7 +221,7 @@ export function FinancesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {topCampaigns.map((campaign) => {
+                {paginatedTopCampaignsFormatted.map((campaign) => {
                   return (
                     <tr key={campaign.name} className="hover:bg-muted/30 transition-colors">
                       <td className="py-3 font-medium max-w-[200px] line-clamp-1">{campaign.name}</td>
@@ -205,6 +244,46 @@ export function FinancesPage() {
                 })}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Pagination */}
+        {topCampaignsFormatted.length > 0 && totalPages > 1 && (
+          <div className="flex items-center justify-between pt-4">
+            <p className="text-sm text-muted-foreground">
+              Page {page} of {totalPages} · Showing {((page - 1) * limit) + 1}-{Math.min(page * limit, topCampaignsFormatted.length)} of {topCampaignsFormatted.length}
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setPage(Math.max(1, page - 1))}
+                disabled={page === 1}
+                className="p-2 rounded-lg border hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
+                      p === page
+                        ? 'bg-primary text-primary-foreground'
+                        : 'border hover:bg-accent'
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={() => setPage(Math.min(totalPages, page + 1))}
+                disabled={page === totalPages}
+                className="p-2 rounded-lg border hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         )}
       </div>

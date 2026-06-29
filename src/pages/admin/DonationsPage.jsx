@@ -1,8 +1,10 @@
 import { useState } from 'react'
-import { Search, Loader2, SearchX } from 'lucide-react'
+import { Search, Loader2, SearchX, Eye, EyeOff, ChevronLeft, ChevronRight } from 'lucide-react'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { formatGMD, formatDateTime } from '@/utils/formatters'
 import { useAdminDonations } from '@/hooks/useDonations'
+import { useDonationsStats } from '@/hooks/useAdmin'
+import { StatSkeleton } from '@/components/custom/StatSkeleton'
 import { DONATION_STATUS } from '@/constants'
 import { cn } from '@/utils/cn'
 
@@ -16,7 +18,11 @@ const STATUS_COLORS = {
 export function DonationsPage() {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [page, setPage] = useState(1)
+  const [showStats, setShowStats] = useState(true)
+  const limit = 10
 
+  const { data: statsData, isLoading: statsLoading } = useDonationsStats()
   const { data, isLoading } = useAdminDonations()
   const allDonations = data?.donations ?? []
 
@@ -31,32 +37,58 @@ export function DonationsPage() {
     return matchSearch && matchStatus
   })
 
+  const totalPages = Math.ceil(donations.length / limit)
+  const paginatedDonations = donations.slice((page - 1) * limit, page * limit)
   const statuses = ['all', DONATION_STATUS.PAID, DONATION_STATUS.PENDING, DONATION_STATUS.FAILED, DONATION_STATUS.REFUNDED]
-
-  const totalAmount = allDonations.reduce((sum, d) => sum + Number(d.amount ?? 0), 0)
-  const avgAmount = allDonations.length > 0 ? Math.round(totalAmount / allDonations.length) : 0
-  const anonymousCount = allDonations.filter((d) => d.is_anonymous ?? d.anonymous).length
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Donations"
-        description={`${allDonations.length} total donations processed`}
-      />
-
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {[
-          { label: 'Total Received', value: formatGMD(totalAmount), color: 'text-primary' },
-          { label: 'Total Donations', value: allDonations.length.toLocaleString(), color: 'text-foreground' },
-          { label: 'Avg Donation', value: formatGMD(avgAmount), color: 'text-green-600' },
-          { label: 'Anonymous', value: anonymousCount, color: 'text-muted-foreground' },
-        ].map(({ label, value, color }) => (
-          <div key={label} className="border rounded-xl p-4 bg-card">
-            <p className={cn('text-xl font-extrabold', color)}>{value}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">{label}</p>
-          </div>
-        ))}
+      <div className="flex items-center justify-between">
+        <PageHeader
+          title="Donations"
+          description={`${allDonations.length} total donations processed`}
+        />
+        <button
+          onClick={() => setShowStats(!showStats)}
+          className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-accent transition-colors text-sm font-medium"
+        >
+          {showStats ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+          {showStats ? 'Hide Stats' : 'Show Stats'}
+        </button>
       </div>
+
+      {/* Stats Grid */}
+      {showStats && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {statsLoading ? (
+            <>
+              <StatSkeleton />
+              <StatSkeleton />
+              <StatSkeleton />
+              <StatSkeleton />
+            </>
+          ) : (
+            <>
+              <div className="border rounded-xl p-4 bg-card">
+                <p className="text-xl font-extrabold text-primary">{formatGMD(statsData?.total_raised || 0)}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Total Received</p>
+              </div>
+              <div className="border rounded-xl p-4 bg-card">
+                <p className="text-xl font-extrabold text-foreground">{statsData?.total_donations || 0}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Total Donations</p>
+              </div>
+              <div className="border rounded-xl p-4 bg-card">
+                <p className="text-xl font-extrabold text-green-600">{formatGMD(statsData?.average_donation || 0)}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Avg Donation</p>
+              </div>
+              <div className="border rounded-xl p-4 bg-card">
+                <p className="text-xl font-extrabold text-muted-foreground">{statsData?.anonymous_count || 0}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Anonymous</p>
+              </div>
+            </>
+          )}
+        </div>
+      )}
 
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-52">
@@ -101,7 +133,7 @@ export function DonationsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {donations.map((d) => {
+                {paginatedDonations.map((d) => {
                   const isAnon = d.is_anonymous ?? d.anonymous ?? false
                   const donorName = d.donor_name ?? d.donor ?? 'Anonymous'
                   const campaignTitle = d.campaign_title ?? d.campaign ?? '—'
@@ -140,6 +172,46 @@ export function DonationsPage() {
           </div>
         )}
       </div>
+
+      {/* Pagination */}
+      {donations.length > 0 && totalPages > 1 && (
+        <div className="flex items-center justify-between pt-4">
+          <p className="text-sm text-muted-foreground">
+            Page {page} of {totalPages} · Showing {((page - 1) * limit) + 1}-{Math.min(page * limit, donations.length)} of {donations.length}
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setPage(Math.max(1, page - 1))}
+              disabled={page === 1}
+              className="p-2 rounded-lg border hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <div className="flex items-center gap-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setPage(p)}
+                  className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
+                    p === page
+                      ? 'bg-primary text-primary-foreground'
+                      : 'border hover:bg-accent'
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setPage(Math.min(totalPages, page + 1))}
+              disabled={page === totalPages}
+              className="p-2 rounded-lg border hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
