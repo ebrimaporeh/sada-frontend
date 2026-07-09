@@ -10,7 +10,11 @@ import { AdminLayout } from '@/layouts/AdminLayout'
 import { HomePage } from '@/pages/public/HomePage'
 import { LoginPage } from '@/pages/public/LoginPage'
 import { RegisterPage } from '@/pages/public/RegisterPage'
+import { ForgotPasswordPage } from '@/pages/public/ForgotPasswordPage'
+import { ResetPasswordPage } from '@/pages/public/ResetPasswordPage'
+import { VerifyEmailPage } from '@/pages/public/VerifyEmailPage'
 import { CampaignsPage } from '@/pages/public/CampaignsPage'
+import { CategoriesPage as PublicCategoriesPage } from '@/pages/public/CategoriesPage'
 import { CampaignDetailPage } from '@/pages/public/CampaignDetailPage'
 import { DonatePage } from '@/pages/public/DonatePage'
 import { DonateSuccessPage } from '@/pages/public/DonateSuccessPage'
@@ -31,9 +35,14 @@ import { SettingsPage } from '@/pages/authenticated/SettingsPage'
 import { AdminDashboardPage } from '@/pages/admin/DashboardPage'
 import { UsersPage } from '@/pages/admin/UsersPage'
 import { CampaignsPage as AdminCampaignsPage } from '@/pages/admin/CampaignsPage'
+import { AdminCampaignDetailPage } from '@/pages/admin/AdminCampaignDetailPage'
 import { DonationsPage as AdminDonationsPage } from '@/pages/admin/DonationsPage'
 import { ReportsPage } from '@/pages/admin/ReportsPage'
+import { VerificationsPage } from '@/pages/admin/VerificationsPage'
 import { FinancesPage } from '@/pages/admin/FinancesPage'
+import { CategoriesPage } from '@/pages/admin/CategoriesPage'
+import { SettingsPage as AdminSettingsPage } from '@/pages/admin/SettingsPage'
+import { AdminProfilePage } from '@/pages/admin/AdminProfilePage'
 
 import { ROLES, ROUTES } from '@/constants'
 
@@ -79,10 +88,34 @@ const registerRoute = createRoute({
   component: RegisterPage,
 })
 
+const forgotPasswordRoute = createRoute({
+  getParentRoute: () => publicLayout,
+  path: ROUTES.FORGOT_PASSWORD,
+  component: ForgotPasswordPage,
+})
+
+const resetPasswordRoute = createRoute({
+  getParentRoute: () => publicLayout,
+  path: ROUTES.RESET_PASSWORD,
+  component: ResetPasswordPage,
+})
+
+const verifyEmailRoute = createRoute({
+  getParentRoute: () => publicLayout,
+  path: ROUTES.VERIFY_EMAIL,
+  component: VerifyEmailPage,
+})
+
 const campaignsRoute = createRoute({
   getParentRoute: () => publicLayout,
   path: ROUTES.CAMPAIGNS,
   component: CampaignsPage,
+})
+
+const categoriesRoute = createRoute({
+  getParentRoute: () => publicLayout,
+  path: ROUTES.CATEGORIES,
+  component: PublicCategoriesPage,
 })
 
 const campaignDetailRoute = createRoute({
@@ -193,6 +226,12 @@ const adminCampaignsRoute = createRoute({
   component: AdminCampaignsPage,
 })
 
+const adminCampaignDetailRoute = createRoute({
+  getParentRoute: () => adminLayout,
+  path: '/admin/campaigns/$id',
+  component: AdminCampaignDetailPage,
+})
+
 const adminDonationsRoute = createRoute({
   getParentRoute: () => adminLayout,
   path: ROUTES.ADMIN_DONATIONS,
@@ -211,10 +250,34 @@ const adminReportsRoute = createRoute({
   component: ReportsPage,
 })
 
+const adminVerificationsRoute = createRoute({
+  getParentRoute: () => adminLayout,
+  path: ROUTES.ADMIN_VERIFICATIONS,
+  component: VerificationsPage,
+})
+
 const adminFinancesRoute = createRoute({
   getParentRoute: () => adminLayout,
   path: '/admin/finances',
   component: FinancesPage,
+})
+
+const adminCategoriesRoute = createRoute({
+  getParentRoute: () => adminLayout,
+  path: '/admin/categories',
+  component: CategoriesPage,
+})
+
+const adminSettingsRoute = createRoute({
+  getParentRoute: () => adminLayout,
+  path: '/admin/settings',
+  component: AdminSettingsPage,
+})
+
+const adminProfileRoute = createRoute({
+  getParentRoute: () => adminLayout,
+  path: ROUTES.ADMIN_PROFILE,
+  component: AdminProfilePage,
 })
 
 // ─── Router ───────────────────────────────────────────────────────────────────
@@ -224,7 +287,11 @@ const routeTree = rootRoute.addChildren([
     homeRoute,
     loginRoute,
     registerRoute,
+    forgotPasswordRoute,
+    resetPasswordRoute,
+    verifyEmailRoute,
     campaignsRoute,
+    categoriesRoute,
     campaignDetailRoute,
     donateRoute,
     donateSuccessRoute,
@@ -245,9 +312,14 @@ const routeTree = rootRoute.addChildren([
     adminDashboardRoute,
     adminUsersRoute,
     adminCampaignsRoute,
+    adminCampaignDetailRoute,
     adminDonationsRoute,
     adminReportsRoute,
+    adminVerificationsRoute,
+    adminCategoriesRoute,
     adminFinancesRoute,
+    adminSettingsRoute,
+    adminProfileRoute,
   ]),
 ])
 

@@ -10,11 +10,14 @@ export const ROUTES = {
   LOGIN: '/login',
   REGISTER: '/register',
   FORGOT_PASSWORD: '/forgot-password',
+  RESET_PASSWORD: '/reset-password',
+  VERIFY_EMAIL: '/verify-email',
 
   // Public campaign routes
   CAMPAIGNS: '/campaigns',
   CAMPAIGN_DETAIL: '/campaigns/$slug',
   CAMPAIGN_NEW: '/campaigns/new',
+  CATEGORIES: '/categories',
 
   // Authenticated routes
   DASHBOARD: '/dashboard',
@@ -29,6 +32,8 @@ export const ROUTES = {
   ADMIN_USERS: '/admin/users',
   ADMIN_CAMPAIGNS: '/admin/campaigns',
   ADMIN_DONATIONS: '/admin/donations',
+  ADMIN_PROFILE: '/admin/profile',
+  ADMIN_VERIFICATIONS: '/admin/verifications',
 
   // Support pages
   HELP: '/help',
@@ -54,12 +59,21 @@ export const DONATION_STATUS = {
   REFUNDED: 'refunded',
 }
 
+// ModemPay is the payment gateway, not itself a provider — these are the
+// underlying networks it processes payments through.
+// Donations can go through either network; ModemPay's checkout page decides
+// what's actually offered to the donor. Coming later: ModemPay Bank, Visa, Mastercard.
 export const PAYMENT_METHODS = [
-  // { id: 'modempay',    name: 'ModemPay',     short: 'MP', color: 'bg-blue-600',   description: 'All mobile money networks' },
-  { id: 'wave',        name: 'Wave',          short: 'W',  color: 'bg-cyan-500',   description: 'Wave mobile money' },
-  // { id: 'orange_money',name: 'Orange Money',  short: 'OM', color: 'bg-orange-500', description: 'Orange Money' },
-  { id: 'aps',   name: 'Afrimoney',     short: 'AF', color: 'bg-blue-800',  description: 'APS mobile money' },
+  { id: 'wave', name: 'Wave', short: 'W', color: 'bg-cyan-500', description: 'Wave mobile money' },
+  { id: 'aps', name: 'APS Wallet', short: 'APS', color: 'bg-blue-800', description: 'APS mobile wallet' },
+  // { id: 'modempay_bank', name: 'ModemPay Bank', short: 'MPB', color: 'bg-indigo-600', description: 'Bank transfer via ModemPay' },
+  // { id: 'visa', name: 'Visa', short: 'VISA', color: 'bg-blue-700', description: 'Visa card' },
+  // { id: 'mastercard', name: 'Mastercard', short: 'MC', color: 'bg-red-600', description: 'Mastercard' },
 ]
+
+// Withdrawals only support wave right now — ModemPay's payout/transfer API
+// doesn't list aps as a valid network (only their checkout/donation side does).
+export const PAYOUT_METHODS = PAYMENT_METHODS.filter((p) => p.id === 'wave')
 
 export const GAMBIA_REGIONS = [
   { value: 'banjul',      label: 'Banjul' },
