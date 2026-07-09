@@ -78,6 +78,22 @@ export function useChangePassword() {
   return useMutation({ mutationFn: authApi.changePassword })
 }
 
+export function useRequestPasswordReset() {
+  return useMutation({ mutationFn: (email) => authApi.requestPasswordReset(email) })
+}
+
+export function useVerifyEmail() {
+  return useMutation({ mutationFn: (token) => authApi.verifyEmail(token) })
+}
+
+export function useResendVerification() {
+  return useMutation({ mutationFn: (email) => authApi.resendVerification(email) })
+}
+
+export function useConfirmPasswordReset() {
+  return useMutation({ mutationFn: (data) => authApi.confirmPasswordReset(data) })
+}
+
 export function useGoogleOAuth() {
   const queryClient = useQueryClient()
   const navigate = useNavigate()

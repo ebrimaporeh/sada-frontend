@@ -3,6 +3,7 @@ import { Camera, CheckCircle2, ShieldCheck, AlertCircle } from 'lucide-react'
 import { useMe } from '@/hooks/useAuth'
 import { useUpdateMe } from '@/hooks/useUsers'
 import { PageHeader } from '@/components/custom/PageHeader'
+import { IdentityVerificationSection } from './IdentityVerificationSection'
 import { initials } from '@/utils/formatters'
 import { GAMBIA_REGIONS } from '@/constants'
 import { cn } from '@/utils/cn'
@@ -223,27 +224,7 @@ export function UserProfile() {
         </div>
       </div>
 
-      {/* ID Verification */}
-      <div className="border rounded-2xl p-6 bg-card space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="font-semibold text-base">Identity Verification</h2>
-          {user?.is_verified
-            ? <span className="text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-medium flex items-center gap-1"><ShieldCheck className="w-3.5 h-3.5" /> Verified</span>
-            : <span className="text-xs bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full font-medium">Not verified</span>
-          }
-        </div>
-        <p className="text-sm text-muted-foreground">
-          Verified campaign owners build more trust with donors. Upload a government-issued ID to get a verification badge on your campaigns.
-        </p>
-        {!user?.is_verified && (
-          <button
-            type="button"
-            className="inline-flex items-center gap-2 border font-medium px-4 py-2 rounded-xl hover:bg-muted transition-colors text-sm"
-          >
-            <ShieldCheck className="w-4 h-4" /> Submit ID for Verification
-          </button>
-        )}
-      </div>
+      <IdentityVerificationSection />
     </div>
   )
 }

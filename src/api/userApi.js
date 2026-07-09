@@ -7,4 +7,18 @@ export const userApi = {
   getUser: (id) => apiClient.get(`/users/${id}/`).then((r) => r.data),
   updateUser: (id, data) => apiClient.patch(`/users/${id}/`, data).then((r) => r.data),
   deleteUser: (id) => apiClient.delete(`/users/${id}/`).then((r) => r.data),
+
+  getMyVerification: () => apiClient.get('/users/verification/me/').then((r) => r.data),
+  submitVerification: (data) => {
+    const form = new FormData()
+    Object.entries(data).forEach(([k, v]) => {
+      if (v !== undefined && v !== null) form.append(k, v)
+    })
+    return apiClient.post('/users/verification/', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }).then((r) => r.data)
+  },
+  getVerifications: (params) => apiClient.get('/users/admin/verifications/', { params }).then((r) => r.data),
+  reviewVerification: (id, action, reason) =>
+    apiClient.post(`/users/admin/verifications/${id}/${action}/`, reason ? { reason } : {}).then((r) => r.data),
 }

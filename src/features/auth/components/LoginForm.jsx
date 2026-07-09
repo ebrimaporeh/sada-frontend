@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { GoogleLogin } from '@react-oauth/google'
-import { useLogin, useGoogleOAuth } from '@/hooks/useAuth'
+import { useLogin, useGoogleOAuth, useResendVerification } from '@/hooks/useAuth'
 import { ROUTES } from '@/constants'
 
 const TEST_ACCOUNTS = [
   {
     role: 'Admin',
-    email: 'admin@gambiafund.gm',
+    email: 'admin@sada.gm',
     password: 'Admin@1234',
     description: 'Full platform access',
     badge: 'bg-violet-100 text-violet-700',
@@ -15,7 +15,7 @@ const TEST_ACCOUNTS = [
   },
   {
     role: 'Campaign Owner',
-    email: 'ousman@gambiafund.gm',
+    email: 'ousman@sada.gm',
     password: 'User@1234',
     description: 'Campaign management',
     badge: 'bg-sky-100 text-sky-700',
@@ -27,12 +27,22 @@ export function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [activeDemo, setActiveDemo] = useState(null)
+  const [resendSent, setResendSent] = useState(false)
   const login = useLogin()
   const googleOAuth = useGoogleOAuth()
+  const resendVerification = useResendVerification()
 
   const handleSubmit = (e) => {
     e.preventDefault()
+    setResendSent(false)
     login.mutate({ email, password })
+  }
+
+  const loginErrorMessage = login.error?.response?.data?.message || ''
+  const isUnverifiedEmailError = /verify your email/i.test(loginErrorMessage)
+
+  const handleResend = () => {
+    resendVerification.mutate(email, { onSuccess: () => setResendSent(true) })
   }
 
   const handleDemoLogin = (account) => {
@@ -112,8 +122,22 @@ export function LoginForm() {
       {/* Manual login form */}
       <form onSubmit={handleSubmit} className="space-y-4">
         {login.isError && (
-          <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-            {login.error?.response?.data?.message || 'Login failed. Please try again.'}
+          <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive space-y-2">
+            <p>{loginErrorMessage || 'Login failed. Please try again.'}</p>
+            {isUnverifiedEmailError && (
+              resendSent ? (
+                <p className="text-xs text-destructive/80">A new verification link is on its way, if that email is registered.</p>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleResend}
+                  disabled={resendVerification.isPending}
+                  className="text-xs font-medium underline underline-offset-2 disabled:opacity-50"
+                >
+                  {resendVerification.isPending ? 'Sending…' : 'Resend verification email'}
+                </button>
+              )
+            )}
           </div>
         )}
 

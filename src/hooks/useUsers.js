@@ -61,3 +61,37 @@ export function useDeleteUser() {
     },
   })
 }
+
+export function useMyVerification() {
+  return useQuery({
+    queryKey: queryKeys.verification.mine(),
+    queryFn: () => userApi.getMyVerification().then((r) => r.data.verification),
+  })
+}
+
+export function useSubmitVerification() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data) => userApi.submitVerification(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.verification.mine() })
+    },
+  })
+}
+
+export function useAdminVerifications(params = {}) {
+  return useQuery({
+    queryKey: queryKeys.verification.adminList(params),
+    queryFn: () => userApi.getVerifications(params),
+  })
+}
+
+export function useReviewVerification() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, action, reason }) => userApi.reviewVerification(id, action, reason),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['verification'] })
+    },
+  })
+}
