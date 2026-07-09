@@ -2,9 +2,11 @@ import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { AlertCircle, CheckCircle2, ChevronRight, ChevronLeft, Info, ImagePlus, X, Loader2 } from 'lucide-react'
 import { useCategories, useCreateCampaign, useUpdateCampaignMedia } from '@/hooks/useCampaigns'
+import { usePlatformSettings } from '@/hooks/usePayments'
 import { GAMBIA_REGIONS, ROUTES } from '@/constants'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { MarkdownEditor } from '@/components/custom/MarkdownEditor'
+import { DatePicker } from '@/components/custom/DatePicker'
 import { cn } from '@/utils/cn'
 
 const STORAGE_KEY = 'campaign_draft'
@@ -165,6 +167,8 @@ export function CampaignForm() {
   const navigate = useNavigate()
   const { categories } = useCategories()
   const createCampaign = useCreateCampaign()
+  const { data: platformSettings } = usePlatformSettings()
+  const platformFeePercent = Number(platformSettings?.platform_fee_percent ?? 1)
   const updateMedia = useUpdateCampaignMedia()
   const [step, setStep] = useState(0)
   const [form, setForm] = useState(() => {
@@ -325,8 +329,8 @@ export function CampaignForm() {
         <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
           <CheckCircle2 className="w-8 h-8 text-primary" />
         </div>
-        <h2 className="text-2xl font-bold">Campaign Submitted!</h2>
-        <p className="text-muted-foreground">Your campaign has been submitted for review. We'll notify you once it's approved — usually within 24 hours.</p>
+        <h2 className="text-2xl font-bold">Campaign Live!</h2>
+        <p className="text-muted-foreground">Your campaign is live and ready to accept donations right away.</p>
         <p className="text-sm text-muted-foreground">Redirecting to dashboard…</p>
       </div>
     )
@@ -432,21 +436,21 @@ export function CampaignForm() {
           </FieldGroup>
 
           <FieldGroup label="Campaign Deadline *" hint="When do you need the funds by? (max 1 year)" error={errors.deadline}>
-            <TextInput
+            <DatePicker
               value={form.deadline}
               onChange={set('deadline')}
-              type="date"
-              min={minDeadline.toISOString().split('T')[0]}
+              min={minDeadline}
+              placeholder="Select a deadline"
             />
           </FieldGroup>
 
           <div className="border rounded-xl p-4 bg-card space-y-3">
             <p className="text-sm font-semibold">Platform Terms</p>
             <ul className="space-y-2 text-xs text-muted-foreground">
-              <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" /> GambiaFund charges 0% platform fee on all campaigns</li>
-              <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" /> ModemPay transaction fees (1.5%) apply to each donation</li>
-              <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" /> Your campaign will be reviewed and approved within 24 hours</li>
-              <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" /> You can withdraw raised funds at any time after approval</li>
+              <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" /> Donations carry no platform fee — donors only pay what their payment provider charges directly</li>
+              <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" /> A {platformFeePercent}% platform fee applies when you withdraw raised funds</li>
+              <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" /> Your campaign goes live immediately — no waiting for approval</li>
+              <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" /> You can withdraw raised funds at any time</li>
             </ul>
           </div>
         </div>
