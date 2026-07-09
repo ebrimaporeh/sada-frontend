@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useLocation } from '@tanstack/react-router'
 import { Search, SlidersHorizontal, X, SearchX } from 'lucide-react'
 import { useCampaigns, useCategories } from '@/hooks/useCampaigns'
 import { CampaignCard } from '@/components/custom/CampaignCard'
@@ -6,11 +7,20 @@ import { CampaignCardSkeleton } from '@/components/custom/CampaignCardSkeleton'
 import { GAMBIA_REGIONS } from '@/constants'
 
 export function CampaignGrid() {
+  const location = useLocation()
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('all')
   const [region, setRegion] = useState('')
   const [urgent, setUrgent] = useState(false)
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search)
+    const categoryParam = params.get('category')
+    if (categoryParam) {
+      setCategory(categoryParam)
+    }
+  }, [location.search])
 
   const { campaigns, isLoading } = useCampaigns({ search, category, region, urgent })
   const { categories } = useCategories()
@@ -87,7 +97,7 @@ export function CampaignGrid() {
                   category === cat.slug ? 'bg-primary text-primary-foreground border-primary' : 'hover:bg-accent'
                 }`}
               >
-                {cat.icon} {cat.name}
+                {cat.name}
               </button>
             ))}
           </div>
