@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { CheckCircle2, AlertCircle, Eye, EyeOff, Bell, Shield, Trash2, Moon, Sun, Monitor, Smartphone, CreditCard } from 'lucide-react'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { useChangePassword, useLogout, useMe, useUpdateMe } from '@/hooks/useAuth'
-import { PAYMENT_METHODS } from '@/constants'
+import { PAYOUT_METHODS } from '@/constants'
 import { cn } from '@/utils/cn'
 
 function Section({ title, description, children }) {
@@ -204,7 +204,7 @@ export function SettingsPage() {
           <div className="space-y-2">
             <label className="text-sm font-medium">Default Payment Network</label>
             <div className="grid grid-cols-2 gap-2">
-              {PAYMENT_METHODS.map((p) => (
+              {PAYOUT_METHODS.map((p) => (
                 <button
                   key={p.id}
                   type="button"

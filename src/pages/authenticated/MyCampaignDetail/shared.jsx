@@ -1,5 +1,5 @@
 import { TrendingUp, Users, Bell, Pencil, Banknote } from 'lucide-react'
-import { CAMPAIGN_STATUS, PAYMENT_METHODS } from '@/constants'
+import { CAMPAIGN_STATUS, PAYOUT_METHODS } from '@/constants'
 import { cn } from '@/utils/cn'
 
 export const TABS = [
@@ -10,7 +10,7 @@ export const TABS = [
   { id: 'withdraw', label: 'Withdraw', icon: Banknote },
 ]
 
-export { PAYMENT_METHODS as PAYOUT_PROVIDERS }
+export { PAYOUT_METHODS as PAYOUT_PROVIDERS }
 
 export const STATUS_BADGE = {
   [CAMPAIGN_STATUS.ACTIVE]: 'bg-green-100 text-green-700 border-green-200',

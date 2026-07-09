@@ -1,10 +1,8 @@
 import { Smartphone, Shield, Zap, HeartHandshake } from 'lucide-react'
 
 const providers = [
-  { name: 'ModemPay', icon: '💳' },
   { name: 'Wave', icon: '🌊' },
-  { name: 'Orange Money', icon: '🟠' },
-  { name: 'Afrimoney', icon: '💰' },
+  { name: 'APS Wallet', icon: '💰' },
 ]
 
 const benefits = [
@@ -37,7 +35,7 @@ export function MobileMoneySection() {
             Donate with one tap
           </h2>
           <p className="text-muted-foreground mt-4 text-lg max-w-2xl mx-auto">
-            Send funds instantly using ModemPay, Wave, Orange Money, or Afrimoney — from The Gambia or
+            Send funds instantly using Wave or APS Wallet — from The Gambia or
             anywhere in the diaspora.
           </p>
         </div>

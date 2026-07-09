@@ -22,5 +22,7 @@ export const settings = {
   donate: {
     presets: [100, 250, 500, 1000, 2500, 5000],
     minAmount: 50,
+    // ModemPay rejects a single payment intent above this amount.
+    maxAmount: 50000,
   },
 }

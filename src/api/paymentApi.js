@@ -6,4 +6,10 @@ export const paymentApi = {
 
   getCampaignPayouts: (slug) =>
     apiClient.get(`/payments/payouts/${slug}/`).then((r) => r.data),
+
+  getPlatformSettings: () =>
+    apiClient.get('/payments/settings/').then((r) => r.data),
+
+  updatePlatformSettings: (data) =>
+    apiClient.patch('/payments/settings/', data).then((r) => r.data),
 }

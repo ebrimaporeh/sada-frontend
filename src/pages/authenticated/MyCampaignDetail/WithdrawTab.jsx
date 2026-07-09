@@ -1,18 +1,20 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link } from '@tanstack/react-router'
 import { Banknote, Smartphone, CheckCircle2, AlertCircle, Lock, ChevronDown, ChevronUp, Settings } from 'lucide-react'
-import { useRequestPayout } from '@/hooks/usePayments'
+import { useRequestPayout, usePlatformSettings } from '@/hooks/usePayments'
 import { useMe } from '@/hooks/useAuth'
-import { PAYMENT_METHODS } from '@/constants'
+import { PAYMENT_METHODS, PAYOUT_METHODS } from '@/constants'
 import { formatGMD, formatDateTime } from '@/utils/formatters'
 import { cn } from '@/utils/cn'
 
 export function WithdrawTab({ campaign, payouts, availableBalance, totalPaidOut }) {
   const { data: me } = useMe()
   const requestPayout = useRequestPayout()
+  const { data: platformSettings } = usePlatformSettings()
+  const feePercent = Number(platformSettings?.platform_fee_percent ?? 1)
 
   const [amount, setAmount] = useState('')
-  const [provider, setProvider] = useState('modempay')
+  const [provider, setProvider] = useState('wave')
   const [phone, setPhone] = useState('')
   const [useDefault, setUseDefault] = useState(false)
   const [showAlternate, setShowAlternate] = useState(true)
@@ -40,7 +42,7 @@ export function WithdrawTab({ campaign, payouts, availableBalance, totalPaidOut 
   const hasDefault = Boolean(defaultProvider && defaultPhone)
 
   const numAmount = Number(amount)
-  const fee = numAmount ? Math.ceil(numAmount * 0.01) : 0
+  const fee = numAmount ? Math.ceil(numAmount * (feePercent / 100)) : 0
   const youReceive = numAmount - fee
 
   const activeProvider = useDefault && hasDefault ? defaultProvider : provider
@@ -178,7 +180,7 @@ export function WithdrawTab({ campaign, payouts, availableBalance, totalPaidOut 
               <div className="bg-muted/50 rounded-xl p-4 space-y-2">
                 {[
                   ['Withdrawal amount', formatGMD(numAmount)],
-                  ['Processing fee (1%)', `- ${formatGMD(fee)}`],
+                  [`Processing fee (${feePercent}%)`, `- ${formatGMD(fee)}`],
                 ].map(([label, value]) => (
                   <div key={label} className="flex justify-between text-sm">
                     <span className="text-muted-foreground">{label}</span>
@@ -234,7 +236,7 @@ export function WithdrawTab({ campaign, payouts, availableBalance, totalPaidOut 
                 {showAlternate && (
                   <div className="space-y-3 pt-1 border-t">
                     <div className="grid grid-cols-2 gap-2">
-                      {PAYMENT_METHODS.map((p) => (
+                      {PAYOUT_METHODS.map((p) => (
                         <button
                           key={p.id}
                           type="button"
@@ -279,7 +281,7 @@ export function WithdrawTab({ campaign, payouts, availableBalance, totalPaidOut 
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Network</label>
                   <div className="grid grid-cols-2 gap-2">
-                    {PAYMENT_METHODS.map((p) => (
+                    {PAYOUT_METHODS.map((p) => (
                       <button
                         key={p.id}
                         type="button"
@@ -341,7 +343,7 @@ export function WithdrawTab({ campaign, payouts, availableBalance, totalPaidOut 
           <div className="border rounded-xl divide-y">
             {[
               ['Amount', formatGMD(numAmount)],
-              ['Processing fee (1%)', `- ${formatGMD(fee)}`],
+              [`Processing fee (${feePercent}%)`, `- ${formatGMD(fee)}`],
               ['You receive', formatGMD(youReceive)],
               ['Provider', activeProviderMeta?.name],
               ['Phone', `+220 ${activePhone}`],
@@ -357,6 +359,12 @@ export function WithdrawTab({ campaign, payouts, availableBalance, totalPaidOut 
             <Smartphone className="w-4 h-4 flex-shrink-0 mt-0.5" />
             After confirming, funds will be sent to +220 {activePhone} within 10 minutes.
           </div>
+
+          {error && (
+            <p className="text-sm text-destructive flex items-start gap-1.5">
+              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" /> {error}
+            </p>
+          )}
 
           <div className="flex gap-3">
             <button

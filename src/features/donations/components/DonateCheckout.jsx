@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Link, useNavigate } from '@tanstack/react-router'
+import { Link } from '@tanstack/react-router'
 import { Heart, ChevronLeft, CheckCircle2, AlertCircle, Lock, Smartphone } from 'lucide-react'
 import { ProgressBar } from '@/components/custom/ProgressBar'
 import { formatGMD, progressPercent, daysLeft } from '@/utils/formatters'
@@ -35,10 +35,9 @@ function CampaignSummaryCard({ campaign }) {
 }
 
 export function DonateCheckout({ campaign }) {
-  const navigate = useNavigate()
   const { data: me } = useMe()
   const [amount, setAmount] = useState('')
-  const [provider, setProvider] = useState('modempay')
+  const [provider, setProvider] = useState('wave')
   const [phone, setPhone] = useState('')
   const [donorName, setDonorName] = useState('')
   const [anonymous, setAnonymous] = useState(false)
@@ -60,29 +59,14 @@ export function DonateCheckout({ campaign }) {
   }, [me])
 
   const numAmount = Number(amount)
-  const fee = numAmount ? Math.ceil(numAmount * 0.015) : 0
-  const total = numAmount + fee
-
-  // Calculate percentage-based suggestions
-  const remaining = campaign.goal - campaign.raised
-  const percentages = [5, 10, 20, 50]
-  const suggestions = percentages
-    .map(pct => ({ pct, amount: Math.ceil(remaining * (pct / 100)) }))
-    .filter(s => s.amount >= settings.donate.minAmount)
-
-  // Add remaining amount button if not already in suggestions
-  const allRemaining = remaining >= settings.donate.minAmount
-  const suggestionAmounts = suggestions.map(s => s.amount)
-  const remainingButton = allRemaining && remaining >= settings.donate.minAmount
-
-  function selectPreset(v) {
-    setAmount(String(v))
-    setError('')
-  }
 
   function goToPayment() {
     if (!numAmount || numAmount < settings.donate.minAmount) {
       setError(`Minimum donation is ${formatGMD(settings.donate.minAmount)}`)
+      return
+    }
+    if (numAmount > settings.donate.maxAmount) {
+      setError(`Maximum donation is ${formatGMD(settings.donate.maxAmount)} per transaction. Please split larger amounts into multiple donations.`)
       return
     }
     if (!anonymous && !donorName.trim()) {
@@ -117,8 +101,17 @@ export function DonateCheckout({ campaign }) {
         donor_name: anonymous ? '' : donorName.trim(),
       },
       {
-        onSuccess: () => {
-          navigate({ to: '/donate/$slug/success', params: { slug: campaign.slug }, search: { amount: numAmount } })
+        onSuccess: (response) => {
+          const paymentLink = response?.data?.payment_link
+          if (!paymentLink) {
+            setError('Could not start payment. Please try again.')
+            setProcessing(false)
+            setStep('confirm')
+            return
+          }
+          // ModemPay's hosted checkout is a different origin, so this is a
+          // full page redirect, not an in-app route change.
+          window.location.href = paymentLink
         },
         onError: (err) => {
           setError(err?.response?.data?.message || 'Payment failed. Please try again.')
@@ -153,43 +146,6 @@ export function DonateCheckout({ campaign }) {
               <div>
                 <p className="text-sm font-medium mb-3">Choose an amount to donate</p>
 
-                {/* Suggested amounts based on percentages */}
-                {suggestions.length > 0 && (
-                  <div className="grid grid-cols-2 gap-2 mb-3">
-                    {suggestions.map(({ pct, amount: sugAmount }) => (
-                      <button
-                        key={pct}
-                        onClick={() => selectPreset(sugAmount)}
-                        className={cn(
-                          'py-2.5 rounded-lg border text-sm font-semibold transition-colors',
-                          amount === String(sugAmount)
-                            ? 'bg-primary text-primary-foreground border-primary'
-                            : 'hover:border-primary hover:text-primary',
-                        )}
-                      >
-                        <div className="text-xs text-muted-foreground">{pct}%</div>
-                        {formatGMD(sugAmount)}
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {/* Remaining amount button */}
-                {remainingButton && (
-                  <button
-                    onClick={() => selectPreset(remaining)}
-                    className={cn(
-                      'w-full py-2.5 rounded-lg border text-sm font-semibold transition-colors mb-3',
-                      amount === String(remaining)
-                        ? 'bg-primary text-primary-foreground border-primary'
-                        : 'hover:border-primary hover:text-primary',
-                    )}
-                  >
-                    <div className="text-xs text-muted-foreground">Help complete this goal</div>
-                    {formatGMD(remaining)} remaining
-                  </button>
-                )}
-
                 {/* Custom amount input */}
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-muted-foreground">D</span>
@@ -197,29 +153,13 @@ export function DonateCheckout({ campaign }) {
                     type="number"
                     value={amount}
                     onChange={(e) => { setAmount(e.target.value); setError('') }}
-                    placeholder="Enter custom amount"
+                    placeholder="Amount"
                     min={settings.donate.minAmount}
+                    max={settings.donate.maxAmount}
                     className="w-full pl-8 pr-4 py-2.5 border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring text-lg font-bold"
                   />
                 </div>
               </div>
-
-              {numAmount > 0 && (
-                <div className="bg-muted/50 rounded-lg p-4 text-sm space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Donation amount</span>
-                    <span className="font-medium">{formatGMD(numAmount)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Transaction fee (1.5%)</span>
-                    <span className="font-medium">{formatGMD(fee)}</span>
-                  </div>
-                  <div className="flex justify-between border-t pt-2 font-bold">
-                    <span>Total charged</span>
-                    <span className="text-primary">{formatGMD(total)}</span>
-                  </div>
-                </div>
-              )}
 
               <div className="space-y-3">
                 {/* Donor name input */}
@@ -348,14 +288,6 @@ export function DonateCheckout({ campaign }) {
                     <p className="font-bold text-primary">{formatGMD(numAmount)}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground mb-1">Fee</p>
-                    <p className="font-medium text-sm">{formatGMD(fee)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1">Total charged</p>
-                    <p className="font-bold">{formatGMD(total)}</p>
-                  </div>
-                  <div>
                     <p className="text-xs text-muted-foreground mb-1">Via</p>
                     <p className="font-medium text-sm">{PROVIDERS.find((p) => p.id === provider)?.name}</p>
                   </div>
@@ -378,7 +310,7 @@ export function DonateCheckout({ campaign }) {
 
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex gap-2 text-xs text-amber-800">
                 <Smartphone className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                After clicking "Confirm Donation", you'll receive a payment prompt on +220 {phone}. Approve it with your PIN to complete the donation.
+                After clicking "Confirm Donation", you'll be taken to ModemPay's secure payment page to complete your donation.
               </div>
 
               <div className="flex gap-3">

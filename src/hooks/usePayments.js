@@ -21,3 +21,21 @@ export function useRequestPayout() {
     },
   })
 }
+
+export function usePlatformSettings() {
+  return useQuery({
+    queryKey: queryKeys.payments.settings(),
+    queryFn: () => paymentApi.getPlatformSettings(),
+    select: (res) => res?.data ?? { platform_fee_percent: '1.00' },
+  })
+}
+
+export function useUpdatePlatformSettings() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data) => paymentApi.updatePlatformSettings(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.payments.settings() })
+    },
+  })
+}

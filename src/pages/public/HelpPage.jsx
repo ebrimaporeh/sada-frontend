@@ -18,7 +18,7 @@ const faqs = [
   },
   {
     q: 'Which mobile money networks are supported?',
-    a: 'We currently support ModemPay (all networks), Wave, Orange Money, and Afrimoney. More providers will be added soon.',
+    a: 'We currently support Wave and APS Wallet. More networks (bank transfer, Visa, Mastercard) will be added soon.',
   },
   {
     q: 'When can I withdraw raised funds?',
