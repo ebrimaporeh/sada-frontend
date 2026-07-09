@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import { Info, CheckCircle2, AlertCircle, PauseCircle, PlayCircle, ImagePlus, X, Loader2, Trash2 } from 'lucide-react'
 import { useCategories, useUpdateMyCampaign, useTogglePauseCampaign, useUpdateCampaignMedia, useDeleteGalleryImage } from '@/hooks/useCampaigns'
+import { DatePicker } from '@/components/custom/DatePicker'
 import { GAMBIA_REGIONS, CAMPAIGN_STATUS } from '@/constants'
 
 const inputClass = 'w-full px-3 py-2.5 border rounded-xl text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring'
@@ -270,7 +271,7 @@ export function EditTab({ campaign }) {
           </div>
           <div className="space-y-1.5">
             <label className={labelClass}>Deadline</label>
-            <input type="date" value={form.deadline} onChange={set('deadline')} className={inputClass} />
+            <DatePicker value={form.deadline} onChange={set('deadline')} className="rounded-xl" />
           </div>
         </div>
       </div>

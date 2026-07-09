@@ -1,10 +1,12 @@
-import { useState } from 'react'
-import { Search, Loader2, SearchX, Eye, EyeOff, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Search, Loader2, SearchX, Eye, EyeOff } from 'lucide-react'
 import { PageHeader } from '@/components/custom/PageHeader'
-import { Sheet } from '@/components/custom/Sheet'
+import { DonationSheet } from '@/components/custom/DonationSheet'
+import { AdminPagination } from '@/components/custom/AdminPagination'
 import { formatGMD, formatDateTime } from '@/utils/formatters'
 import { useAdminDonations } from '@/hooks/useDonations'
 import { useDonationsStats } from '@/hooks/useAdmin'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { StatSkeleton } from '@/components/custom/StatSkeleton'
 import { DONATION_STATUS } from '@/constants'
 import { cn } from '@/utils/cn'
@@ -30,31 +32,32 @@ export function DonationsPage() {
     setIsSheetOpen(true)
   }
 
+  const debouncedSearch = useDebouncedValue(search)
+
+  // Reset to page 1 whenever the filters change so we don't land on an empty page.
+  useEffect(() => {
+    setPage(1)
+  }, [debouncedSearch, statusFilter])
+
   const { data: statsData, isLoading: statsLoading } = useDonationsStats()
-  const { data, isLoading } = useAdminDonations()
-  const allDonations = data?.donations ?? []
-
-  const donations = allDonations.filter((d) => {
-    const donorName = d.donor_name ?? d.donor ?? ''
-    const campaignTitle = d.campaign_title ?? d.campaign ?? ''
-    const isAnon = d.is_anonymous ?? d.anonymous ?? false
-    const matchSearch = !search ||
-      (!isAnon && donorName.toLowerCase().includes(search.toLowerCase())) ||
-      campaignTitle.toLowerCase().includes(search.toLowerCase())
-    const matchStatus = statusFilter === 'all' || d.status === statusFilter
-    return matchSearch && matchStatus
+  const { data, isLoading } = useAdminDonations({
+    page,
+    page_size: limit,
+    status: statusFilter === 'all' ? undefined : statusFilter,
+    search: debouncedSearch || undefined,
   })
-
-  const totalPages = Math.ceil(donations.length / limit)
-  const paginatedDonations = donations.slice((page - 1) * limit, page * limit)
+  const donations = data?.donations ?? []
+  const totalPages = data?.totalPages ?? 1
+  const totalCount = data?.count ?? 0
   const statuses = ['all', DONATION_STATUS.PAID, DONATION_STATUS.PENDING, DONATION_STATUS.FAILED, DONATION_STATUS.REFUNDED]
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-full flex flex-col">
+      <div className="flex-1 space-y-6">
       <div className="flex items-center justify-between">
         <PageHeader
           title="Donations"
-          description={`${allDonations.length} total donations processed`}
+          description={`${totalCount} total donations processed`}
         />
         <button
           onClick={() => setShowStats(!showStats)}
@@ -141,7 +144,7 @@ export function DonationsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {paginatedDonations.map((d) => {
+                {donations.map((d) => {
                   const isAnon = d.is_anonymous ?? d.anonymous ?? false
                   const donorName = d.donor_name ?? d.donor ?? 'Anonymous'
                   const campaignTitle = d.campaign_title ?? d.campaign ?? '—'
@@ -184,86 +187,18 @@ export function DonationsPage() {
           </div>
         )}
       </div>
+      </div>
 
-      {/* Pagination */}
-      {donations.length > 0 && totalPages > 1 && (
-        <div className="flex items-center justify-between pt-4">
-          <p className="text-sm text-muted-foreground">
-            Page {page} of {totalPages} · Showing {((page - 1) * limit) + 1}-{Math.min(page * limit, donations.length)} of {donations.length}
-          </p>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setPage(Math.max(1, page - 1))}
-              disabled={page === 1}
-              className="p-2 rounded-lg border hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <div className="flex items-center gap-1">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                <button
-                  key={p}
-                  onClick={() => setPage(p)}
-                  className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
-                    p === page
-                      ? 'bg-primary text-primary-foreground'
-                      : 'border hover:bg-accent'
-                  }`}
-                >
-                  {p}
-                </button>
-              ))}
-            </div>
-            <button
-              onClick={() => setPage(Math.min(totalPages, page + 1))}
-              disabled={page === totalPages}
-              className="p-2 rounded-lg border hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
+      {donations.length > 0 && (
+        <AdminPagination page={page} totalPages={totalPages} onPageChange={setPage} totalCount={totalCount} limit={limit} />
       )}
 
       {/* Donation Detail Sheet */}
-      <Sheet
+      <DonationSheet
         isOpen={isSheetOpen}
         onClose={() => setIsSheetOpen(false)}
-        title={selectedDonation ? `Donation: ${formatGMD(selectedDonation.amount)}` : 'Donation Details'}
-        footer={
-          <button
-            onClick={() => setIsSheetOpen(false)}
-            className="w-full px-4 py-2 rounded-lg border hover:bg-accent transition-colors text-sm font-medium"
-          >
-            Close
-          </button>
-        }
-      >
-        {selectedDonation && (
-          <div className="space-y-4">
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground">DONOR</label>
-              <p className="text-sm mt-1">{selectedDonation.is_anonymous ? 'Anonymous' : (selectedDonation.donor_name || '—')}</p>
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground">CAMPAIGN</label>
-              <p className="text-sm mt-1">{selectedDonation.campaign_title || '—'}</p>
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground">AMOUNT</label>
-              <p className="text-sm mt-1 font-bold text-primary">{formatGMD(selectedDonation.amount)}</p>
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground">STATUS</label>
-              <p className="text-sm mt-1 capitalize">{selectedDonation.status || 'paid'}</p>
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground">DATE</label>
-              <p className="text-sm mt-1">{formatDateTime(selectedDonation.paid_at || selectedDonation.created_at)}</p>
-            </div>
-          </div>
-        )}
-      </Sheet>
+        donation={selectedDonation}
+      />
     </div>
   )
 }

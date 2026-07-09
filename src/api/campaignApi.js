@@ -77,6 +77,15 @@ export const campaignApi = {
   getAdminCampaigns: (params) =>
     apiClient.get('/campaigns/admin/all/', { params }).then((r) => r.data),
 
+  getAdminCampaignDetail: (id) =>
+    apiClient.get(`/campaigns/admin/${id}/`).then((r) => r.data),
+
   campaignAction: (id, action, data = {}) =>
     apiClient.post(`/campaigns/admin/${id}/action/${action}/`, data).then((r) => r.data),
+
+  adminUpdateCampaign: (id, data) =>
+    apiClient.patch(`/campaigns/admin/${id}/update/`, data).then((r) => r.data),
+
+  adminChangeCampaignStatus: (id, data) =>
+    apiClient.post(`/campaigns/admin/${id}/status-change/`, data).then((r) => r.data),
 }

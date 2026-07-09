@@ -1,7 +1,7 @@
 import { X } from 'lucide-react'
 import { useEffect } from 'react'
 
-export function Sheet({ isOpen, onClose, title, children, footer }) {
+export function Sheet({ isOpen, onClose, title, children, footer, header }) {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden'
@@ -28,12 +28,15 @@ export function Sheet({ isOpen, onClose, title, children, footer }) {
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b">
           <h2 className="text-lg font-bold">{title}</h2>
-          <button
-            onClick={onClose}
-            className="p-1 rounded-lg hover:bg-accent transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            {header}
+            <button
+              onClick={onClose}
+              className="p-1 rounded-lg hover:bg-accent transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Content */}

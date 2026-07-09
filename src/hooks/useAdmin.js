@@ -1,20 +1,6 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/api/queryKeys'
-import { adminApi } from '@/api/adminApi'
-
-export function useDashboardStats() {
-  return useQuery({
-    queryKey: queryKeys.admin?.stats?.() || ['admin', 'stats'],
-    queryFn: adminApi.getDashboardStats,
-  })
-}
-
-export function useFullDashboard() {
-  return useQuery({
-    queryKey: queryKeys.admin?.full?.() || ['admin', 'dashboard'],
-    queryFn: adminApi.getFullDashboard,
-  })
-}
+import { adminApi, analyticsApi } from '@/api/adminApi'
 
 export function useAdminReports(params = {}) {
   return useQuery({
@@ -23,10 +9,13 @@ export function useAdminReports(params = {}) {
   })
 }
 
-export function useFinancialOverview() {
+// period: 'week' | 'month' | 'year' | 'custom'. startDate/endDate only required for 'custom'.
+export function useFinanceSummary(period, startDate, endDate, limit = 10) {
+  const isCustom = period === 'custom'
   return useQuery({
-    queryKey: queryKeys.admin?.finances?.() || ['admin', 'finances'],
-    queryFn: adminApi.getFinancialOverview,
+    queryKey: queryKeys.admin.financeSummary({ period, startDate, endDate, limit }),
+    queryFn: () => analyticsApi.getFinanceSummary(period, startDate, endDate, limit),
+    enabled: !isCustom || Boolean(startDate && endDate),
   })
 }
 
@@ -52,16 +41,19 @@ export function useDonationsStats() {
   })
 }
 
-export function useFinancesStats() {
-  return useQuery({
-    queryKey: ['admin', 'stats', 'finances'],
-    queryFn: adminApi.getFinancesStats,
-  })
-}
-
 export function useReportsStats() {
   return useQuery({
     queryKey: ['admin', 'stats', 'reports'],
     queryFn: adminApi.getReportsStats,
+  })
+}
+
+export function useAdminUpdateReport() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, ...data }) => adminApi.updateReport(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin?.reports?.() || ['admin', 'reports'] })
+    },
   })
 }

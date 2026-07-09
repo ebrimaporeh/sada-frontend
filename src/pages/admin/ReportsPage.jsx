@@ -1,9 +1,12 @@
-import { useState } from 'react'
-import { AlertCircle, Flag, TrendingUp, CheckCircle, Clock, Loader2, Eye, EyeOff, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { useSearch } from '@tanstack/react-router'
+import { AlertCircle, Flag, TrendingUp, CheckCircle, Clock, Loader2, Eye, EyeOff, X } from 'lucide-react'
 import { cn } from '@/utils/cn'
-import { useAdminReports, useReportsStats } from '@/hooks/useAdmin'
+import { useAdminReports, useReportsStats, useAdminUpdateReport } from '@/hooks/useAdmin'
+import { useAdminChangeCampaignStatus, useAdminCampaigns } from '@/hooks/useCampaigns'
 import { StatSkeleton } from '@/components/custom/StatSkeleton'
-import { Sheet } from '@/components/custom/Sheet'
+import { ReportSheet } from '@/components/custom/ReportSheet'
+import { AdminPagination } from '@/components/custom/AdminPagination'
 import { formatDate } from '@/utils/formatters'
 
 const reasonLabels = {
@@ -23,27 +26,93 @@ const statusConfig = {
 }
 
 export function ReportsPage() {
+  const search = useSearch({ strict: false })
   const [filter, setFilter] = useState('all')
+  const [campaignFilter, setCampaignFilter] = useState(search?.campaign || '')
   const [selectedReport, setSelectedReport] = useState(null)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [editData, setEditData] = useState({})
+  const [isSaving, setIsSaving] = useState(false)
+  const [isChangingCampaignStatus, setIsChangingCampaignStatus] = useState(false)
   const [page, setPage] = useState(1)
   const [showStats, setShowStats] = useState(true)
   const limit = 10
 
-  const { data: statsData, isLoading: statsLoading } = useReportsStats()
-  const { data: reportsData, isLoading } = useAdminReports({ status: filter === 'all' ? undefined : filter })
+  // Reset to page 1 whenever a filter changes so we don't land on an empty page.
+  useEffect(() => {
+    setPage(1)
+  }, [filter, campaignFilter])
 
-  const allReports = reportsData?.results || []
-  const totalPages = Math.ceil(allReports.length / limit)
-  const filteredReports = allReports.slice((page - 1) * limit, page * limit)
+  const { data: statsData, isLoading: statsLoading } = useReportsStats()
+  const { data: reportsData, isLoading } = useAdminReports({
+    status: filter === 'all' ? undefined : filter,
+    campaign: campaignFilter || undefined,
+    page,
+    page_size: limit,
+  })
+  const { data: campaignsData } = useAdminCampaigns({ page_size: 100 })
+  const { mutateAsync: updateReport } = useAdminUpdateReport()
+  const { mutateAsync: changeCampaignStatus } = useAdminChangeCampaignStatus()
+
+  const filteredReports = reportsData?.results || []
+  const totalPages = reportsData?.total_pages || 1
+  const totalCount = reportsData?.count || 0
+  const campaignOptions = campaignsData?.campaigns || []
+  const activeCampaignFilter = campaignOptions.find((c) => c.id === campaignFilter)
 
   const handleSelectReport = (report) => {
     setSelectedReport(report)
+    setEditData({
+      status: report.status || 'pending',
+      admin_notes: report.admin_notes || '',
+      reason: report.reason || '',
+      description: report.description || '',
+    })
+    setIsEditMode(false)
     setIsSheetOpen(true)
   }
 
+  const handleSaveChanges = async () => {
+    setIsSaving(true)
+    try {
+      await updateReport({
+        id: selectedReport.id,
+        ...editData,
+      })
+      setIsEditMode(false)
+      setIsSheetOpen(false)
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleCampaignStatusChange = async (campaignId, newStatus, reason) => {
+    setIsChangingCampaignStatus(true)
+    try {
+      await changeCampaignStatus({
+        id: campaignId,
+        status: newStatus,
+        reason: reason || '',
+      })
+      // Update the selected report with new campaign status
+      setSelectedReport((prev) => ({
+        ...prev,
+        campaign: {
+          ...prev.campaign,
+          status: newStatus,
+        },
+      }))
+    } catch (error) {
+      console.error('Error changing campaign status:', error)
+    } finally {
+      setIsChangingCampaignStatus(false)
+    }
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="min-h-full flex flex-col">
+      <div className="flex-1 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -96,22 +165,52 @@ export function ReportsPage() {
       )}
 
       {/* Filters */}
-      <div className="flex gap-2 flex-wrap">
-        {['all', 'pending', 'investigating', 'resolved', 'dismissed'].map((status) => (
-          <button
-            key={status}
-            onClick={() => setFilter(status)}
-            className={cn(
-              'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
-              filter === status
-                ? 'bg-primary text-primary-foreground'
-                : 'border hover:bg-accent text-muted-foreground'
-            )}
+      <div className="flex gap-2 flex-wrap items-center justify-between">
+        <div className="flex gap-2 flex-wrap">
+          {['all', 'pending', 'investigating', 'resolved', 'dismissed'].map((status) => (
+            <button
+              key={status}
+              onClick={() => setFilter(status)}
+              className={cn(
+                'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+                filter === status
+                  ? 'bg-primary text-primary-foreground'
+                  : 'border hover:bg-accent text-muted-foreground'
+              )}
+            >
+              {status.charAt(0).toUpperCase() + status.slice(1)}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <select
+            value={campaignFilter}
+            onChange={(e) => setCampaignFilter(e.target.value)}
+            className="px-3 py-2 border rounded-lg text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring max-w-[220px]"
           >
-            {status.charAt(0).toUpperCase() + status.slice(1)}
-          </button>
-        ))}
+            <option value="">All Campaigns</option>
+            {campaignOptions.map((c) => (
+              <option key={c.id} value={c.id}>{c.title}</option>
+            ))}
+          </select>
+          {campaignFilter && (
+            <button
+              onClick={() => setCampaignFilter('')}
+              className="p-2 rounded-lg border hover:bg-accent transition-colors"
+              title="Clear campaign filter"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
       </div>
+
+      {activeCampaignFilter && (
+        <p className="text-xs text-muted-foreground -mt-2">
+          Showing reports for <span className="font-medium text-foreground">{activeCampaignFilter.title}</span>
+        </p>
+      )}
 
       {/* Reports Grid */}
       <div className="space-y-3">
@@ -137,7 +236,7 @@ export function ReportsPage() {
               const statusInfo = statusConfig[report.status]
               const reasonInfo = reasonLabels[report.reason]
               const StatusIcon = statusInfo.icon
-              const reporter = report.reported_by?.full_name || report.reporter_name || 'Anonymous'
+              const reporter = report.reported_by_name || 'Anonymous'
               const campaignTitle = report.campaign?.title || 'Unknown Campaign'
               return (
                 <button
@@ -147,16 +246,16 @@ export function ReportsPage() {
                     'w-full border rounded-xl p-4 text-left hover:shadow-md transition-all cursor-pointer'
                   )}
                 >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <h3 className="font-semibold line-clamp-1">{campaignTitle}</h3>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Reported by {reporter} • {formatDate(report.created_at)}
-                      </p>
+                  <div className="mb-3">
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <h3 className="font-bold text-sm line-clamp-2 text-foreground flex-1">{campaignTitle}</h3>
+                      <div className={cn('px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap flex-shrink-0', reasonInfo.color)}>
+                        {reasonInfo.label}
+                      </div>
                     </div>
-                    <div className={cn('px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap ml-2', reasonInfo.color)}>
-                      {reasonInfo.label}
-                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Reported by {reporter} • {formatDate(report.created_at)}
+                    </p>
                   </div>
                   <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{report.description}</p>
                   <div className="flex items-center gap-2">
@@ -172,118 +271,27 @@ export function ReportsPage() {
             })
           )}
 
-          {/* Pagination */}
-          {allReports.length > 0 && totalPages > 1 && (
-            <div className="flex items-center justify-between pt-4 border-t">
-              <p className="text-sm text-muted-foreground">
-                Page {page} of {totalPages}
-              </p>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setPage(Math.max(1, page - 1))}
-                  disabled={page === 1}
-                  className="p-2 rounded-lg border hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                    <button
-                      key={p}
-                      onClick={() => setPage(p)}
-                      className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
-                        p === page
-                          ? 'bg-primary text-primary-foreground'
-                          : 'border hover:bg-accent'
-                      }`}
-                    >
-                      {p}
-                    </button>
-                  ))}
-                </div>
-                <button
-                  onClick={() => setPage(Math.min(totalPages, page + 1))}
-                  disabled={page === totalPages}
-                  className="p-2 rounded-lg border hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          )}
         </div>
+      </div>
+
+      {filteredReports.length > 0 && (
+        <AdminPagination page={page} totalPages={totalPages} onPageChange={setPage} totalCount={totalCount} limit={limit} />
+      )}
 
       {/* Report Detail Sheet */}
-      <Sheet
+      <ReportSheet
         isOpen={isSheetOpen}
         onClose={() => setIsSheetOpen(false)}
-        title={selectedReport?.campaign?.title || 'Report Details'}
-        footer={
-          <button
-            onClick={() => setIsSheetOpen(false)}
-            className="w-full px-4 py-2 rounded-lg border hover:bg-accent transition-colors text-sm font-medium"
-          >
-            Close
-          </button>
-        }
-      >
-        {selectedReport && (
-          <div className="space-y-4">
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground">REPORTER</label>
-              <p className="text-sm mt-1">{selectedReport.reported_by?.full_name || selectedReport.reporter_name || 'Anonymous'}</p>
-            </div>
-
-            {selectedReport.reported_by?.email && (
-              <div>
-                <label className="text-xs font-semibold text-muted-foreground">EMAIL</label>
-                <p className="text-sm mt-1 text-muted-foreground">{selectedReport.reported_by.email}</p>
-              </div>
-            )}
-
-            {selectedReport.reporter_phone && (
-              <div>
-                <label className="text-xs font-semibold text-muted-foreground">PHONE</label>
-                <p className="text-sm mt-1 text-muted-foreground">{selectedReport.reporter_phone}</p>
-              </div>
-            )}
-
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground">REASON</label>
-              <div className={cn('inline-block px-3 py-1.5 rounded-lg text-xs font-semibold mt-1', reasonLabels[selectedReport.reason]?.color)}>
-                {reasonLabels[selectedReport.reason]?.label || selectedReport.reason}
-              </div>
-            </div>
-
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground">DESCRIPTION</label>
-              <p className="text-sm mt-2 text-foreground/90 leading-relaxed">{selectedReport.description}</p>
-            </div>
-
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground">STATUS</label>
-              <div className={cn('inline-flex items-center gap-2 px-3 py-1.5 rounded-lg mt-1', statusConfig[selectedReport.status]?.bgColor)}>
-                {(() => {
-                  const StatusIcon = statusConfig[selectedReport.status]?.icon || AlertCircle
-                  return (
-                    <>
-                      <StatusIcon className={`w-4 h-4 ${statusConfig[selectedReport.status]?.color}`} />
-                      <span className={`text-sm font-medium ${statusConfig[selectedReport.status]?.color}`}>
-                        {statusConfig[selectedReport.status]?.label || selectedReport.status}
-                      </span>
-                    </>
-                  )
-                })()}
-              </div>
-            </div>
-
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground">REPORTED ON</label>
-              <p className="text-sm mt-1 text-muted-foreground">{formatDate(selectedReport.created_at)}</p>
-            </div>
-          </div>
-        )}
-      </Sheet>
+        report={selectedReport}
+        isEditMode={isEditMode}
+        onEditMode={setIsEditMode}
+        editData={editData}
+        onEditChange={(data) => setEditData({ ...editData, ...data })}
+        onSave={handleSaveChanges}
+        isSaving={isSaving}
+        onCampaignStatusChange={handleCampaignStatusChange}
+        isChangingCampaignStatus={isChangingCampaignStatus}
+      />
     </div>
   )
 }

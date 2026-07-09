@@ -7,6 +7,10 @@ export const queryKeys = {
     list: (params) => ['users', 'list', params],
     detail: (id) => ['users', 'detail', id],
   },
+  verification: {
+    mine: () => ['verification', 'mine'],
+    adminList: (params) => ['verification', 'admin', params],
+  },
   campaigns: {
     all: () => ['campaigns'],
     list: (filters) => ['campaigns', 'list', filters],
@@ -16,23 +20,24 @@ export const queryKeys = {
     categories: () => ['campaigns', 'categories'],
     featured: () => ['campaigns', 'featured'],
     adminList: (params) => ['campaigns', 'admin', params],
+    adminDetail: (id) => ['campaigns', 'admin', 'detail', id],
   },
   donations: {
     mine: () => ['donations', 'mine'],
     campaign: (slug) => ['donations', 'campaign', slug],
+    publicCampaign: (slug) => ['donations', 'campaign', slug, 'public'],
     adminList: (params) => ['donations', 'admin', params],
   },
   payments: {
     payouts: (slug) => ['payments', 'payouts', slug],
+    settings: () => ['payments', 'settings'],
   },
   notifications: {
     list: () => ['notifications'],
     unreadCount: () => ['notifications', 'unread-count'],
   },
   admin: {
-    stats: () => ['admin', 'stats'],
-    full: () => ['admin', 'dashboard'],
     reports: (params) => ['admin', 'reports', params],
-    finances: () => ['admin', 'finances'],
+    financeSummary: (params) => ['admin', 'finance-summary', params],
   },
 }

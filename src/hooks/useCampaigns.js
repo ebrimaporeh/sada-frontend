@@ -260,3 +260,23 @@ export function useAdminCampaignAction() {
     },
   })
 }
+
+export function useAdminUpdateCampaign() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, ...data }) => campaignApi.adminUpdateCampaign(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.all() })
+    },
+  })
+}
+
+export function useAdminChangeCampaignStatus() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, status, reason }) => campaignApi.adminChangeCampaignStatus(id, { status, reason }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.all() })
+    },
+  })
+}
