@@ -36,6 +36,7 @@ export const ROUTES = {
   ADMIN_VERIFICATIONS: '/admin/verifications',
 
   // Support pages
+  ABOUT: '/about',
   HELP: '/help',
   TRUST_SAFETY: '/trust-safety',
   PRIVACY: '/privacy',

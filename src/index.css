@@ -11,23 +11,36 @@
     --border: 214 13% 90%;
     --input: 214 13% 90%;
 
-    --primary: 142 69% 28%;
+    --primary: 134 36% 53%;
     --primary-foreground: 0 0% 100%;
+    /* The brand gradient — used as the actual `background` on bg-primary
+       elements (see the .bg-primary override below); --primary itself stays
+       a flat HSL color for text/border/ring usages, which can't render a
+       gradient. Keep both ends in sync with this if the brand color changes. */
+    --primary-gradient: linear-gradient(90deg, #ebd617, #7ac815);
 
-    --secondary: 142 30% 95%;
-    --secondary-foreground: 142 50% 18%;
+    --secondary: 134 30% 95%;
+    --secondary-foreground: 134 50% 18%;
 
     --muted: 210 14% 96%;
     --muted-foreground: 215 14% 48%;
 
-    --accent: 142 25% 93%;
-    --accent-foreground: 142 50% 18%;
+    --accent: 134 25% 93%;
+    --accent-foreground: 134 50% 18%;
 
     --destructive: 0 72% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --ring: 142 69% 28%;
+    --ring: 134 36% 53%;
     --radius: 0.625rem;
+
+    /* Design-system scale. Shadows are intentionally fixed-black (not tied to
+       --foreground, which flips near-white in dark mode) — a shadow should
+       never become a glow. */
+    --shadow-sm: 0 2px 8px rgb(0 0 0 / 0.06);
+    --shadow-md: 0 8px 28px rgb(0 0 0 / 0.10);
+    --shadow-lg: 0 20px 60px rgb(0 0 0 / 0.16);
+    --ease-brand: 0.22s ease;
 
     /* GambiaFund custom tokens */
     --donate: 38 89% 48%;
@@ -35,7 +48,7 @@
     --donate-light: 38 100% 94%;
     --urgent: 0 72% 50%;
     --urgent-light: 0 100% 97%;
-    --chart-1: 142 69% 28%;
+    --chart-1: 134 36% 53%;
     --chart-2: 38 89% 48%;
     --chart-3: 217 72% 45%;
     --chart-4: 0 72% 50%;
@@ -50,8 +63,9 @@
     --border: 215 20% 18%;
     --input: 215 20% 18%;
 
-    --primary: 142 55% 40%;
+    --primary: 134 40% 58%;
     --primary-foreground: 0 0% 100%;
+    --primary-gradient: linear-gradient(90deg, #ebd617, #7ac815);
 
     --secondary: 215 20% 18%;
     --secondary-foreground: 0 0% 90%;
@@ -65,7 +79,7 @@
     --destructive: 0 62% 40%;
     --destructive-foreground: 0 0% 98%;
 
-    --ring: 142 55% 40%;
+    --ring: 134 40% 58%;
 
     --donate: 38 89% 55%;
     --donate-foreground: 0 0% 10%;
@@ -76,7 +90,11 @@
 
 @layer base {
   * { @apply border-border; }
-  body { @apply bg-background text-foreground; }
+  body { @apply bg-background text-foreground font-sans; }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display leading-[1.12];
+  }
 
   * {
     scrollbar-width: thin;
@@ -98,7 +116,46 @@
   }
 }
 
+@layer components {
+  /* Small "eyebrow" label above a section heading — a short colored line
+     plus uppercase tracked text. Consumes the existing --primary token,
+     no new color introduced. */
+  .section-label {
+    @apply inline-flex items-center gap-2.5 mb-3.5;
+  }
+  .section-label-line {
+    @apply w-7 h-0.5 bg-primary flex-shrink-0;
+  }
+  .section-label-text {
+    @apply text-primary text-[11px] font-bold uppercase tracking-[1.8px];
+  }
+
+  /* Bordered stat box grid, e.g. hero stats — cells share dividers instead
+     of each being its own card. */
+  .stat-grid {
+    @apply grid border border-border rounded-xl overflow-hidden bg-card;
+  }
+  .stat-grid > div {
+    @apply px-4 py-5 text-center border-r border-border last:border-r-0 bg-muted/40;
+  }
+
+  /* Inner-page hero banner — used at the top of standalone content pages
+     (Trust & Safety, Help, Privacy, Terms) for a consistent entry point. */
+  .page-header {
+    @apply bg-muted/40 border-b py-14 sm:py-16;
+  }
+}
+
 @layer utilities {
+  /* Overrides Tailwind's generated `.bg-primary` (background-color: hsl(var(--primary)))
+     so every existing and future bg-primary usage — buttons, progress bars,
+     filled badges — renders the brand gradient instead of a flat color.
+     text-primary/border-primary/ring-primary are untouched: a gradient can't
+     render legibly as text/border/ring, so those keep the flat --primary color. */
+  .bg-primary {
+    background: var(--primary-gradient);
+  }
+
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;

@@ -1,6 +1,8 @@
 import { Link } from '@tanstack/react-router'
 import { PenSquare, Share2, Smartphone, ArrowRight } from 'lucide-react'
 import { ROUTES } from '@/constants'
+import { usePublicStats } from '@/hooks/useCampaigns'
+import { compactNumber } from '@/utils/formatters'
 
 const steps = [
   {
@@ -22,16 +24,23 @@ const steps = [
     icon: Smartphone,
     title: 'Receive funds',
     description:
-      'Donations arrive directly to your mobile money account. Instant payouts with zero platform fees — we keep nothing.',
+      'Donations arrive directly to your mobile money account. Withdraw anytime — a small platform fee applies only when you cash out.',
   },
 ]
 
 export function HowItWorks() {
+  const { stats } = usePublicStats()
+
   return (
-    <section id="how-it-works" className="bg-background py-24">
+    <section id="how-it-works" className="bg-background py-20 sm:py-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1]">
+        <div className="text-center mb-14">
+          <div className="section-label justify-center">
+            <div className="section-label-line" />
+            <span className="section-label-text">Getting Started</span>
+            <div className="section-label-line" />
+          </div>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
             Three steps to success
           </h2>
           <p className="text-lg text-muted-foreground mt-4 max-w-2xl mx-auto leading-relaxed">
@@ -40,21 +49,17 @@ export function HowItWorks() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 mb-12">
+        <div className="grid md:grid-cols-3 gap-5 mb-12">
           {steps.map(({ number, icon: Icon, title, description }) => (
-            <div key={number} className="space-y-4">
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0">
-                  <div className="flex items-center justify-center h-12 w-12 rounded-full bg-primary/10">
-                    <Icon className="h-6 w-6 text-primary" />
-                  </div>
+            <div key={number} className="bg-card border rounded-2xl p-6 transition-all hover:shadow-brand-md hover:-translate-y-0.5">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-center h-11 w-11 rounded-xl bg-primary/10">
+                  <Icon className="h-5 w-5 text-primary" />
                 </div>
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-primary">{number}</p>
-                  <h3 className="text-xl font-bold mt-2">{title}</h3>
-                  <p className="text-muted-foreground text-sm mt-2 leading-relaxed">{description}</p>
-                </div>
+                <span className="font-display text-3xl font-bold text-primary/20">{number}</span>
               </div>
+              <h3 className="text-lg font-bold mb-2">{title}</h3>
+              <p className="text-muted-foreground text-sm leading-relaxed">{description}</p>
             </div>
           ))}
         </div>
@@ -62,14 +67,14 @@ export function HowItWorks() {
         <div className="text-center pt-8 border-t">
           <Link
             to={ROUTES.CAMPAIGN_NEW}
-            className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold px-8 py-3.5 rounded-xl hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20"
+            className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold px-8 py-3.5 rounded-xl hover:opacity-90 transition-opacity shadow-brand-md"
           >
             Create Your Campaign
             <ArrowRight className="w-4 h-4" />
           </Link>
           <p className="text-xs text-muted-foreground mt-4">
-            Trusted by {Math.floor(Math.random() * 2000 + 1000)} fundraisers. No fees. 100% of
-            donations reach your cause.
+            {stats ? `Trusted by ${compactNumber(stats.fundraisers_count)} fundraisers. ` : ''}
+            No donor-side fees. 100% of what's donated reaches your cause.
           </p>
         </div>
       </div>

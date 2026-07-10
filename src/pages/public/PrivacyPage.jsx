@@ -25,7 +25,7 @@ const sections = [
     title: 'Who We Share It With',
     body: [
       'ModemPay — your mobile number and donation amount are shared to process payments.',
-      'Our moderation team — campaign details are reviewed internally before going live.',
+      'Our moderation team — campaign details may be reviewed if a campaign is reported.',
       'Law enforcement — only when required by law or to protect users from harm.',
     ],
   },
@@ -65,32 +65,41 @@ const sections = [
 
 export function PrivacyPage() {
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-12">
-      <div className="mb-10">
-        <h1 className="text-3xl font-extrabold mb-2">Privacy Policy</h1>
-        <p className="text-muted-foreground">How GambiaFund collects, uses, and protects your personal information.</p>
-      </div>
-
-      <div className="space-y-8">
-        {sections.map(({ title, body }) => (
-          <div key={title}>
-            <h2 className="font-semibold mb-3">{title}</h2>
-            <ul className="space-y-2">
-              {body.map((item, i) => (
-                <li key={i} className="text-sm text-muted-foreground leading-relaxed flex gap-2">
-                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-primary/40 flex-shrink-0" />
-                  {item}
-                </li>
-              ))}
-            </ul>
+    <div>
+      <div className="page-header">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 text-center">
+          <div className="section-label justify-center">
+            <div className="section-label-line" />
+            <span className="section-label-text">Legal</span>
+            <div className="section-label-line" />
           </div>
-        ))}
+          <h1 className="text-3xl sm:text-4xl font-bold mb-2">Privacy Policy</h1>
+          <p className="text-muted-foreground">How GambiaFund collects, uses, and protects your personal information.</p>
+        </div>
       </div>
 
-      <div className="mt-12 flex flex-wrap gap-4 text-sm text-muted-foreground justify-center">
-        <Link to={ROUTES.HELP} className="hover:text-foreground transition-colors">Help Center</Link>
-        <Link to={ROUTES.TRUST_SAFETY} className="hover:text-foreground transition-colors">Trust &amp; Safety</Link>
-        <Link to={ROUTES.TERMS} className="hover:text-foreground transition-colors">Terms of Service</Link>
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-14">
+        <div className="space-y-8">
+          {sections.map(({ title, body }) => (
+            <div key={title} className="bg-card border rounded-2xl p-6">
+              <h2 className="font-semibold mb-3">{title}</h2>
+              <ul className="space-y-2">
+                {body.map((item, i) => (
+                  <li key={i} className="text-sm text-muted-foreground leading-relaxed flex gap-2">
+                    <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-primary/40 flex-shrink-0" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-12 flex flex-wrap gap-4 text-sm text-muted-foreground justify-center">
+          <Link to={ROUTES.HELP} className="hover:text-foreground transition-colors">Help Center</Link>
+          <Link to={ROUTES.TRUST_SAFETY} className="hover:text-foreground transition-colors">Trust &amp; Safety</Link>
+          <Link to={ROUTES.TERMS} className="hover:text-foreground transition-colors">Terms of Service</Link>
+        </div>
       </div>
     </div>
   )

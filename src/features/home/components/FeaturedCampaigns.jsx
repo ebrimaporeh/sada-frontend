@@ -12,6 +12,10 @@ export function FeaturedCampaigns() {
     <section className="max-w-7xl mx-auto px-4 sm:px-6 py-14">
       <div className="flex items-center justify-between mb-6">
         <div>
+          <div className="section-label">
+            <div className="section-label-line" />
+            <span className="section-label-text">Featured</span>
+          </div>
           <h2 className="text-2xl sm:text-3xl font-bold">Trending Campaigns</h2>
           <p className="text-muted-foreground text-sm mt-1">Most supported campaigns right now</p>
         </div>

@@ -13,7 +13,7 @@ export function PublicLayout() {
   const navLinks = [
     { label: 'Campaigns', to: ROUTES.CAMPAIGNS },
     { label: 'How It Works', to: '/#how-it-works' },
-    { label: 'About', to: '/#about' },
+    { label: 'About', to: ROUTES.ABOUT },
   ]
 
   const bottomTabs = [
@@ -138,7 +138,7 @@ export function PublicLayout() {
           <div>
             <p className="text-sm font-semibold mb-3">Platform</p>
             <ul className="space-y-2 text-sm text-background/60">
-              {[['Campaigns', ROUTES.CAMPAIGNS], ['Start a Campaign', ROUTES.CAMPAIGN_NEW], ['How It Works', '/'], ['About Us', '/']].map(([label, to]) => (
+              {[['Campaigns', ROUTES.CAMPAIGNS], ['Start a Campaign', ROUTES.CAMPAIGN_NEW], ['How It Works', '/#how-it-works'], ['About Us', ROUTES.ABOUT]].map(([label, to]) => (
                 <li key={label}>
                   <Link to={to} className="hover:text-background transition-colors">{label}</Link>
                 </li>
