@@ -82,7 +82,7 @@ export function MarkdownEditor({ value, onChange, placeholder = 'Write your cont
           onChange={(e) => onChange(e)}
           placeholder={placeholder}
           rows={10}
-          className="w-full px-4 py-3 border rounded-xl text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring resize-vertical font-mono"
+          className="w-full px-4 py-3 border rounded-xl text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring resize-vertical font-mono"
         />
       ) : (
         <div className="border rounded-xl p-4 min-h-[300px] bg-background prose prose-sm max-w-none">

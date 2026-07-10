@@ -182,7 +182,7 @@ export function VerificationsPage() {
                   onChange={(e) => setReason(e.target.value)}
                   placeholder="Reason for rejection (required if rejecting)..."
                   rows={3}
-                  className="w-full px-3 py-2 border rounded-lg text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+                  className="w-full px-3 py-2 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring resize-none"
                 />
                 <div className="flex gap-2">
                   <button

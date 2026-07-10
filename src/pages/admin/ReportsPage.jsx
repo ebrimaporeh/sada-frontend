@@ -187,7 +187,7 @@ export function ReportsPage() {
           <select
             value={campaignFilter}
             onChange={(e) => setCampaignFilter(e.target.value)}
-            className="px-3 py-2 border rounded-lg text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring max-w-[220px]"
+            className="px-3 py-2 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring max-w-[220px]"
           >
             <option value="">All Campaigns</option>
             {campaignOptions.map((c) => (

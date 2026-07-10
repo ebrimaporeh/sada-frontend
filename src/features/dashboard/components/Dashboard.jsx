@@ -81,7 +81,7 @@ function RecentDonationRow({ donation }) {
         </div>
         <div className="min-w-0">
           <p className="text-sm font-medium truncate">{donor}</p>
-          <p className="text-xs text-muted-foreground line-clamp-2 break-words">{donation.campaign_title || donation.campaign}</p>
+          <p className="text-xs text-muted-foreground line-clamp-2 wrap-break-word">{donation.campaign_title || donation.campaign}</p>
         </div>
       </div>
       <div className="text-right flex-shrink-0">

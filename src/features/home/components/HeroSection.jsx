@@ -29,7 +29,7 @@ export function HeroSection() {
       />
       {/* Soft brand blob */}
       <div
-        className="absolute -top-32 -right-32 w-[32rem] h-[32rem] rounded-full opacity-20 blur-3xl pointer-events-none"
+        className="absolute -top-32 -right-32 w-lg h-128 rounded-full opacity-20 blur-3xl pointer-events-none"
         style={{ background: 'var(--primary-gradient)' }}
       />
 
@@ -87,7 +87,7 @@ export function HeroSection() {
               <span className="section-label-text">Trending Now</span>
               <div className="section-label-line" />
             </div>
-            <div className="absolute inset-0 top-9 bg-gradient-to-br from-primary/5 to-primary/10 rounded-3xl -rotate-2 scale-105" />
+            <div className="absolute inset-0 top-9 bg-linear-to-br from-primary/5 to-primary/10 rounded-3xl -rotate-2 scale-105" />
             <div className="relative">
               {isLoading && <CampaignCardSkeleton className="max-w-sm mx-auto shadow-brand-lg" />}
               {!isLoading && heroCard && <CampaignCard campaign={heroCard} className="max-w-sm mx-auto shadow-brand-lg" />}

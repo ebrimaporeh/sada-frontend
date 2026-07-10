@@ -156,7 +156,7 @@ export function WithdrawTab({ campaign, payouts, availableBalance, totalPaidOut 
                   placeholder="0"
                   min="50"
                   max={availableBalance}
-                  className="w-full pl-8 pr-4 py-3 border rounded-xl bg-background focus:outline-none focus:ring-2 focus:ring-ring text-2xl font-bold"
+                  className="w-full pl-8 pr-4 py-3 border rounded-xl bg-background focus:outline-hidden focus:ring-2 focus:ring-ring text-2xl font-bold"
                 />
               </div>
               <div className="flex gap-2 flex-wrap">
@@ -261,7 +261,7 @@ export function WithdrawTab({ campaign, payouts, availableBalance, totalPaidOut 
                         value={phone}
                         onChange={(e) => { setPhone(e.target.value); setUseDefault(false); setError('') }}
                         placeholder="7XXXXXXX"
-                        className="w-full pl-14 pr-4 py-2.5 border rounded-xl text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+                        className="w-full pl-14 pr-4 py-2.5 border rounded-xl text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
                       />
                     </div>
                   </div>
@@ -314,7 +314,7 @@ export function WithdrawTab({ campaign, payouts, availableBalance, totalPaidOut 
                       value={phone}
                       onChange={(e) => { setPhone(e.target.value); setError('') }}
                       placeholder="7XXXXXXX"
-                      className="w-full pl-14 pr-4 py-2.5 border rounded-xl text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+                      className="w-full pl-14 pr-4 py-2.5 border rounded-xl text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
                     />
                   </div>
                 </div>

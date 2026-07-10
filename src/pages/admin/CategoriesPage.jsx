@@ -177,7 +177,7 @@ export function CategoriesPage() {
             placeholder="Search categories..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background"
+            className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm focus:outline-hidden focus:ring-2 focus:ring-ring bg-background"
           />
           {search && (
             <button
@@ -315,7 +315,7 @@ export function CategoriesPage() {
                   value={editData.name || ''}
                   onChange={(e) => setEditData({ ...editData, name: e.target.value })}
                   disabled={isSaving}
-                  className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background disabled:opacity-50"
+                  className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-hidden focus:ring-2 focus:ring-ring bg-background disabled:opacity-50"
                   placeholder="e.g., Medical & Health"
                 />
               </div>
@@ -327,7 +327,7 @@ export function CategoriesPage() {
                   value={editData.description || ''}
                   onChange={(e) => setEditData({ ...editData, description: e.target.value })}
                   disabled={isSaving}
-                  className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background resize-none disabled:opacity-50"
+                  className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-hidden focus:ring-2 focus:ring-ring bg-background resize-none disabled:opacity-50"
                   rows="3"
                   placeholder="Category description..."
                 />

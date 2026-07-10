@@ -78,7 +78,7 @@ export function SettingsPage() {
                   min="0"
                   max="100"
                   step="0.01"
-                  className="w-full pr-8 pl-3 py-2.5 border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring text-lg font-bold"
+                  className="w-full pr-8 pl-3 py-2.5 border rounded-lg bg-background focus:outline-hidden focus:ring-2 focus:ring-ring text-lg font-bold"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 font-bold text-muted-foreground">%</span>
               </div>

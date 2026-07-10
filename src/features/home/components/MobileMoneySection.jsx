@@ -40,7 +40,7 @@ const benefits = [
 
 export function MobileMoneySection() {
   return (
-    <section className="bg-gradient-to-br from-primary/5 via-background to-primary/5 py-24 border-t border-b">
+    <section className="bg-linear-to-br from-primary/5 via-background to-primary/5 py-24 border-t border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="text-center mb-16">
           <div className="section-label justify-center">

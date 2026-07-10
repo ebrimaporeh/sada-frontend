@@ -30,13 +30,13 @@ function Toggle({ checked, onChange, label, description }) {
         aria-checked={checked}
         onClick={() => onChange(!checked)}
         className={cn(
-          'relative flex-shrink-0 w-10 h-6 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+          'relative flex-shrink-0 w-10 h-6 rounded-full transition-colors focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2',
           checked ? 'bg-primary' : 'bg-muted-foreground/30',
         )}
       >
         <span
           className={cn(
-            'absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow transition-transform',
+            'absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow-sm transition-transform',
             checked ? 'translate-x-4' : 'translate-x-0',
           )}
         />
@@ -156,7 +156,7 @@ export function SettingsPage() {
           value={pwForm[field]}
           onChange={setPw(field)}
           placeholder={placeholder}
-          className="w-full pl-3 pr-10 py-2.5 border rounded-lg text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+          className="w-full pl-3 pr-10 py-2.5 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
           autoComplete={field === 'current_password' ? 'current-password' : 'new-password'}
         />
         <button
@@ -242,7 +242,7 @@ export function SettingsPage() {
                 value={paymentForm.default_payment_phone.replace(/^\+220/, '')}
                 onChange={(e) => setPaymentForm((f) => ({ ...f, default_payment_phone: e.target.value }))}
                 placeholder="7XXXXXXX"
-                className="w-full pl-14 pr-4 py-2.5 border rounded-xl text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full pl-14 pr-4 py-2.5 border rounded-xl text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
               />
             </div>
             <p className="text-xs text-muted-foreground">This number will be pre-filled when you request a withdrawal.</p>

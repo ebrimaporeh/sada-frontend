@@ -15,7 +15,7 @@ function CampaignSummaryCard({ campaign }) {
   const pct = progressPercent(campaign.raised, campaign.goal)
   return (
     <div className="border rounded-xl p-4 bg-card space-y-3">
-      <div className={cn('h-24 rounded-lg bg-gradient-to-br flex items-center justify-center', campaign.gradient)}>
+      <div className={cn('h-24 rounded-lg bg-linear-to-br flex items-center justify-center', campaign.gradient)}>
         <span className="text-white/40 text-5xl font-black">{(campaign.category?.name ?? campaign.category ?? '')[0]}</span>
       </div>
       <div>
@@ -156,7 +156,7 @@ export function DonateCheckout({ campaign }) {
                     placeholder="Amount"
                     min={settings.donate.minAmount}
                     max={settings.donate.maxAmount}
-                    className="w-full pl-8 pr-4 py-2.5 border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring text-lg font-bold"
+                    className="w-full pl-8 pr-4 py-2.5 border rounded-lg bg-background focus:outline-hidden focus:ring-2 focus:ring-ring text-lg font-bold"
                   />
                 </div>
               </div>
@@ -171,7 +171,7 @@ export function DonateCheckout({ campaign }) {
                     onChange={(e) => setDonorName(e.target.value)}
                     placeholder="Full name"
                     disabled={anonymous}
-                    className="w-full px-3 py-2 border rounded-lg text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+                    className="w-full px-3 py-2 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring disabled:opacity-50"
                   />
                 </div>
 
@@ -187,7 +187,7 @@ export function DonateCheckout({ campaign }) {
                     placeholder="Words of encouragement for the campaign owner..."
                     rows={3}
                     maxLength={280}
-                    className="w-full px-3 py-2 border rounded-lg text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+                    className="w-full px-3 py-2 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring resize-none"
                   />
                 </div>
               </div>
@@ -248,7 +248,7 @@ export function DonateCheckout({ campaign }) {
                     value={phone}
                     onChange={(e) => { setPhone(e.target.value); setError('') }}
                     placeholder="7XXXXXXX"
-                    className="w-full pl-14 pr-4 py-2.5 border rounded-lg text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+                    className="w-full pl-14 pr-4 py-2.5 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
                   />
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">You'll receive a payment prompt on this number</p>

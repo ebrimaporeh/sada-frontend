@@ -102,7 +102,7 @@ export function ReportSheet({
               <select
                 value={editData.status || ''}
                 onChange={(e) => onEditChange({ status: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background"
+                className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-hidden focus:ring-2 focus:ring-ring bg-background"
               >
                 <option value="pending">Pending Review</option>
                 <option value="investigating">Investigating</option>
@@ -116,7 +116,7 @@ export function ReportSheet({
               <select
                 value={editData.reason || ''}
                 onChange={(e) => onEditChange({ reason: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background"
+                className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-hidden focus:ring-2 focus:ring-ring bg-background"
               >
                 <option value="fraudulent">Fraudulent Activity</option>
                 <option value="misleading">Misleading Information</option>
@@ -132,7 +132,7 @@ export function ReportSheet({
               <textarea
                 value={editData.description || ''}
                 onChange={(e) => onEditChange({ description: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background resize-none"
+                className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-hidden focus:ring-2 focus:ring-ring bg-background resize-none"
                 rows="3"
               />
             </div>
@@ -142,7 +142,7 @@ export function ReportSheet({
               <textarea
                 value={editData.admin_notes || ''}
                 onChange={(e) => onEditChange({ admin_notes: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background resize-none"
+                className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-hidden focus:ring-2 focus:ring-ring bg-background resize-none"
                 rows="3"
                 placeholder="Add internal notes about this report..."
               />
@@ -253,7 +253,7 @@ export function ReportSheet({
                             })
                           }}
                           disabled={isChangingCampaignStatus}
-                          className="w-full px-3 py-2 border border-blue-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white disabled:opacity-50"
+                          className="w-full px-3 py-2 border border-blue-300 rounded-lg text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500 bg-white disabled:opacity-50"
                         >
                           {campaignStatusOptions.map((option) => (
                             <option key={option.value} value={option.value}>
@@ -275,7 +275,7 @@ export function ReportSheet({
                           }}
                           disabled={isChangingCampaignStatus}
                           placeholder="Provide a reason for this status change (e.g., 'Rejecting due to fraudulent content reported')"
-                          className="w-full px-3 py-2 border border-blue-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white resize-none disabled:opacity-50"
+                          className="w-full px-3 py-2 border border-blue-300 rounded-lg text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500 bg-white resize-none disabled:opacity-50"
                           rows="2"
                         />
                       </div>

@@ -21,12 +21,12 @@ function CategoryCard({ cat }) {
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center">
+          <div className="w-full h-full bg-linear-to-br from-primary/15 to-primary/5 flex items-center justify-center">
             <Icon className="w-14 h-14 text-primary/70" strokeWidth={1.5} />
           </div>
         )}
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-300" />
-        <div className="absolute top-3 left-3 w-9 h-9 rounded-full bg-background/90 backdrop-blur flex items-center justify-center">
+        <div className="absolute top-3 left-3 w-9 h-9 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center">
           <Icon className="w-4 h-4 text-primary" />
         </div>
       </div>

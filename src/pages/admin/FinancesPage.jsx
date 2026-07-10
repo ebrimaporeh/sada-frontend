@@ -292,7 +292,7 @@ export function FinancesPage() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="border rounded-xl p-5 bg-gradient-to-br from-green-50 to-emerald-50 space-y-3">
+        <div className="border rounded-xl p-5 bg-linear-to-br from-green-50 to-emerald-50 space-y-3">
           <p className="text-sm font-semibold text-muted-foreground">TOTAL DONATIONS</p>
           <div>
             <p className="text-3xl font-bold text-green-700">{formatGMD(donations.total_amount)}</p>
@@ -301,7 +301,7 @@ export function FinancesPage() {
           <p className="text-xs text-green-600/70">Average: {formatGMD(donations.average_amount)} per donation</p>
         </div>
 
-        <div className="border rounded-xl p-5 bg-gradient-to-br from-orange-50 to-amber-50 space-y-3">
+        <div className="border rounded-xl p-5 bg-linear-to-br from-orange-50 to-amber-50 space-y-3">
           <p className="text-sm font-semibold text-muted-foreground">PENDING PAYOUTS</p>
           <div>
             <p className="text-3xl font-bold text-orange-700">{formatGMD(payouts.pending_amount)}</p>
@@ -421,7 +421,7 @@ export function FinancesPage() {
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {providerBreakdown.map((provider) => (
-              <div key={provider.provider} className="border rounded-lg p-4 bg-gradient-to-br from-green-50 to-emerald-50 space-y-2">
+              <div key={provider.provider} className="border rounded-lg p-4 bg-linear-to-br from-green-50 to-emerald-50 space-y-2">
                 <p className="font-semibold text-gray-900 capitalize">{provider.provider.replace('_', ' ')}</p>
                 <p className="text-lg font-bold text-green-700">{formatGMD(provider.amount)}</p>
                 <p className="text-xs text-green-600">{provider.count} transactions</p>

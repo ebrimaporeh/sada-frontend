@@ -38,13 +38,13 @@ export function CategoriesPage() {
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                   />
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                  <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
                     <Icon className="w-14 h-14 text-primary/70" strokeWidth={1.5} />
                   </div>
                 )}
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-300" />
                 {cat.total_donated > 0 && (
-                  <span className="absolute top-3 right-3 bg-background/90 backdrop-blur text-xs font-semibold px-2.5 py-1 rounded-full">
+                  <span className="absolute top-3 right-3 bg-background/90 backdrop-blur-sm text-xs font-semibold px-2.5 py-1 rounded-full">
                     {formatGMD(cat.total_donated)} raised
                   </span>
                 )}

@@ -33,7 +33,7 @@ function Input({ value, onChange, type = 'text', placeholder, prefix, ...props }
           value={value}
           onChange={onChange}
           placeholder={placeholder}
-          className="w-full pl-12 pr-3 py-2.5 border rounded-lg text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+          className="w-full pl-12 pr-3 py-2.5 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
           {...props}
         />
       </div>
@@ -45,7 +45,7 @@ function Input({ value, onChange, type = 'text', placeholder, prefix, ...props }
       value={value}
       onChange={onChange}
       placeholder={placeholder}
-      className="w-full px-3 py-2.5 border rounded-lg text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+      className="w-full px-3 py-2.5 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
       {...props}
     />
   )
@@ -164,7 +164,7 @@ export function UserProfile() {
           <select
             value={form.region}
             onChange={set('region')}
-            className="w-full px-3 py-2.5 border rounded-lg text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+            className="w-full px-3 py-2.5 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
           >
             <option value="">Select your region</option>
             {GAMBIA_REGIONS.map((r) => (
@@ -180,7 +180,7 @@ export function UserProfile() {
             placeholder="Community organizer and fundraising advocate from Banjul…"
             rows={4}
             maxLength={400}
-            className="w-full px-3 py-2.5 border rounded-lg text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+            className="w-full px-3 py-2.5 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring resize-none"
           />
           <p className="text-xs text-muted-foreground text-right">{form.bio.length}/400</p>
         </Field>

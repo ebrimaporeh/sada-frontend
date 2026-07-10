@@ -23,7 +23,7 @@ function CampaignCard({ campaign }) {
   return (
     <div className="border rounded-xl bg-card overflow-hidden hover:shadow-md transition-shadow">
       {/* Color bar header */}
-      <div className={cn('h-2 bg-gradient-to-r', campaign.gradient || 'from-primary to-primary/60')} />
+      <div className={cn('h-2 bg-linear-to-r', campaign.gradient || 'from-primary to-primary/60')} />
 
       <div className="p-5 space-y-4">
         <div className="flex items-start justify-between gap-3">

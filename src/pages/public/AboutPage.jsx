@@ -34,7 +34,7 @@ export function AboutPage() {
   return (
     <div>
       {/* Hero */}
-      <section className="bg-gradient-to-b from-primary/5 to-background border-b py-20 sm:py-28">
+      <section className="bg-linear-to-b from-primary/5 to-background border-b py-20 sm:py-28">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
           <div className="inline-flex items-center gap-2 bg-primary/10 text-primary text-sm font-semibold px-3 py-1.5 rounded-full mb-6">
             <Sparkles className="w-3.5 h-3.5" /> About {settings.siteName}

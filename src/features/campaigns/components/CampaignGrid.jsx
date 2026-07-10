@@ -59,7 +59,7 @@ export function CampaignGrid() {
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && submitSearch()}
-              className="w-full pl-10 pr-9 py-2.5 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              className="w-full pl-10 pr-9 py-2.5 rounded-lg border bg-background text-sm focus:outline-hidden focus:ring-2 focus:ring-ring"
             />
             {searchInput && (
               <button
@@ -111,7 +111,7 @@ export function CampaignGrid() {
           <select
             value={region}
             onChange={(e) => setRegion(e.target.value)}
-            className="text-sm px-3 py-2 rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+            className="text-sm px-3 py-2 rounded-lg border bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
           >
             <option value="">All Regions</option>
             {GAMBIA_REGIONS.map((r) => (

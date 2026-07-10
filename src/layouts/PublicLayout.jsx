@@ -28,7 +28,7 @@ export function PublicLayout() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Navbar */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b">
+      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           {/* Logo */}
           <Link to={ROUTES.HOME} className="flex items-center gap-2 font-bold text-xl">
@@ -82,7 +82,7 @@ export function PublicLayout() {
       </main>
 
       {/* Mobile Bottom Nav */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-background/95 backdrop-blur border-t safe-area-bottom">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-background/95 backdrop-blur-sm border-t safe-area-bottom">
         <div className="flex items-end justify-around h-16 px-1">
           {bottomTabs.map(({ label, to, icon: Icon, exact, cta }) => {
             const isActive = exact ? path === to : path.startsWith(to)

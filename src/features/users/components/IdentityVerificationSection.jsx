@@ -135,7 +135,7 @@ export function IdentityVerificationSection() {
             <select
               value={idType}
               onChange={(e) => { setIdType(e.target.value); setPhotoBack(null) }}
-              className="w-full px-3 py-2.5 border rounded-lg text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+              className="w-full px-3 py-2.5 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
             >
               {ID_TYPES.map((t) => (
                 <option key={t.value} value={t.value}>{t.label}</option>
@@ -151,7 +151,7 @@ export function IdentityVerificationSection() {
               onChange={(e) => setIdNumber(e.target.value)}
               required
               placeholder="e.g. GAM0123456"
-              className="w-full px-3 py-2.5 border rounded-lg text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+              className="w-full px-3 py-2.5 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
             />
           </div>
 

@@ -67,7 +67,7 @@ function TextInput({ value, onChange, placeholder, className, ...props }) {
       value={value}
       onChange={onChange}
       placeholder={placeholder}
-      className={cn('w-full px-3 py-2.5 border rounded-lg text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring', className)}
+      className={cn('w-full px-3 py-2.5 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring', className)}
       {...props}
     />
   )
@@ -80,7 +80,7 @@ function Textarea({ value, onChange, placeholder, rows = 5, ...props }) {
       onChange={onChange}
       placeholder={placeholder}
       rows={rows}
-      className="w-full px-3 py-2.5 border rounded-lg text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+      className="w-full px-3 py-2.5 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring resize-none"
       {...props}
     />
   )
@@ -354,7 +354,7 @@ export function CampaignForm() {
           </FieldGroup>
 
           <FieldGroup label="Category *" error={errors.category}>
-            <select value={form.category} onChange={set('category')} className="w-full px-3 py-2.5 border rounded-lg text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring">
+            <select value={form.category} onChange={set('category')} className="w-full px-3 py-2.5 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring">
               <option value="">Select a category</option>
               {categories.map((c) => (
                 <option key={c.id} value={c.slug}>{c.icon} {c.name}</option>
@@ -363,7 +363,7 @@ export function CampaignForm() {
           </FieldGroup>
 
           <FieldGroup label="Region *" error={errors.region}>
-            <select value={form.region} onChange={set('region')} className="w-full px-3 py-2.5 border rounded-lg text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring">
+            <select value={form.region} onChange={set('region')} className="w-full px-3 py-2.5 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring">
               <option value="">Select region in The Gambia</option>
               {GAMBIA_REGIONS.map((r) => (
                 <option key={r.value} value={r.value}>{r.label}</option>
@@ -376,7 +376,7 @@ export function CampaignForm() {
               <TextInput value={form.beneficiary} onChange={set('beneficiary')} placeholder="Full name or organization" />
             </FieldGroup>
             <FieldGroup label="Your Relationship *" error={errors.beneficiary_relationship}>
-              <select value={form.beneficiary_relationship} onChange={set('beneficiary_relationship')} className="w-full px-3 py-2.5 border rounded-lg text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring">
+              <select value={form.beneficiary_relationship} onChange={set('beneficiary_relationship')} className="w-full px-3 py-2.5 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring">
                 <option value="">Select relationship</option>
                 {RELATIONSHIPS.map((r) => (
                   <option key={r} value={r}>{r}</option>

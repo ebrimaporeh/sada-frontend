@@ -20,7 +20,7 @@ export function CampaignCard({ campaign, className }) {
       )}
     >
       {/* Image area */}
-      <div className={cn('relative h-44 bg-gradient-to-br', campaign.gradient || 'from-primary/60 to-primary')}>
+      <div className={cn('relative h-44 bg-linear-to-br', campaign.gradient || 'from-primary/60 to-primary')}>
         {campaign.cover_image_url && (
           <img
             src={campaign.cover_image_url}
@@ -30,7 +30,7 @@ export function CampaignCard({ campaign, className }) {
         )}
         {/* Badges */}
         <div className="absolute top-3 left-3 right-3 flex items-start justify-between">
-          <span className="inline-flex items-center gap-1 bg-black/40 backdrop-blur-sm text-white text-xs font-medium px-2 py-1 rounded-full">
+          <span className="inline-flex items-center gap-1 bg-black/40 backdrop-blur-xs text-white text-xs font-medium px-2 py-1 rounded-full">
             {campaign.category_name ?? campaign.category?.name ?? campaign.category}
           </span>
           <div className="flex flex-col items-end gap-1">

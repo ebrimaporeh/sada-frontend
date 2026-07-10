@@ -130,7 +130,7 @@ export function UpdatesTab({ campaign }) {
                 onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
                 placeholder="e.g. Surgery completed successfully!"
                 maxLength={120}
-                className="w-full px-3 py-2.5 border rounded-xl text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full px-3 py-2.5 border rounded-xl text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
               />
             </div>
 
@@ -141,7 +141,7 @@ export function UpdatesTab({ campaign }) {
                 onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
                 placeholder="Share the latest news with your donors…"
                 rows={5}
-                className="w-full px-3 py-2.5 border rounded-xl text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+                className="w-full px-3 py-2.5 border rounded-xl text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring resize-none"
               />
             </div>
 

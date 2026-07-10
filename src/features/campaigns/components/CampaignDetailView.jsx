@@ -135,12 +135,12 @@ export function CampaignDetailView({ campaign }) {
         {/* Main content */}
         <div className="lg:col-span-2 space-y-6">
           {/* Hero image */}
-          <div className={cn('h-64 sm:h-80 rounded-2xl bg-gradient-to-br relative overflow-hidden', campaign.gradient || 'from-primary/60 to-primary')}>
+          <div className={cn('h-64 sm:h-80 rounded-2xl bg-linear-to-br relative overflow-hidden', campaign.gradient || 'from-primary/60 to-primary')}>
             {mainImage && (
               <img src={mainImage} alt={campaign.title} className="w-full h-full object-cover" />
             )}
             <div className="absolute top-4 left-4 right-4 flex items-start justify-between">
-              <span className="bg-black/40 backdrop-blur text-white text-sm font-medium px-3 py-1.5 rounded-full">
+              <span className="bg-black/40 backdrop-blur-sm text-white text-sm font-medium px-3 py-1.5 rounded-full">
                 {campaign.category?.name ?? campaign.category}
               </span>
               {campaign.is_urgent && (
@@ -268,7 +268,7 @@ export function CampaignDetailView({ campaign }) {
 
         {/* Sidebar: sticky donation panel */}
         <div className="hidden lg:block">
-          <div className="sticky top-24 bg-card border rounded-2xl p-5 space-y-5 shadow-sm">
+          <div className="sticky top-24 bg-card border rounded-2xl p-5 space-y-5 shadow-xs">
             <ProgressProgress campaign={campaign} pct={pct} days={days} />
             <DonateButton slug={campaign.slug} status={campaign.status} />
             <div className="flex gap-2">
@@ -320,7 +320,7 @@ export function CampaignDetailView({ campaign }) {
                       value={reportForm.reporterName}
                       onChange={(e) => setReportForm((f) => ({ ...f, reporterName: e.target.value }))}
                       placeholder="Your full name"
-                      className="w-full px-3 py-2.5 border rounded-xl text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+                      className="w-full px-3 py-2.5 border rounded-xl text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
                     />
                   </div>
 
@@ -331,7 +331,7 @@ export function CampaignDetailView({ campaign }) {
                       value={reportForm.reporterPhone}
                       onChange={(e) => setReportForm((f) => ({ ...f, reporterPhone: e.target.value }))}
                       placeholder="Your phone number"
-                      className="w-full px-3 py-2.5 border rounded-xl text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+                      className="w-full px-3 py-2.5 border rounded-xl text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
                     />
                   </div>
                 </>
@@ -342,7 +342,7 @@ export function CampaignDetailView({ campaign }) {
                 <select
                   value={reportForm.reason}
                   onChange={(e) => setReportForm((f) => ({ ...f, reason: e.target.value }))}
-                  className="w-full px-3 py-2.5 border rounded-xl text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+                  className="w-full px-3 py-2.5 border rounded-xl text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
                 >
                   <option value="">Select a reason...</option>
                   {reportReasons.map((r) => (
@@ -360,7 +360,7 @@ export function CampaignDetailView({ campaign }) {
                   onChange={(e) => setReportForm((f) => ({ ...f, description: e.target.value }))}
                   placeholder="Please describe the issue in detail..."
                   rows={4}
-                  className="w-full px-3 py-2.5 border rounded-xl text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+                  className="w-full px-3 py-2.5 border rounded-xl text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring resize-none"
                 />
               </div>
 

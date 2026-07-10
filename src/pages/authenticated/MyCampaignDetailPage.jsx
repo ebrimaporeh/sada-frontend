@@ -44,7 +44,7 @@ export function MyCampaignDetailPage() {
         </Link>
 
         <div className="flex flex-col sm:flex-row sm:items-start gap-4">
-          <div className={cn('w-full sm:w-2 sm:h-auto h-2 rounded-full sm:rounded-xl flex-shrink-0 bg-gradient-to-b', campaign.gradient || 'from-primary to-primary/60')} />
+          <div className={cn('w-full sm:w-2 sm:h-auto h-2 rounded-full sm:rounded-xl flex-shrink-0 bg-linear-to-b', campaign.gradient || 'from-primary to-primary/60')} />
 
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-start gap-3 justify-between">

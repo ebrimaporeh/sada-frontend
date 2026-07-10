@@ -42,7 +42,7 @@ export function RegisterForm() {
                 name={field}
                 value={form[field]}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full px-3 py-2 border rounded-md text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
               />
             </div>
           ))}
@@ -61,7 +61,7 @@ export function RegisterForm() {
               value={form[name]}
               onChange={handleChange}
               required={required}
-              className="w-full px-3 py-2 border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+              className="w-full px-3 py-2 border rounded-md text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
             />
           </div>
         ))}

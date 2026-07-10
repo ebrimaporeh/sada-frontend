@@ -313,7 +313,7 @@ export function AdminCampaignDetailPage() {
             <select
               value={newStatus}
               onChange={(e) => setNewStatus(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background"
+              className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-hidden focus:ring-2 focus:ring-ring bg-background"
             >
               {STATUS_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -330,7 +330,7 @@ export function AdminCampaignDetailPage() {
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="Provide a reason for rejecting this campaign..."
-                className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background resize-none"
+                className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-hidden focus:ring-2 focus:ring-ring bg-background resize-none"
                 rows="3"
               />
             </div>
@@ -343,7 +343,7 @@ export function AdminCampaignDetailPage() {
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="Provide a reason for suspending this campaign..."
-                className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background resize-none"
+                className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-hidden focus:ring-2 focus:ring-ring bg-background resize-none"
                 rows="3"
               />
             </div>

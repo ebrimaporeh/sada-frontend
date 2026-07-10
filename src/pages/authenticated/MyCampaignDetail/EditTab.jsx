@@ -4,7 +4,7 @@ import { useCategories, useUpdateMyCampaign, useTogglePauseCampaign, useUpdateCa
 import { DatePicker } from '@/components/custom/DatePicker'
 import { GAMBIA_REGIONS, CAMPAIGN_STATUS } from '@/constants'
 
-const inputClass = 'w-full px-3 py-2.5 border rounded-xl text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring'
+const inputClass = 'w-full px-3 py-2.5 border rounded-xl text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring'
 const labelClass = 'text-sm font-medium block mb-1.5'
 
 function CampaignPhotosCard({ campaign }) {
