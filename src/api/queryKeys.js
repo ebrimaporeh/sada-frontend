@@ -19,6 +19,7 @@ export const queryKeys = {
     myDetail: (slug) => ['campaigns', 'mine', slug],
     categories: () => ['campaigns', 'categories'],
     featured: () => ['campaigns', 'featured'],
+    publicStats: () => ['campaigns', 'public-stats'],
     adminList: (params) => ['campaigns', 'admin', params],
     adminDetail: (id) => ['campaigns', 'admin', 'detail', id],
   },

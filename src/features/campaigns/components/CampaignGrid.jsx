@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useLocation } from '@tanstack/react-router'
-import { Search, SlidersHorizontal, X, SearchX } from 'lucide-react'
+import { Search, X, SearchX, AlertTriangle } from 'lucide-react'
 import { useCampaigns, useCategories } from '@/hooks/useCampaigns'
 import { CampaignCard } from '@/components/custom/CampaignCard'
 import { CampaignCardSkeleton } from '@/components/custom/CampaignCardSkeleton'
 import { GAMBIA_REGIONS } from '@/constants'
+import { getCategoryIcon } from '@/utils/categoryIcons'
 
 export function CampaignGrid() {
   const location = useLocation()
@@ -78,29 +79,31 @@ export function CampaignGrid() {
           </button>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Category filter */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <button
-              onClick={() => setCategory('all')}
-              className={`text-sm px-3 py-1.5 rounded-full border font-medium transition-colors ${
-                category === 'all' ? 'bg-primary text-primary-foreground border-primary' : 'hover:bg-accent'
-              }`}
-            >
-              All
-            </button>
-            {categories.map((cat) => (
+        {/* Category filter — horizontal scroll, ordered by most donated (backend) */}
+        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide -mx-1 px-1 pb-1">
+          <button
+            onClick={() => setCategory('all')}
+            className={`flex-shrink-0 text-sm px-3 py-1.5 rounded-full border font-medium transition-colors whitespace-nowrap ${
+              category === 'all' ? 'bg-primary text-primary-foreground border-primary' : 'hover:bg-accent'
+            }`}
+          >
+            All
+          </button>
+          {categories.map((cat) => {
+            const Icon = getCategoryIcon(cat.icon)
+            return (
               <button
                 key={cat.id}
                 onClick={() => setCategory(category === cat.slug ? 'all' : cat.slug)}
-                className={`text-sm px-3 py-1.5 rounded-full border font-medium transition-colors ${
+                className={`flex-shrink-0 flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-full border font-medium transition-colors whitespace-nowrap ${
                   category === cat.slug ? 'bg-primary text-primary-foreground border-primary' : 'hover:bg-accent'
                 }`}
               >
+                <Icon className="w-3.5 h-3.5" />
                 {cat.name}
               </button>
-            ))}
-          </div>
+            )
+          })}
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
@@ -123,7 +126,8 @@ export function CampaignGrid() {
               urgent ? 'bg-red-50 border-red-300 text-red-700' : 'hover:bg-accent'
             }`}
           >
-            🚨 Urgent only
+            <AlertTriangle className="w-3.5 h-3.5" />
+            Urgent only
           </button>
 
           {/* Clear filters */}

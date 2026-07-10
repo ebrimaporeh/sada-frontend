@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { MapPin, Users, Clock } from 'lucide-react'
+import { MapPin, Users, Clock, CheckCircle2 } from 'lucide-react'
 import { ProgressBar } from '@/components/custom/ProgressBar'
 import { formatGMD, progressPercent, daysLeft } from '@/utils/formatters'
 import { cn } from '@/utils/cn'
@@ -40,20 +40,14 @@ export function CampaignCard({ campaign, className }) {
               </span>
             )}
             {isGoalMet && (
-              <span className="bg-primary text-primary-foreground text-xs font-bold px-2 py-0.5 rounded-full">
-                FUNDED ✓
+              <span className="inline-flex items-center gap-1 bg-primary text-primary-foreground text-xs font-bold px-2 py-0.5 rounded-full">
+                <CheckCircle2 className="w-3 h-3" /> FUNDED
               </span>
             )}
           </div>
         </div>
 
-        {/* Region */}
-        <div className="absolute bottom-3 left-3">
-          <span className="inline-flex items-center gap-1 bg-black/40 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full">
-            <MapPin className="w-3 h-3" />
-            {campaign.region}
-          </span>
-        </div>
+      
       </div>
 
       {/* Content */}
@@ -62,16 +56,13 @@ export function CampaignCard({ campaign, className }) {
           {campaign.title}
         </h3>
 
-        <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-          {campaign.short_description}
-        </p>
+      
 
         <ProgressBar value={campaign.raised} max={campaign.goal} />
 
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-bold text-primary">{formatGMD(campaign.raised)}</p>
-            <p className="text-xs text-muted-foreground">of {formatGMD(campaign.goal)} goal</p>
+            <p className="text-xs text-muted-foreground">Goal  {formatGMD(campaign.goal)}</p>
           </div>
           <div className="text-right">
             <p className="text-sm font-semibold">{pct}%</p>

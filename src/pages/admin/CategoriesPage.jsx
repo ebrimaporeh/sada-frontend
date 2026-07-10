@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Loader2, Search, SearchX, Plus, Edit2, Trash2, Upload, X, CheckCircle2, AlertCircle } from 'lucide-react'
+import { Loader2, Search, SearchX, Plus, Edit2, Trash2, Upload, X, CheckCircle2, AlertCircle, FolderOpen } from 'lucide-react'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
 import { EmptyState } from '@/components/custom/EmptyState'
@@ -193,7 +193,7 @@ export function CategoriesPage() {
       {/* Categories Grid */}
       {filtered.length === 0 ? (
         <EmptyState
-          icon="📁"
+          icon={FolderOpen}
           title="No categories found"
           description={search ? 'Try a different search term' : 'Create a category to get started'}
         />

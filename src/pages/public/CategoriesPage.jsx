@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
 import { useCategories } from '@/hooks/useCampaigns'
+import { getCategoryIcon } from '@/utils/categoryIcons'
 import { formatGMD } from '@/utils/formatters'
 import { ROUTES } from '@/constants'
 
@@ -20,7 +21,9 @@ export function CategoriesPage() {
         <LoadingSpinner className="py-32" />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {categories.map((cat) => (
+          {categories.map((cat) => {
+          const Icon = getCategoryIcon(cat.icon)
+          return (
             <Link
               key={cat.id}
               to={ROUTES.CAMPAIGNS}
@@ -36,7 +39,7 @@ export function CategoriesPage() {
                   />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                    <span className="text-6xl">{cat.icon || '📁'}</span>
+                    <Icon className="w-14 h-14 text-primary/70" strokeWidth={1.5} />
                   </div>
                 )}
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-300" />
@@ -61,7 +64,7 @@ export function CategoriesPage() {
                 </p>
               </div>
             </Link>
-          ))}
+          )})}
         </div>
       )}
     </div>

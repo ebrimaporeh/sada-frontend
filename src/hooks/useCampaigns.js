@@ -17,6 +17,16 @@ export function useCategories() {
   return { categories: query.data ?? [], isLoading: query.isLoading }
 }
 
+export function usePublicStats() {
+  const query = useQuery({
+    queryKey: queryKeys.campaigns.publicStats(),
+    queryFn: campaignApi.getPublicStats,
+    select: (res) => res?.data,
+    staleTime: 1000 * 60 * 5,
+  })
+  return { stats: query.data, isLoading: query.isLoading }
+}
+
 // ── Public campaign list ──────────────────────────────────────────────────────
 
 export function useCampaigns(filters = {}) {
