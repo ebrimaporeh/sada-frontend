@@ -5,6 +5,7 @@ import { userApi } from '@/api/userApi'
 import { PublicLayout } from '@/layouts/PublicLayout'
 import { AuthenticatedLayout } from '@/layouts/AuthenticatedLayout'
 import { AdminLayout } from '@/layouts/AdminLayout'
+import { Resource, hasResourceAccess, isAdminAreaRole, ROLE_LANDING_ROUTE } from '@/utils/permissions'
 
 // Pages — public
 import { HomePage } from '@/pages/public/HomePage'
@@ -31,10 +32,13 @@ import { MyCampaignDetailPage } from '@/pages/authenticated/MyCampaignDetailPage
 import { ProfilePage } from '@/pages/authenticated/ProfilePage'
 import { CampaignNewPage } from '@/pages/authenticated/CampaignNewPage'
 import { SettingsPage } from '@/pages/authenticated/SettingsPage'
+import { NotificationsPage } from '@/pages/authenticated/NotificationsPage'
+import { VerificationPage } from '@/pages/authenticated/VerificationPage'
 
 // Pages — admin
 import { AdminDashboardPage } from '@/pages/admin/DashboardPage'
 import { UsersPage } from '@/pages/admin/UsersPage'
+import { StaffPage } from '@/pages/admin/StaffPage'
 import { CampaignsPage as AdminCampaignsPage } from '@/pages/admin/CampaignsPage'
 import { AdminCampaignDetailPage } from '@/pages/admin/AdminCampaignDetailPage'
 import { DonationsPage as AdminDonationsPage } from '@/pages/admin/DonationsPage'
@@ -45,7 +49,7 @@ import { CategoriesPage } from '@/pages/admin/CategoriesPage'
 import { SettingsPage as AdminSettingsPage } from '@/pages/admin/SettingsPage'
 import { AdminProfilePage } from '@/pages/admin/AdminProfilePage'
 
-import { ROLES, ROUTES } from '@/constants'
+import { ROUTES } from '@/constants'
 
 const rootRoute = createRootRoute()
 
@@ -64,7 +68,19 @@ async function requireAuth() {
 async function requireAdmin() {
   await requireAuth()
   const user = queryClient.getQueryData(queryKeys.auth.me())
-  if (user?.role !== ROLES.ADMIN) throw redirect({ to: ROUTES.DASHBOARD })
+  if (!isAdminAreaRole(user?.role)) throw redirect({ to: ROUTES.DASHBOARD })
+}
+
+// Per-route fine-grained check, layered under requireAdmin (which already
+// guarantees auth + an admin-area role by the time a child route's
+// beforeLoad runs) — see src/utils/permissions.js for the actual map.
+function requireResource(resource) {
+  return () => {
+    const user = queryClient.getQueryData(queryKeys.auth.me())
+    if (!hasResourceAccess(user?.role, resource)) {
+      throw redirect({ to: ROLE_LANDING_ROUTE[user?.role] || ROUTES.DASHBOARD })
+    }
+  }
 }
 
 // ─── Public Layout ────────────────────────────────────────────────────────────
@@ -206,6 +222,18 @@ const settingsRoute = createRoute({
   component: SettingsPage,
 })
 
+const notificationsRoute = createRoute({
+  getParentRoute: () => authLayout,
+  path: ROUTES.NOTIFICATIONS,
+  component: NotificationsPage,
+})
+
+const verificationRoute = createRoute({
+  getParentRoute: () => authLayout,
+  path: ROUTES.VERIFICATION,
+  component: VerificationPage,
+})
+
 const campaignNewRoute = createRoute({
   getParentRoute: () => authLayout,
   path: ROUTES.CAMPAIGN_NEW,
@@ -225,66 +253,89 @@ const adminUsersRoute = createRoute({
   getParentRoute: () => adminLayout,
   path: ROUTES.ADMIN_USERS,
   component: UsersPage,
+  beforeLoad: requireResource(Resource.USERS),
+})
+
+const adminStaffRoute = createRoute({
+  getParentRoute: () => adminLayout,
+  path: ROUTES.ADMIN_STAFF,
+  component: StaffPage,
+  beforeLoad: requireResource(Resource.STAFF),
 })
 
 const adminCampaignsRoute = createRoute({
   getParentRoute: () => adminLayout,
   path: ROUTES.ADMIN_CAMPAIGNS,
   component: AdminCampaignsPage,
+  beforeLoad: requireResource(Resource.CAMPAIGNS_VIEW),
 })
 
 const adminCampaignDetailRoute = createRoute({
   getParentRoute: () => adminLayout,
   path: '/admin/campaigns/$id',
   component: AdminCampaignDetailPage,
+  beforeLoad: requireResource(Resource.CAMPAIGNS_VIEW),
 })
 
 const adminDonationsRoute = createRoute({
   getParentRoute: () => adminLayout,
   path: ROUTES.ADMIN_DONATIONS,
   component: AdminDonationsPage,
+  beforeLoad: requireResource(Resource.DONATIONS),
 })
 
 const adminDashboardRoute = createRoute({
   getParentRoute: () => adminLayout,
   path: '/admin',
   component: AdminDashboardPage,
+  beforeLoad: requireResource(Resource.DASHBOARD),
 })
 
 const adminReportsRoute = createRoute({
   getParentRoute: () => adminLayout,
   path: '/admin/reports',
   component: ReportsPage,
+  beforeLoad: requireResource(Resource.REPORTS),
 })
 
 const adminVerificationsRoute = createRoute({
   getParentRoute: () => adminLayout,
   path: ROUTES.ADMIN_VERIFICATIONS,
   component: VerificationsPage,
+  beforeLoad: requireResource(Resource.VERIFICATIONS),
 })
 
 const adminFinancesRoute = createRoute({
   getParentRoute: () => adminLayout,
   path: '/admin/finances',
   component: FinancesPage,
+  beforeLoad: requireResource(Resource.FINANCES),
 })
 
 const adminCategoriesRoute = createRoute({
   getParentRoute: () => adminLayout,
   path: '/admin/categories',
   component: CategoriesPage,
+  beforeLoad: requireResource(Resource.CATEGORIES),
 })
 
 const adminSettingsRoute = createRoute({
   getParentRoute: () => adminLayout,
   path: '/admin/settings',
   component: AdminSettingsPage,
+  beforeLoad: requireResource(Resource.SETTINGS),
 })
 
 const adminProfileRoute = createRoute({
   getParentRoute: () => adminLayout,
   path: ROUTES.ADMIN_PROFILE,
   component: AdminProfilePage,
+})
+
+const adminVerificationRoute = createRoute({
+  getParentRoute: () => adminLayout,
+  path: ROUTES.ADMIN_VERIFICATION,
+  component: VerificationPage,
 })
 
 // ─── Router ───────────────────────────────────────────────────────────────────
@@ -314,16 +365,20 @@ const routeTree = rootRoute.addChildren([
     myCampaignDetailRoute,
     profileRoute,
     settingsRoute,
+    notificationsRoute,
+    verificationRoute,
     campaignNewRoute,
   ]),
   adminLayout.addChildren([
     adminDashboardRoute,
     adminUsersRoute,
+    adminStaffRoute,
     adminCampaignsRoute,
     adminCampaignDetailRoute,
     adminDonationsRoute,
     adminReportsRoute,
     adminVerificationsRoute,
+    adminVerificationRoute,
     adminCategoriesRoute,
     adminFinancesRoute,
     adminSettingsRoute,

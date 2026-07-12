@@ -12,6 +12,8 @@ import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { StatSkeleton } from '@/components/custom/StatSkeleton'
 import { CAMPAIGN_STATUS } from '@/constants'
 import { cn } from '@/utils/cn'
+import { useMe } from '@/hooks/useAuth'
+import { Resource, hasResourceAccess } from '@/utils/permissions'
 
 const STATUS_COLORS = {
   [CAMPAIGN_STATUS.ACTIVE]: 'bg-green-100 text-green-700',
@@ -24,6 +26,8 @@ const STATUS_COLORS = {
 }
 
 export function CampaignsPage() {
+  const { data: me } = useMe()
+  const canModerate = hasResourceAccess(me?.role, Resource.CAMPAIGNS_MODERATE)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [actioningId, setActioningId] = useState(null)
@@ -197,7 +201,7 @@ export function CampaignsPage() {
                           >
                             <Eye className="w-4 h-4 text-muted-foreground" />
                           </Link>
-                          {c.status === CAMPAIGN_STATUS.PENDING && (
+                          {canModerate && c.status === CAMPAIGN_STATUS.PENDING && (
                             <>
                               <button
                                 onClick={() => handleAction(c, 'approve')}
@@ -217,7 +221,7 @@ export function CampaignsPage() {
                               </button>
                             </>
                           )}
-                          {c.status === CAMPAIGN_STATUS.ACTIVE && (
+                          {canModerate && c.status === CAMPAIGN_STATUS.ACTIVE && (
                             <button
                               onClick={() => handleAction(c, 'suspend')}
                               disabled={isActioning}

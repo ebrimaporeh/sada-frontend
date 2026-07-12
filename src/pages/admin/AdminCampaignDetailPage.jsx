@@ -12,6 +12,8 @@ import { formatGMD, formatDate, progressPercent } from '@/utils/formatters'
 import { ProgressBar } from '@/components/custom/ProgressBar'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
 import { cn } from '@/utils/cn'
+import { useMe } from '@/hooks/useAuth'
+import { Resource, hasResourceAccess } from '@/utils/permissions'
 
 const STATUS_OPTIONS = [
   { value: 'draft', label: 'Draft' },
@@ -27,6 +29,8 @@ export function AdminCampaignDetailPage() {
   const queryClient = useQueryClient()
   const state = useRouterState()
   const id = state.location.pathname.split('/').pop()
+  const { data: me } = useMe()
+  const canModerate = hasResourceAccess(me?.role, Resource.CAMPAIGNS_MODERATE)
   const [isEditingStatus, setIsEditingStatus] = useState(false)
   const [newStatus, setNewStatus] = useState('')
   const [reason, setReason] = useState('')
@@ -294,7 +298,7 @@ export function AdminCampaignDetailPage() {
       )}
 
       {/* Status Change Section */}
-      {!isEditingStatus ? (
+      {canModerate && (!isEditingStatus ? (
         <button
           onClick={() => {
             setNewStatus(campaign.status)
@@ -368,7 +372,7 @@ export function AdminCampaignDetailPage() {
             </button>
           </div>
         </div>
-      )}
+      ))}
 
       {campaign.rejection_reason && (
         <div className="p-4 border border-red-200 rounded-lg bg-red-50 text-red-800">

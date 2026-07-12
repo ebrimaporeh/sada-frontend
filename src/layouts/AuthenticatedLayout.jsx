@@ -2,18 +2,21 @@ import { useState } from 'react'
 import { Outlet, Link, useRouter, Navigate } from '@tanstack/react-router'
 import { useMe, useLogout } from '@/hooks/useAuth'
 import { settings } from '@/settings'
-import { ROUTES, ROLES } from '@/constants'
-import { initials } from '@/utils/formatters'
+import { ROUTES } from '@/constants'
 import { cn } from '@/utils/cn'
+import { isAdminAreaRole } from '@/utils/permissions'
 import {
   Heart, LayoutDashboard, PlusCircle, User, Settings,
-  LogOut, Menu, X, Bell, ChevronDown, Flag,
+  LogOut, Menu, X, Flag, Bell, Home, ShieldCheck,
 } from 'lucide-react'
+import { NotificationBell } from '@/components/custom/NotificationBell'
 
 const navItems = [
   { label: 'Dashboard', to: ROUTES.DASHBOARD, icon: LayoutDashboard },
   { label: 'My Campaigns', to: ROUTES.MY_CAMPAIGNS, icon: Flag },
   { label: 'Start Campaign', to: ROUTES.CAMPAIGN_NEW, icon: PlusCircle },
+  { label: 'Notifications', to: ROUTES.NOTIFICATIONS, icon: Bell },
+  { label: 'Verification', to: ROUTES.VERIFICATION, icon: ShieldCheck },
   { label: 'Profile', to: ROUTES.PROFILE, icon: User },
   { label: 'Settings', to: ROUTES.SETTINGS, icon: Settings },
 ]
@@ -23,10 +26,9 @@ export function AuthenticatedLayout() {
   const logout = useLogout()
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [profileMenuOpen, setProfileMenuOpen] = useState(false)
 
-  // Redirect admins to admin layout
-  if (!isLoading && user?.role === ROLES.ADMIN) {
+  // Redirect admin-area roles (admin, moderator, finance officer) to the admin layout
+  if (!isLoading && isAdminAreaRole(user?.role)) {
     return <Navigate to="/admin" />
   }
 
@@ -37,8 +39,6 @@ export function AuthenticatedLayout() {
       </div>
     )
   }
-
-  const displayName = user?.first_name ? `${user.first_name} ${user.last_name || ''}`.trim() : user?.email
 
   return (
     <div className="min-h-screen bg-muted/30 flex">
@@ -84,27 +84,15 @@ export function AuthenticatedLayout() {
           ))}
         </nav>
 
-        {/* User info */}
+        {/* Public site link */}
         <div className="p-3 border-t">
           <Link
-            to={ROUTES.PROFILE}
-            className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-accent transition-colors"
+            to={ROUTES.HOME}
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
           >
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-bold flex-shrink-0">
-              {initials(displayName || user?.email)}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{displayName}</p>
-              <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
-            </div>
+            <Home className="w-4 h-4" />
+            Public view
           </Link>
-          <button
-            onClick={() => logout.mutate()}
-            className="w-full mt-1 flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-destructive hover:bg-destructive/10 transition-colors"
-          >
-            <LogOut className="w-4 h-4" />
-            Sign out
-          </button>
         </div>
       </aside>
 
@@ -128,45 +116,14 @@ export function AuthenticatedLayout() {
               <PlusCircle className="w-3.5 h-3.5" />
               New Campaign
             </Link>
-            <button className="relative p-2 rounded-md hover:bg-accent">
-              <Bell className="w-4 h-4" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-donate rounded-full" />
+            <NotificationBell />
+            <button
+              onClick={() => logout.mutate()}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/5 transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="hidden sm:inline">Logout</span>
             </button>
-            <div className="relative">
-              <button
-                onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-bold hover:opacity-90 transition-opacity"
-              >
-                {initials(displayName || user?.email)}
-              </button>
-              {profileMenuOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-card border rounded-lg shadow-lg z-50">
-                  <Link
-                    to={ROUTES.PROFILE}
-                    className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-accent transition-colors border-b"
-                    onClick={() => setProfileMenuOpen(false)}
-                  >
-                    <User className="w-4 h-4" /> Profile
-                  </Link>
-                  <Link
-                    to={ROUTES.SETTINGS}
-                    className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-accent transition-colors border-b"
-                    onClick={() => setProfileMenuOpen(false)}
-                  >
-                    <Settings className="w-4 h-4" /> Settings
-                  </Link>
-                  <button
-                    onClick={() => {
-                      logout.mutate()
-                      setProfileMenuOpen(false)
-                    }}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-destructive hover:bg-destructive/5 transition-colors"
-                  >
-                    <LogOut className="w-4 h-4" /> Logout
-                  </button>
-                </div>
-              )}
-            </div>
           </div>
         </header>
 

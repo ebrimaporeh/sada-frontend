@@ -7,6 +7,9 @@ export const userApi = {
   getUser: (id) => apiClient.get(`/users/${id}/`).then((r) => r.data),
   updateUser: (id, data) => apiClient.patch(`/users/${id}/`, data).then((r) => r.data),
   deleteUser: (id) => apiClient.delete(`/users/${id}/`).then((r) => r.data),
+  adminCreateUser: (data) => apiClient.post('/users/admin/create/', data).then((r) => r.data),
+  getStaff: (params) => apiClient.get('/users/admin/staff/', { params }).then((r) => r.data),
+  changeStaffRole: (id, role) => apiClient.post(`/users/admin/staff/${id}/role/`, { role }).then((r) => r.data),
 
   getMyVerification: () => apiClient.get('/users/verification/me/').then((r) => r.data),
   submitVerification: (data) => {

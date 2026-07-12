@@ -2,6 +2,7 @@ export const ROLES = {
   ADMIN: 'admin',
   USER: 'user',
   MODERATOR: 'moderator',
+  FINANCE_OFFICER: 'finance_officer',
   CAMPAIGN_OWNER: 'campaign_owner',
 }
 
@@ -25,15 +26,19 @@ export const ROUTES = {
   MY_CAMPAIGN_DETAIL: '/my-campaigns/$slug',
   PROFILE: '/profile',
   SETTINGS: '/settings',
+  NOTIFICATIONS: '/notifications',
+  VERIFICATION: '/verification',
   DONATE: '/donate/$slug',
   DONATE_SUCCESS: '/donate/$slug/success',
 
   // Admin routes
   ADMIN_USERS: '/admin/users',
+  ADMIN_STAFF: '/admin/staff',
   ADMIN_CAMPAIGNS: '/admin/campaigns',
   ADMIN_DONATIONS: '/admin/donations',
   ADMIN_PROFILE: '/admin/profile',
   ADMIN_VERIFICATIONS: '/admin/verifications',
+  ADMIN_VERIFICATION: '/admin/verification',
 
   // Support pages
   ABOUT: '/about',

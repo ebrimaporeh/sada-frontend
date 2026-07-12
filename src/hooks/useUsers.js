@@ -52,6 +52,34 @@ export function useUpdateUser() {
   })
 }
 
+export function useCreateUser() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data) => userApi.adminCreateUser(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.all() })
+    },
+  })
+}
+
+export function useStaff(params = {}) {
+  return useQuery({
+    queryKey: queryKeys.staff.list(params),
+    queryFn: () => userApi.getStaff(params),
+  })
+}
+
+export function useChangeStaffRole() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, role }) => userApi.changeStaffRole(id, role),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.staff.all() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.all() })
+    },
+  })
+}
+
 export function useDeleteUser() {
   const queryClient = useQueryClient()
   return useMutation({
@@ -86,12 +114,22 @@ export function useAdminVerifications(params = {}) {
   })
 }
 
+export function useUserVerification(userId, { enabled = true } = {}) {
+  return useQuery({
+    queryKey: queryKeys.verification.adminList({ user_id: userId }),
+    queryFn: () => userApi.getVerifications({ user_id: userId, page_size: 1 }),
+    select: (res) => res?.results?.[0] ?? null,
+    enabled: enabled && Boolean(userId),
+  })
+}
+
 export function useReviewVerification() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: ({ id, action, reason }) => userApi.reviewVerification(id, action, reason),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['verification'] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.all() })
     },
   })
 }

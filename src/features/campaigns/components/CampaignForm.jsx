@@ -7,7 +7,11 @@ import { GAMBIA_REGIONS, ROUTES } from '@/constants'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { MarkdownEditor } from '@/components/custom/MarkdownEditor'
 import { DatePicker } from '@/components/custom/DatePicker'
+import { VerifyPromptModal } from '@/components/custom/VerifyPromptModal'
+import { useMe } from '@/hooks/useAuth'
 import { cn } from '@/utils/cn'
+
+const VERIFY_PROMPT_DISMISSED_KEY = 'campaign_verify_prompt_dismissed'
 
 const STORAGE_KEY = 'campaign_draft'
 const IMAGES_STORAGE_KEY = 'campaign_draft_images'
@@ -97,11 +101,41 @@ const INITIAL = {
   goal: '',
   deadline: '',
   is_anonymous: false,
+  is_urgent: false,
+}
+
+function Toggle({ checked, onChange, label, description }) {
+  return (
+    <label className="flex items-start justify-between gap-4 cursor-pointer border rounded-xl p-4 bg-card">
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium">{label}</p>
+        {description && <p className="text-xs text-muted-foreground mt-0.5">{description}</p>}
+      </div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        onClick={() => onChange(!checked)}
+        className={cn(
+          'relative flex-shrink-0 w-10 h-6 rounded-full transition-colors focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2',
+          checked ? 'bg-red-500' : 'bg-muted-foreground/30',
+        )}
+      >
+        <span
+          className={cn(
+            'absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow-sm transition-transform',
+            checked ? 'translate-x-4' : 'translate-x-0',
+          )}
+        />
+      </button>
+    </label>
+  )
 }
 
 function ImageUploader({ images, onChange }) {
   const fileRef = useRef()
   const MAX = 5
+  const [cover, ...rest] = images
 
   function handleFiles(e) {
     const files = Array.from(e.target.files || [])
@@ -116,34 +150,60 @@ function ImageUploader({ images, onChange }) {
 
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        {images.map((img, idx) => (
-          <div key={idx} className="relative aspect-video rounded-xl overflow-hidden border bg-muted group">
-            <img src={img.url} alt={img.name} className="w-full h-full object-cover" />
-            <button
-              type="button"
-              onClick={() => remove(idx)}
-              className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-            {idx === 0 && (
-              <span className="absolute bottom-1.5 left-1.5 text-[10px] bg-black/60 text-white px-1.5 py-0.5 rounded font-medium">Cover</span>
-            )}
-          </div>
-        ))}
-
-        {images.length < MAX && (
+      {/* Cover photo — large */}
+      {cover ? (
+        <div className="relative aspect-[21/9] rounded-xl overflow-hidden border bg-muted group">
+          <img src={cover.url} alt={cover.name} className="w-full h-full object-cover" />
+          <span className="absolute top-2 left-2 text-xs bg-black/60 text-white px-2 py-1 rounded-md font-medium">Cover Photo</span>
           <button
             type="button"
-            onClick={() => fileRef.current?.click()}
-            className="aspect-video rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-1.5 text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+            onClick={() => remove(0)}
+            className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
           >
-            <ImagePlus className="w-6 h-6" />
-            <span className="text-xs font-medium">Add photo</span>
+            <X className="w-4 h-4" />
           </button>
-        )}
-      </div>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => fileRef.current?.click()}
+          className="w-full aspect-[21/9] rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+        >
+          <ImagePlus className="w-8 h-8" />
+          <span className="text-sm font-medium">Add cover photo</span>
+        </button>
+      )}
+
+      {/* Additional photos — smaller grid */}
+      {(rest.length > 0 || images.length < MAX) && (
+        <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+          {rest.map((img, i) => {
+            const idx = i + 1
+            return (
+              <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border bg-muted group">
+                <img src={img.url} alt={img.name} className="w-full h-full object-cover" />
+                <button
+                  type="button"
+                  onClick={() => remove(idx)}
+                  className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            )
+          })}
+
+          {images.length < MAX && (
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              className="aspect-square rounded-lg border-2 border-dashed flex items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+            >
+              <ImagePlus className="w-5 h-5" />
+            </button>
+          )}
+        </div>
+      )}
 
       <input
         ref={fileRef}
@@ -155,7 +215,7 @@ function ImageUploader({ images, onChange }) {
       />
 
       <p className="text-xs text-muted-foreground">
-        Upload up to {MAX} photos. The first image will be the campaign cover. Accepted: JPG, PNG, WebP.
+        Upload up to {MAX} photos. The first image is your campaign cover. Accepted: JPG, PNG, WebP.
       </p>
     </div>
   )
@@ -165,12 +225,25 @@ const RELATIONSHIPS = ['Self', 'Spouse', 'Child', 'Parent', 'Sibling', 'Friend',
 
 export function CampaignForm() {
   const navigate = useNavigate()
+  const { data: me } = useMe()
   const { categories } = useCategories()
   const createCampaign = useCreateCampaign()
   const { data: platformSettings } = usePlatformSettings()
   const platformFeePercent = Number(platformSettings?.platform_fee_percent ?? 1)
   const updateMedia = useUpdateCampaignMedia()
   const [step, setStep] = useState(0)
+  const [showVerifyPrompt, setShowVerifyPrompt] = useState(false)
+
+  useEffect(() => {
+    if (!me || me.is_verified) return
+    if (sessionStorage.getItem(VERIFY_PROMPT_DISMISSED_KEY)) return
+    setShowVerifyPrompt(true)
+  }, [me])
+
+  function dismissVerifyPrompt() {
+    sessionStorage.setItem(VERIFY_PROMPT_DISMISSED_KEY, '1')
+    setShowVerifyPrompt(false)
+  }
   const [form, setForm] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEY)
     return saved ? JSON.parse(saved) : INITIAL
@@ -294,6 +367,7 @@ export function CampaignForm() {
       goal: Number(form.goal),
       deadline: form.deadline,
       is_anonymous: form.is_anonymous,
+      is_urgent: form.is_urgent,
     }
     createCampaign.mutate(payload, {
       onSuccess: async (res) => {
@@ -337,7 +411,7 @@ export function CampaignForm() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
       <PageHeader
         title="Start a Campaign"
         description="Tell your story and start raising funds in minutes."
@@ -353,23 +427,25 @@ export function CampaignForm() {
             <p className="text-xs text-muted-foreground text-right">{form.title.length}/120</p>
           </FieldGroup>
 
-          <FieldGroup label="Category *" error={errors.category}>
-            <select value={form.category} onChange={set('category')} className="w-full px-3 py-2.5 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring">
-              <option value="">Select a category</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.slug}>{c.icon} {c.name}</option>
-              ))}
-            </select>
-          </FieldGroup>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <FieldGroup label="Category *" error={errors.category}>
+              <select value={form.category} onChange={set('category')} className="w-full px-3 py-2.5 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring">
+                <option value="">Select a category</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.slug}>{c.icon} {c.name}</option>
+                ))}
+              </select>
+            </FieldGroup>
 
-          <FieldGroup label="Region *" error={errors.region}>
-            <select value={form.region} onChange={set('region')} className="w-full px-3 py-2.5 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring">
-              <option value="">Select region in The Gambia</option>
-              {GAMBIA_REGIONS.map((r) => (
-                <option key={r.value} value={r.value}>{r.label}</option>
-              ))}
-            </select>
-          </FieldGroup>
+            <FieldGroup label="Region *" error={errors.region}>
+              <select value={form.region} onChange={set('region')} className="w-full px-3 py-2.5 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring">
+                <option value="">Select region in The Gambia</option>
+                {GAMBIA_REGIONS.map((r) => (
+                  <option key={r.value} value={r.value}>{r.label}</option>
+                ))}
+              </select>
+            </FieldGroup>
+          </div>
 
           <div className="grid sm:grid-cols-2 gap-4">
             <FieldGroup label="Beneficiary Name *" hint="Who will receive the funds?" error={errors.beneficiary}>
@@ -384,6 +460,13 @@ export function CampaignForm() {
               </select>
             </FieldGroup>
           </div>
+
+          <Toggle
+            checked={form.is_urgent}
+            onChange={(v) => setForm((f) => ({ ...f, is_urgent: v }))}
+            label="Mark as urgent"
+            description="Urgent campaigns get a visible badge and appear in the 'Urgent' filter — use for time-sensitive needs only."
+          />
         </div>
       )}
 
@@ -391,7 +474,7 @@ export function CampaignForm() {
       {step === 1 && (
         <div className="space-y-5">
           <FieldGroup label="Short Description *" hint="One or two sentences summarizing your campaign (shown on cards)" error={errors.short_description}>
-            <Textarea value={form.short_description} onChange={set('short_description')} placeholder="Brief summary of why you're raising funds..." rows={3} maxLength={280} />
+            <Textarea value={form.short_description} onChange={set('short_description')} placeholder="Brief summary of why you're raising funds..." rows={2} maxLength={280} />
             <p className="text-xs text-muted-foreground text-right">{form.short_description.length}/280</p>
           </FieldGroup>
 
@@ -418,35 +501,37 @@ export function CampaignForm() {
       {/* Step 2: Goal & Deadline */}
       {step === 2 && (
         <div className="space-y-5">
-          <FieldGroup label="Fundraising Goal (GMD) *" hint="How much do you need to raise? Set a realistic, specific amount." error={errors.goal}>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-muted-foreground">D</span>
-              <TextInput
-                value={form.goal}
-                onChange={set('goal')}
-                type="number"
-                min="100"
-                placeholder="0"
-                className="pl-8"
-              />
-            </div>
-            {form.goal && Number(form.goal) >= 100 && (
-              <p className="text-xs text-muted-foreground">Goal: D {Number(form.goal).toLocaleString()} GMD</p>
-            )}
-          </FieldGroup>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <FieldGroup label="Fundraising Goal (GMD) *" hint="How much do you need to raise? Set a realistic, specific amount." error={errors.goal}>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-muted-foreground">D</span>
+                <TextInput
+                  value={form.goal}
+                  onChange={set('goal')}
+                  type="number"
+                  min="100"
+                  placeholder="0"
+                  className="pl-8"
+                />
+              </div>
+              {form.goal && Number(form.goal) >= 100 && (
+                <p className="text-xs text-muted-foreground">Goal: D {Number(form.goal).toLocaleString()} GMD</p>
+              )}
+            </FieldGroup>
 
-          <FieldGroup label="Campaign Deadline *" hint="When do you need the funds by? (max 1 year)" error={errors.deadline}>
-            <DatePicker
-              value={form.deadline}
-              onChange={set('deadline')}
-              min={minDeadline}
-              placeholder="Select a deadline"
-            />
-          </FieldGroup>
+            <FieldGroup label="Campaign Deadline *" hint="When do you need the funds by? (max 1 year)" error={errors.deadline}>
+              <DatePicker
+                value={form.deadline}
+                onChange={set('deadline')}
+                min={minDeadline}
+                placeholder="Select a deadline"
+              />
+            </FieldGroup>
+          </div>
 
           <div className="border rounded-xl p-4 bg-card space-y-3">
             <p className="text-sm font-semibold">Platform Terms</p>
-            <ul className="space-y-2 text-xs text-muted-foreground">
+            <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-2 text-xs text-muted-foreground">
               <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" /> Donations carry no platform fee — donors only pay what their payment provider charges directly</li>
               <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" /> A {platformFeePercent}% platform fee applies when you withdraw raised funds</li>
               <li className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" /> Your campaign goes live immediately — no waiting for approval</li>
@@ -464,7 +549,7 @@ export function CampaignForm() {
               <p className="text-xs text-muted-foreground mb-1">Campaign Title</p>
               <p className="font-semibold">{form.title}</p>
             </div>
-            <div className="p-4 grid grid-cols-2 gap-4">
+            <div className="p-4 grid grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
                 <p className="text-xs text-muted-foreground mb-1">Category</p>
                 <p className="text-sm font-medium">{categoryObj ? `${categoryObj.icon} ${categoryObj.name}` : '—'}</p>
@@ -490,7 +575,7 @@ export function CampaignForm() {
               <p className="text-xs text-muted-foreground mb-1">Story Preview</p>
               <p className="text-sm text-muted-foreground line-clamp-3">{form.story}</p>
             </div>
-            <div className="p-4 grid grid-cols-2 gap-4">
+            <div className="p-4 grid grid-cols-2 sm:grid-cols-3 gap-4">
               <div>
                 <p className="text-xs text-muted-foreground mb-1">Goal</p>
                 <p className="text-sm font-bold text-primary">D {Number(form.goal || 0).toLocaleString()} GMD</p>
@@ -498,6 +583,10 @@ export function CampaignForm() {
               <div>
                 <p className="text-xs text-muted-foreground mb-1">Deadline</p>
                 <p className="text-sm font-medium">{form.deadline ? new Date(form.deadline).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '—'}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Urgent</p>
+                <p className="text-sm font-medium">{form.is_urgent ? 'Yes' : 'No'}</p>
               </div>
             </div>
           </div>
@@ -543,6 +632,8 @@ export function CampaignForm() {
           </button>
         )}
       </div>
+
+      <VerifyPromptModal isOpen={showVerifyPrompt} onClose={dismissVerifyPrompt} />
     </div>
   )
 }

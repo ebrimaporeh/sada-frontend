@@ -7,6 +7,10 @@ export const queryKeys = {
     list: (params) => ['users', 'list', params],
     detail: (id) => ['users', 'detail', id],
   },
+  staff: {
+    all: () => ['staff'],
+    list: (params) => ['staff', 'list', params],
+  },
   verification: {
     mine: () => ['verification', 'mine'],
     adminList: (params) => ['verification', 'admin', params],

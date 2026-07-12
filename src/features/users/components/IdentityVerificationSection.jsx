@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { ShieldCheck, Upload, AlertCircle, Clock, CheckCircle2, XCircle } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { ShieldCheck, Upload, AlertCircle, Clock, CheckCircle2, XCircle, X, Image as ImageIcon } from 'lucide-react'
 import { useMe } from '@/hooks/useAuth'
 import { useMyVerification, useSubmitVerification } from '@/hooks/useUsers'
 import { formatDate } from '@/utils/formatters'
@@ -17,19 +17,102 @@ const STATUS_BADGE = {
 }
 
 function FilePicker({ label, file, onChange, required }) {
+  const [preview, setPreview] = useState(null)
+
+  useEffect(() => {
+    if (!file) {
+      setPreview(null)
+      return
+    }
+    const url = URL.createObjectURL(file)
+    setPreview(url)
+    return () => URL.revokeObjectURL(url)
+  }, [file])
+
   return (
     <div className="space-y-1.5">
       <label className="text-sm font-medium">{label}{required && <span className="text-destructive"> *</span>}</label>
-      <label className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed rounded-lg hover:border-primary/50 cursor-pointer transition-colors text-sm">
-        <Upload className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-        <span className="text-muted-foreground truncate">{file ? file.name : 'Click to upload photo'}</span>
-        <input
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={(e) => onChange(e.target.files?.[0] || null)}
-        />
-      </label>
+      {preview ? (
+        <div className="relative group rounded-lg overflow-hidden border">
+          <img src={preview} alt={label} className="w-full h-32 object-cover" />
+          <label className="absolute inset-0 flex items-center justify-center gap-1.5 bg-black/0 group-hover:bg-black/50 opacity-0 group-hover:opacity-100 transition-all cursor-pointer text-white text-xs font-medium">
+            <Upload className="w-3.5 h-3.5" /> Replace
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => onChange(e.target.files?.[0] || null)}
+            />
+          </label>
+          <button
+            type="button"
+            onClick={() => onChange(null)}
+            className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+          <p className="absolute bottom-0 inset-x-0 bg-black/50 text-white text-[10px] px-2 py-1 truncate">{file.name}</p>
+        </div>
+      ) : (
+        <label className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed rounded-lg hover:border-primary/50 cursor-pointer transition-colors text-sm">
+          <Upload className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+          <span className="text-muted-foreground truncate">Click to upload photo</span>
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => onChange(e.target.files?.[0] || null)}
+          />
+        </label>
+      )}
+    </div>
+  )
+}
+
+function SubmittedPhotos({ verification }) {
+  const photos = [
+    { label: 'Front', url: verification?.id_photo_front },
+    { label: 'Back', url: verification?.id_photo_back },
+  ].filter((p) => p.url)
+
+  if (!photos.length) return null
+
+  return (
+    <div className="grid grid-cols-2 gap-3 max-w-xs">
+      {photos.map((p) => (
+        <a key={p.label} href={p.url} target="_blank" rel="noreferrer" className="block group">
+          <div className="rounded-lg overflow-hidden border aspect-video bg-muted">
+            <img
+              src={p.url}
+              alt={`${p.label} of submitted ID`}
+              className="w-full h-full object-cover group-hover:opacity-80 transition-opacity"
+            />
+          </div>
+          <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-1">
+            <ImageIcon className="w-3 h-3" /> {p.label} photo
+          </p>
+        </a>
+      ))}
+    </div>
+  )
+}
+
+function VerificationDetails({ verification }) {
+  if (!verification) return null
+
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-3 max-w-xs">
+        <div>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wide">ID Type</p>
+          <p className="text-sm font-medium">{ID_TYPES.find((t) => t.value === verification.id_type)?.label || verification.id_type || '—'}</p>
+        </div>
+        <div>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wide">ID Number</p>
+          <p className="text-sm font-medium">{verification.id_number || '—'}</p>
+        </div>
+      </div>
+      <SubmittedPhotos verification={verification} />
     </div>
   )
 }
@@ -68,7 +151,11 @@ export function IdentityVerificationSection() {
   }
 
   const canSubmitNew = !user?.is_verified && (!verification || verification.status === 'rejected')
-  const badge = verification ? STATUS_BADGE[verification.status] : null
+  // Only fall back to the verification record's own status for pending/rejected —
+  // never show "Approved" here when user.is_verified is false. is_verified is the
+  // single source of truth for the verified grant; a stale/desynced approved
+  // record must never contradict it in the UI.
+  const badge = verification && verification.status !== 'approved' ? STATUS_BADGE[verification.status] : null
 
   return (
     <div className="border rounded-2xl p-6 bg-card space-y-4">
@@ -92,16 +179,22 @@ export function IdentityVerificationSection() {
       </p>
 
       {isLoading ? null : user?.is_verified ? (
-        <p className="text-xs text-muted-foreground">
-          Your identity was verified{verification?.reviewed_at ? ` on ${formatDate(verification.reviewed_at)}` : ''}.
-        </p>
+        <div className="space-y-3">
+          <p className="text-xs text-muted-foreground">
+            Your identity was verified{verification?.reviewed_at ? ` on ${formatDate(verification.reviewed_at)}` : ''}.
+          </p>
+          <VerificationDetails verification={verification} />
+        </div>
       ) : verification && verification.status === 'pending' ? (
-        <div className="text-xs text-muted-foreground border rounded-lg p-3 bg-muted/30 space-y-1">
-          <p>Submitted {formatDate(verification.created_at)} — {ID_TYPES.find((t) => t.value === verification.id_type)?.label}.</p>
-          <p>We'll email you once it's been reviewed.</p>
+        <div className="text-xs text-muted-foreground border rounded-lg p-3 bg-muted/30 space-y-3">
+          <div className="space-y-1">
+            <p>Submitted {formatDate(verification.created_at)} — {ID_TYPES.find((t) => t.value === verification.id_type)?.label}.</p>
+            <p>We'll email you once it's been reviewed.</p>
+          </div>
+          <SubmittedPhotos verification={verification} />
         </div>
       ) : verification && verification.status === 'rejected' && !showForm ? (
-        <div className="text-xs space-y-2">
+        <div className="text-xs space-y-3">
           <div className="border border-red-200 bg-red-50 rounded-lg p-3 flex items-start gap-2">
             <AlertCircle className="w-3.5 h-3.5 text-red-600 mt-0.5 flex-shrink-0" />
             <div>
@@ -109,13 +202,24 @@ export function IdentityVerificationSection() {
               {verification.rejection_reason && <p className="text-red-700 mt-0.5">{verification.rejection_reason}</p>}
             </div>
           </div>
+          <SubmittedPhotos verification={verification} />
         </div>
       ) : null}
 
       {canSubmitNew && !showForm && (
         <button
           type="button"
-          onClick={() => setShowForm(true)}
+          onClick={() => {
+            // Reset — this section stays mounted across the whole session, so
+            // stale state from an earlier form open (e.g. "Passport" selected,
+            // which hides the Back Photo field) must not carry over into a
+            // fresh submission or resubmission.
+            setIdType('national_id')
+            setIdNumber('')
+            setPhotoFront(null)
+            setPhotoBack(null)
+            setShowForm(true)
+          }}
           className="inline-flex items-center gap-2 border font-medium px-4 py-2 rounded-xl hover:bg-muted transition-colors text-sm"
         >
           <ShieldCheck className="w-4 h-4" /> {verification?.status === 'rejected' ? 'Resubmit ID for Verification' : 'Submit ID for Verification'}

@@ -1,11 +1,11 @@
 import { useState, useRef } from 'react'
-import { Camera, CheckCircle2, ShieldCheck, AlertCircle } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
+import { Camera, CheckCircle2, ShieldCheck, ShieldQuestion, AlertCircle } from 'lucide-react'
 import { useMe } from '@/hooks/useAuth'
 import { useUpdateMe } from '@/hooks/useUsers'
 import { PageHeader } from '@/components/custom/PageHeader'
-import { IdentityVerificationSection } from './IdentityVerificationSection'
 import { initials } from '@/utils/formatters'
-import { GAMBIA_REGIONS } from '@/constants'
+import { GAMBIA_REGIONS, ROLES, ROUTES } from '@/constants'
 import { cn } from '@/utils/cn'
 
 function Field({ label, hint, error, children }) {
@@ -95,8 +95,10 @@ export function UserProfile() {
     ? `${form.first_name} ${form.last_name}`.trim()
     : user?.email || ''
 
+  const verificationRoute = user?.role === ROLES.ADMIN ? ROUTES.ADMIN_VERIFICATION : ROUTES.VERIFICATION
+
   return (
-    <div className="max-w-2xl mx-auto space-y-8">
+    <div className="max-w-5xl mx-auto space-y-6">
       <PageHeader title="Your Profile" description="Manage your personal information and public identity." />
 
       {/* Avatar section */}
@@ -123,13 +125,24 @@ export function UserProfile() {
           <p className="text-sm text-muted-foreground">{user?.email}</p>
           <div className="flex items-center justify-center sm:justify-start gap-2 mt-2 flex-wrap">
             {user?.is_verified ? (
-              <span className="inline-flex items-center gap-1 text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-medium">
+              <Link
+                to={verificationRoute}
+                className="inline-flex items-center gap-1 text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-medium hover:bg-green-200 transition-colors"
+              >
                 <ShieldCheck className="w-3.5 h-3.5" /> Verified
-              </span>
+              </Link>
             ) : (
-              <span className="inline-flex items-center gap-1 text-xs bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full font-medium">
-                Not verified
-              </span>
+              <>
+                <span className="inline-flex items-center gap-1 text-xs bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full font-medium">
+                  Not verified
+                </span>
+                <Link
+                  to={verificationRoute}
+                  className="inline-flex items-center gap-1 text-xs border border-primary/30 text-primary bg-primary/5 hover:bg-primary/10 px-2.5 py-1 rounded-full font-medium transition-colors"
+                >
+                  <ShieldQuestion className="w-3.5 h-3.5" /> Verify Now
+                </Link>
+              </>
             )}
             <span className="text-xs text-muted-foreground capitalize bg-muted px-2.5 py-1 rounded-full">{user?.role}</span>
           </div>
@@ -137,8 +150,9 @@ export function UserProfile() {
         </div>
       </div>
 
+      <div className="flex flex-wrap items-start gap-6">
       {/* Form */}
-      <form onSubmit={handleSubmit} className="border rounded-2xl p-6 bg-card space-y-5">
+      <form onSubmit={handleSubmit} className="flex-[2] min-w-[360px] border rounded-2xl p-6 bg-card space-y-5">
         <h2 className="font-semibold text-base">Personal Information</h2>
 
         <div className="grid sm:grid-cols-2 gap-4">
@@ -202,29 +216,31 @@ export function UserProfile() {
         </div>
       </form>
 
-      {/* Email (read-only) */}
-      <div className="border rounded-2xl p-6 bg-card space-y-4">
-        <h2 className="font-semibold text-base">Account</h2>
-        <div>
-          <label className="text-sm font-medium block mb-1.5">Email Address</label>
-          <div className="flex items-center gap-2">
-            <input
-              type="email"
-              value={user?.email || ''}
-              readOnly
-              className="flex-1 px-3 py-2.5 border rounded-lg text-sm bg-muted text-muted-foreground cursor-not-allowed"
-            />
-            {user?.email_verified && (
-              <span className="flex items-center gap-1 text-xs text-green-600 font-medium flex-shrink-0">
-                <CheckCircle2 className="w-3.5 h-3.5" /> Verified
-              </span>
-            )}
+      {/* Sidebar: account */}
+      <div className="flex-1 min-w-[300px] space-y-6">
+        {/* Email (read-only) */}
+        <div className="border rounded-2xl p-6 bg-card space-y-4">
+          <h2 className="font-semibold text-base">Account</h2>
+          <div>
+            <label className="text-sm font-medium block mb-1.5">Email Address</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="email"
+                value={user?.email || ''}
+                readOnly
+                className="flex-1 px-3 py-2.5 border rounded-lg text-sm bg-muted text-muted-foreground cursor-not-allowed"
+              />
+              {user?.email_verified && (
+                <span className="flex items-center gap-1 text-xs text-green-600 font-medium flex-shrink-0">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Verified
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Email address cannot be changed here. Contact support if needed.</p>
           </div>
-          <p className="text-xs text-muted-foreground mt-1">Email address cannot be changed here. Contact support if needed.</p>
         </div>
       </div>
-
-      <IdentityVerificationSection />
+      </div>
     </div>
   )
 }

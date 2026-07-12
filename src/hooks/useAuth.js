@@ -69,7 +69,7 @@ export function useLogout() {
       localStorage.removeItem('access_token')
       localStorage.removeItem('refresh_token')
       queryClient.clear()
-      navigate({ to: '/login' })
+      navigate({ to: '/' })
     },
   })
 }

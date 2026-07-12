@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
-import { MapPin, Users, Clock, Share2, Flag, Heart, ChevronLeft, Lock, AlertCircle, X } from 'lucide-react'
+import { MapPin, Users, Clock, Flag, Heart, ChevronLeft, Lock, AlertCircle, X } from 'lucide-react'
 import { ProgressBar } from '@/components/custom/ProgressBar'
+import { ShareCampaign } from '@/components/custom/ShareCampaign'
+import { VerifiedTick } from '@/components/custom/VerifiedTick'
 import { MarkdownContent } from '@/components/custom/MarkdownEditor'
 import { formatGMD, formatDate, progressPercent, daysLeft, timeAgo } from '@/utils/formatters'
 import { useCampaignDonors } from '@/hooks/useDonations'
@@ -178,7 +180,10 @@ export function CampaignDetailView({ campaign }) {
                 <MapPin className="w-4 h-4" /> {campaign.region}, The Gambia
               </span>
               <span>Beneficiary: <strong className="text-foreground">{campaign.beneficiary}</strong></span>
-              <span>By: <strong className="text-foreground">{campaign.owner_name || campaign.owner?.name}</strong></span>
+              <span className="flex items-center gap-1">
+                By: <strong className="text-foreground">{campaign.owner_name || campaign.owner?.name}</strong>
+                {campaign.owner_is_verified && <VerifiedTick />}
+              </span>
             </div>
           </div>
 
@@ -186,6 +191,20 @@ export function CampaignDetailView({ campaign }) {
           <div className="lg:hidden bg-card border rounded-2xl p-5 space-y-4">
             <ProgressProgress campaign={campaign} pct={pct} days={days} />
             <DonateButton slug={campaign.slug} status={campaign.status} />
+            <div className="flex gap-2">
+              <ShareCampaign
+                title={campaign.title}
+                url={`${window.location.origin}/campaigns/${campaign.slug}`}
+                className="flex-1"
+              />
+              <button
+                onClick={() => setShowReportModal(true)}
+                className="flex items-center justify-center gap-2 border rounded-lg px-3 py-2.5 text-sm font-medium text-destructive hover:bg-destructive/5 transition-colors"
+                title="Report a problem with this campaign"
+              >
+                <Flag className="w-4 h-4" /> Report
+              </button>
+            </div>
           </div>
 
           {/* Tabs */}
@@ -272,15 +291,17 @@ export function CampaignDetailView({ campaign }) {
             <ProgressProgress campaign={campaign} pct={pct} days={days} />
             <DonateButton slug={campaign.slug} status={campaign.status} />
             <div className="flex gap-2">
-              <button className="flex-1 flex items-center justify-center gap-2 border rounded-lg py-2.5 text-sm font-medium hover:bg-accent transition-colors">
-                <Share2 className="w-4 h-4" /> Share
-              </button>
+              <ShareCampaign
+                title={campaign.title}
+                url={`${window.location.origin}/campaigns/${campaign.slug}`}
+                className="flex-1"
+              />
               <button
                 onClick={() => setShowReportModal(true)}
-                className="flex items-center justify-center gap-2 border rounded-lg px-3 py-2.5 text-sm hover:bg-accent transition-colors"
-                title="Report this campaign"
+                className="flex items-center justify-center gap-2 border rounded-lg px-3 py-2.5 text-sm font-medium text-destructive hover:bg-destructive/5 transition-colors"
+                title="Report a problem with this campaign"
               >
-                <Flag className="w-4 h-4 text-destructive" />
+                <Flag className="w-4 h-4" /> Report
               </button>
             </div>
             <div className="text-xs text-muted-foreground text-center pt-1 flex items-center justify-center gap-1">
