@@ -34,7 +34,8 @@ export const queryKeys = {
     settings: () => ['payments', 'settings'],
   },
   notifications: {
-    list: () => ['notifications'],
+    all: () => ['notifications'],
+    list: (params) => ['notifications', 'list', params],
     unreadCount: () => ['notifications', 'unread-count'],
   },
   admin: {
