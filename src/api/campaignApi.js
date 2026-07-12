@@ -91,4 +91,21 @@ export const campaignApi = {
 
   adminChangeCampaignStatus: (id, data) =>
     apiClient.post(`/campaigns/admin/${id}/status-change/`, data).then((r) => r.data),
+
+  createCategory: (data) =>
+    apiClient.post('/campaigns/admin/categories/', data).then((r) => r.data),
+
+  updateCategory: (id, data) =>
+    apiClient.patch(`/campaigns/categories/${id}/`, data).then((r) => r.data),
+
+  deleteCategory: (id) =>
+    apiClient.delete(`/campaigns/categories/${id}/`).then((r) => r.data),
+
+  uploadCategoryImage: (id, file) => {
+    const form = new FormData()
+    form.append('image', file)
+    return apiClient.post(`/campaigns/categories/${id}/upload-image/`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }).then((r) => r.data)
+  },
 }

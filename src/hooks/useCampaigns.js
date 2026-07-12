@@ -17,6 +17,46 @@ export function useCategories() {
   return { categories: query.data ?? [], isLoading: query.isLoading }
 }
 
+export function useCreateCategory() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data) => campaignApi.createCategory(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.categories() })
+    },
+  })
+}
+
+export function useUpdateCategory() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, ...data }) => campaignApi.updateCategory(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.categories() })
+    },
+  })
+}
+
+export function useDeleteCategory() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id) => campaignApi.deleteCategory(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.categories() })
+    },
+  })
+}
+
+export function useUploadCategoryImage() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, file }) => campaignApi.uploadCategoryImage(id, file),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.categories() })
+    },
+  })
+}
+
 export function usePublicStats() {
   const query = useQuery({
     queryKey: queryKeys.campaigns.publicStats(),

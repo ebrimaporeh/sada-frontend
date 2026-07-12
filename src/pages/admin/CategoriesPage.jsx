@@ -4,20 +4,33 @@ import { PageHeader } from '@/components/custom/PageHeader'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
 import { EmptyState } from '@/components/custom/EmptyState'
 import { AdminPagination } from '@/components/custom/AdminPagination'
-import { useCategories } from '@/hooks/useCampaigns'
+import { ConfirmModal } from '@/components/custom/ConfirmModal'
+import {
+  useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory, useUploadCategoryImage,
+} from '@/hooks/useCampaigns'
+
+const emptyForm = { name: '', description: '' }
 
 export function CategoriesPage() {
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
   const [editingId, setEditingId] = useState(null)
-  const [editData, setEditData] = useState({})
+  const [isCreating, setIsCreating] = useState(false)
+  const [formData, setFormData] = useState(emptyForm)
   const [imagePreview, setImagePreview] = useState(null)
   const [imageFile, setImageFile] = useState(null)
-  const [isSaving, setIsSaving] = useState(false)
-  const [isCreating, setIsCreating] = useState(false)
   const [notification, setNotification] = useState(null)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+
   const { categories, isLoading } = useCategories()
+  const createCategory = useCreateCategory()
+  const updateCategory = useUpdateCategory()
+  const uploadImage = useUploadCategoryImage()
+  const deleteCategory = useDeleteCategory()
   const limit = 12
+
+  const isFormOpen = isCreating || Boolean(editingId)
+  const isSaving = createCategory.isPending || updateCategory.isPending || uploadImage.isPending
 
   const filtered = categories.filter((cat) =>
     cat.name.toLowerCase().includes(search.toLowerCase())
@@ -36,93 +49,81 @@ export function CategoriesPage() {
 
   const handleEdit = (cat) => {
     setEditingId(cat.id)
-    setEditData({
-      name: cat.name,
-      description: cat.description || '',
-    })
+    setFormData({ name: cat.name, description: cat.description || '' })
     setImagePreview(cat.image_url || null)
+    setImageFile(null)
+  }
+
+  const handleNew = () => {
+    setIsCreating(true)
+    setFormData(emptyForm)
+    setImagePreview(null)
     setImageFile(null)
   }
 
   const handleImageChange = (e) => {
     const file = e.target.files?.[0]
     if (file) {
-      // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         showNotification('error', 'Image must be smaller than 5MB')
         return
       }
-
       setImageFile(file)
       const reader = new FileReader()
-      reader.onload = (event) => {
-        setImagePreview(event.target?.result)
-      }
+      reader.onload = (event) => setImagePreview(event.target?.result)
       reader.readAsDataURL(file)
     }
   }
 
   const handleCancel = () => {
     setEditingId(null)
-    setEditData({})
+    setIsCreating(false)
+    setFormData(emptyForm)
     setImagePreview(null)
     setImageFile(null)
-    setIsCreating(false)
   }
 
   const handleSave = async () => {
-    if (!editData.name.trim()) {
+    if (!formData.name.trim()) {
       showNotification('error', 'Category name is required')
       return
     }
 
-    setIsSaving(true)
     try {
-      // Step 1: Update category details (name, description)
-      const updateResponse = await fetch(`/api/v1/campaigns/categories/${editingId}/`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-        },
-        body: JSON.stringify({
-          name: editData.name,
-          description: editData.description,
-        }),
-      })
-
-      if (!updateResponse.ok) {
-        throw new Error('Failed to update category details')
-      }
-
-      // Step 2: Upload image separately if provided
-      if (imageFile) {
-        const imageFormData = new FormData()
-        imageFormData.append('image', imageFile)
-
-        const imageResponse = await fetch(`/api/v1/campaigns/categories/${editingId}/upload-image/`, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-          },
-          body: imageFormData,
+      let categoryId = editingId
+      if (isCreating) {
+        const res = await createCategory.mutateAsync({
+          name: formData.name,
+          description: formData.description,
         })
-
-        if (!imageResponse.ok) {
-          throw new Error('Failed to upload image')
-        }
+        categoryId = res?.data?.category?.id
+      } else {
+        await updateCategory.mutateAsync({
+          id: editingId,
+          name: formData.name,
+          description: formData.description,
+        })
       }
 
-      showNotification('success', 'Category updated successfully')
+      if (imageFile && categoryId) {
+        await uploadImage.mutateAsync({ id: categoryId, file: imageFile })
+      }
+
+      showNotification('success', isCreating ? 'Category created successfully' : 'Category updated successfully')
       handleCancel()
-      // Refresh categories
-      window.location.reload()
     } catch (error) {
-      console.error('Error saving category:', error)
-      showNotification('error', error.message || 'Failed to update category')
-    } finally {
-      setIsSaving(false)
+      showNotification('error', error?.response?.data?.message || 'Failed to save category')
     }
+  }
+
+  const handleConfirmDelete = () => {
+    if (!deleteTarget) return
+    deleteCategory.mutate(deleteTarget.id, {
+      onSuccess: () => {
+        setDeleteTarget(null)
+        showNotification('success', 'Category deleted successfully')
+      },
+    })
   }
 
   if (isLoading) {
@@ -157,9 +158,9 @@ export function CategoriesPage() {
       <PageHeader
         title="Categories"
         description="Manage campaign categories and their images"
-        actions={
+        action={
           <button
-            onClick={() => setIsCreating(true)}
+            onClick={handleNew}
             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium"
           >
             <Plus className="w-4 h-4" />
@@ -236,6 +237,7 @@ export function CategoriesPage() {
                     Edit
                   </button>
                   <button
+                    onClick={() => { deleteCategory.reset(); setDeleteTarget(cat) }}
                     className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded text-xs font-medium text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                   >
                     <Trash2 className="w-3 h-3" />
@@ -253,12 +255,12 @@ export function CategoriesPage() {
         <AdminPagination page={page} totalPages={totalPages} onPageChange={setPage} totalCount={filtered.length} limit={limit} />
       )}
 
-      {/* Edit Modal */}
-      {editingId && (
+      {/* Create / Edit Modal */}
+      {isFormOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-card border rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold">Edit Category</h2>
+              <h2 className="text-lg font-bold">{isCreating ? 'New Category' : 'Edit Category'}</h2>
               <button
                 onClick={handleCancel}
                 disabled={isSaving}
@@ -303,7 +305,9 @@ export function CategoriesPage() {
                       className="hidden"
                     />
                   </label>
-                  <p className="text-xs text-muted-foreground">Max 5MB</p>
+                  <p className="text-xs text-muted-foreground">
+                    {isCreating ? 'Optional — you can add an image after creating' : 'Max 5MB'}
+                  </p>
                 </div>
               </div>
 
@@ -312,8 +316,8 @@ export function CategoriesPage() {
                 <label className="text-xs font-semibold text-muted-foreground block mb-1.5">NAME *</label>
                 <input
                   type="text"
-                  value={editData.name || ''}
-                  onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                  value={formData.name || ''}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   disabled={isSaving}
                   className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-hidden focus:ring-2 focus:ring-ring bg-background disabled:opacity-50"
                   placeholder="e.g., Medical & Health"
@@ -324,8 +328,8 @@ export function CategoriesPage() {
               <div>
                 <label className="text-xs font-semibold text-muted-foreground block mb-1.5">DESCRIPTION</label>
                 <textarea
-                  value={editData.description || ''}
-                  onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+                  value={formData.description || ''}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   disabled={isSaving}
                   className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-hidden focus:ring-2 focus:ring-ring bg-background resize-none disabled:opacity-50"
                   rows="3"
@@ -354,13 +358,25 @@ export function CategoriesPage() {
                     Saving...
                   </>
                 ) : (
-                  'Save Category'
+                  isCreating ? 'Create Category' : 'Save Category'
                 )}
               </button>
             </div>
           </div>
         </div>
       )}
+
+      {/* Delete confirmation */}
+      <ConfirmModal
+        isOpen={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleConfirmDelete}
+        title={`Delete "${deleteTarget?.name}"?`}
+        description="This permanently removes the category. Categories with existing campaigns can't be deleted — reassign or remove those campaigns first."
+        confirmLabel="Delete Category"
+        isLoading={deleteCategory.isPending}
+        errorMessage={deleteCategory.isError ? deleteCategory.error?.response?.data?.message || 'Failed to delete category.' : null}
+      />
     </div>
   )
 }
