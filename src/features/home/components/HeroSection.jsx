@@ -1,21 +1,13 @@
 import { Link } from '@tanstack/react-router'
-import { ArrowRight, Heart, MapPin } from 'lucide-react'
+import { ArrowRight, Heart } from 'lucide-react'
 import { ROUTES } from '@/constants'
 import { CampaignCard } from '@/components/custom/CampaignCard'
 import { CampaignCardSkeleton } from '@/components/custom/CampaignCardSkeleton'
-import { useFeaturedCampaigns, usePublicStats } from '@/hooks/useCampaigns'
-import { formatGMD, compactNumber } from '@/utils/formatters'
+import { useFeaturedCampaigns } from '@/hooks/useCampaigns'
 
 export function HeroSection() {
   const { campaigns, isLoading } = useFeaturedCampaigns()
-  const { stats } = usePublicStats()
   const heroCard = campaigns[0] ?? null
-
-  const heroStats = [
-    { value: stats ? formatGMD(stats.total_raised) : '—', label: 'Raised for causes' },
-    { value: stats ? compactNumber(stats.fundraisers_count) : '—', label: 'Fundraisers' },
-    { value: stats ? `${stats.success_rate}%` : '—', label: 'Reach their goal' },
-  ]
 
   return (
     <section className="relative overflow-hidden">
@@ -37,10 +29,6 @@ export function HeroSection() {
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           {/* Left: Text */}
           <div>
-            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary text-sm font-semibold px-3 py-1.5 rounded-full mb-5">
-              <MapPin className="w-3.5 h-3.5" /> Built for The Gambia
-            </div>
-
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-5">
               Help your{' '}
               <em className="not-italic text-primary">community</em>{' '}
@@ -49,7 +37,7 @@ export function HeroSection() {
 
             <p className="text-lg text-muted-foreground leading-[1.8] mb-9 max-w-lg">
               Support real Gambians raising funds for medical emergencies, education, community
-              projects, and more — donate with mobile money in seconds, no fee taken off the top.
+              projects, and more — donate with mobile money in seconds.
             </p>
 
             <div className="flex flex-wrap gap-3 mb-11">
@@ -67,17 +55,6 @@ export function HeroSection() {
                 Browse Campaigns
                 <ArrowRight className="w-4 h-4" />
               </Link>
-            </div>
-
-            <div className="stat-grid grid-cols-3">
-              {heroStats.map((s) => (
-                <div key={s.label}>
-                  <strong className="block font-display text-2xl sm:text-3xl font-bold text-foreground leading-none">
-                    {s.value}
-                  </strong>
-                  <span className="block text-muted-foreground text-[11px] mt-1.5 tracking-wide">{s.label}</span>
-                </div>
-              ))}
             </div>
           </div>
 

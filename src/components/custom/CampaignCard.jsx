@@ -30,9 +30,9 @@ export function CampaignCard({ campaign, className }) {
         )}
         {/* Badges */}
         <div className="absolute top-3 left-3 right-3 flex items-start justify-between">
-          <span className="inline-flex items-center gap-1 bg-black/40 backdrop-blur-xs text-white text-xs font-medium px-2 py-1 rounded-full">
+          {/* <span className="inline-flex items-center gap-1 bg-black/40 backdrop-blur-xs text-white text-xs font-medium px-2 py-1 rounded-full">
             {campaign.category_name ?? campaign.category?.name ?? campaign.category}
-          </span>
+          </span> */}
           <div className="flex flex-col items-end gap-1">
             {campaign.is_urgent && (
               <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full animate-pulse">

@@ -26,9 +26,9 @@ function CategoryCard({ cat }) {
           </div>
         )}
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-300" />
-        <div className="absolute top-3 left-3 w-9 h-9 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center">
+        {/* <div className="absolute top-3 left-3 w-9 h-9 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center">
           <Icon className="w-4 h-4 text-primary" />
-        </div>
+        </div> */}
       </div>
 
       <div className="p-4 space-y-1.5">

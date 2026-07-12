@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import { HeartHandshake, ShieldCheck, Smartphone, Users, ArrowRight, Target, Sparkles } from 'lucide-react'
 import { usePublicStats } from '@/hooks/useCampaigns'
+import { StatsGrid } from '@/components/custom/StatsGrid'
 import { formatGMD, compactNumber } from '@/utils/formatters'
 import { settings } from '@/settings'
 import { ROUTES } from '@/constants'
@@ -36,9 +37,7 @@ export function AboutPage() {
       {/* Hero */}
       <section className="bg-linear-to-b from-primary/5 to-background border-b py-20 sm:py-28">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
-          <div className="inline-flex items-center gap-2 bg-primary/10 text-primary text-sm font-semibold px-3 py-1.5 rounded-full mb-6">
-            <Sparkles className="w-3.5 h-3.5" /> About {settings.siteName}
-          </div>
+          
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1]">
             Crowdfunding, built for The Gambia
           </h1>
@@ -105,24 +104,14 @@ export function AboutPage() {
       {stats && (
         <section className="py-16 sm:py-20">
           <div className="max-w-4xl mx-auto px-4 sm:px-6">
-            <div className="stat-grid grid-cols-2 sm:grid-cols-4">
-              <div>
-                <p className="font-display text-3xl font-bold text-foreground">{formatGMD(stats.total_raised)}</p>
-                <p className="text-sm text-muted-foreground mt-1">Raised so far</p>
-              </div>
-              <div>
-                <p className="font-display text-3xl font-bold text-foreground">{compactNumber(stats.fundraisers_count)}</p>
-                <p className="text-sm text-muted-foreground mt-1">Fundraisers</p>
-              </div>
-              <div>
-                <p className="font-display text-3xl font-bold text-foreground">{compactNumber(stats.donors_count)}</p>
-                <p className="text-sm text-muted-foreground mt-1">Donors</p>
-              </div>
-              <div>
-                <p className="font-display text-3xl font-bold text-foreground">{stats.success_rate}%</p>
-                <p className="text-sm text-muted-foreground mt-1">Reach their goal</p>
-              </div>
-            </div>
+            <StatsGrid
+              items={[
+                { label: 'Raised so far', value: formatGMD(stats.total_raised) },
+                { label: 'Fundraisers', value: compactNumber(stats.fundraisers_count) },
+                { label: 'Donors', value: compactNumber(stats.donors_count) },
+                { label: 'Reach their goal', value: `${stats.success_rate}%` },
+              ]}
+            />
           </div>
         </section>
       )}
