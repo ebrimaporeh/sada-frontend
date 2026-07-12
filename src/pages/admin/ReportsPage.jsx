@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
-import { useSearch } from '@tanstack/react-router'
-import { AlertCircle, Flag, TrendingUp, CheckCircle, Clock, Loader2, Eye, EyeOff, X } from 'lucide-react'
+import { AlertCircle, Flag, TrendingUp, CheckCircle, Clock, Loader2, Eye, EyeOff, Search, SearchX } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import { useAdminReports, useReportsStats, useAdminUpdateReport } from '@/hooks/useAdmin'
-import { useAdminChangeCampaignStatus, useAdminCampaigns } from '@/hooks/useCampaigns'
+import { useAdminChangeCampaignStatus } from '@/hooks/useCampaigns'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { StatSkeleton } from '@/components/custom/StatSkeleton'
 import { ReportSheet } from '@/components/custom/ReportSheet'
 import { AdminPagination } from '@/components/custom/AdminPagination'
@@ -26,9 +26,8 @@ const statusConfig = {
 }
 
 export function ReportsPage() {
-  const search = useSearch({ strict: false })
   const [filter, setFilter] = useState('all')
-  const [campaignFilter, setCampaignFilter] = useState(search?.campaign || '')
+  const [search, setSearch] = useState('')
   const [selectedReport, setSelectedReport] = useState(null)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [isEditMode, setIsEditMode] = useState(false)
@@ -39,27 +38,26 @@ export function ReportsPage() {
   const [showStats, setShowStats] = useState(true)
   const limit = 10
 
+  const debouncedSearch = useDebouncedValue(search)
+
   // Reset to page 1 whenever a filter changes so we don't land on an empty page.
   useEffect(() => {
     setPage(1)
-  }, [filter, campaignFilter])
+  }, [filter, debouncedSearch])
 
   const { data: statsData, isLoading: statsLoading } = useReportsStats()
   const { data: reportsData, isLoading } = useAdminReports({
     status: filter === 'all' ? undefined : filter,
-    campaign: campaignFilter || undefined,
+    search: debouncedSearch || undefined,
     page,
     page_size: limit,
   })
-  const { data: campaignsData } = useAdminCampaigns({ page_size: 100 })
   const { mutateAsync: updateReport } = useAdminUpdateReport()
   const { mutateAsync: changeCampaignStatus } = useAdminChangeCampaignStatus()
 
   const filteredReports = reportsData?.results || []
   const totalPages = reportsData?.total_pages || 1
   const totalCount = reportsData?.count || 0
-  const campaignOptions = campaignsData?.campaigns || []
-  const activeCampaignFilter = campaignOptions.find((c) => c.id === campaignFilter)
 
   const handleSelectReport = (report) => {
     setSelectedReport(report)
@@ -183,34 +181,26 @@ export function ReportsPage() {
           ))}
         </div>
 
-        <div className="flex items-center gap-2">
-          <select
-            value={campaignFilter}
-            onChange={(e) => setCampaignFilter(e.target.value)}
-            className="px-3 py-2 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring max-w-[220px]"
-          >
-            <option value="">All Campaigns</option>
-            {campaignOptions.map((c) => (
-              <option key={c.id} value={c.id}>{c.title}</option>
-            ))}
-          </select>
-          {campaignFilter && (
+        <div className="relative w-full sm:w-64">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Search reporter or campaign..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-9 pr-8 py-2 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
+          />
+          {search && (
             <button
-              onClick={() => setCampaignFilter('')}
-              className="p-2 rounded-lg border hover:bg-accent transition-colors"
-              title="Clear campaign filter"
+              onClick={() => setSearch('')}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              title="Clear search"
             >
-              <X className="w-4 h-4" />
+              <SearchX className="w-4 h-4" />
             </button>
           )}
         </div>
       </div>
-
-      {activeCampaignFilter && (
-        <p className="text-xs text-muted-foreground -mt-2">
-          Showing reports for <span className="font-medium text-foreground">{activeCampaignFilter.title}</span>
-        </p>
-      )}
 
       {/* Reports Grid */}
       <div className="space-y-3">
