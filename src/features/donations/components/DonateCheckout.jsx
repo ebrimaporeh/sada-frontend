@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link } from '@tanstack/react-router'
 import { Heart, ChevronLeft, CheckCircle2, AlertCircle, Lock, Smartphone } from 'lucide-react'
 import { ProgressBar } from '@/components/custom/ProgressBar'
+import { ShareCampaign } from '@/components/custom/ShareCampaign'
 import { formatGMD, progressPercent, daysLeft } from '@/utils/formatters'
 import { useDonateToCampaign } from '@/hooks/useDonations'
 import { useMe } from '@/hooks/useAuth'
@@ -30,6 +31,12 @@ function CampaignSummaryCard({ campaign }) {
       <div className="text-xs text-muted-foreground border-t pt-2">
         <span>{campaign.donors_count} donors · {daysLeft(campaign.deadline)} days left</span>
       </div>
+      <ShareCampaign
+        title={campaign.title}
+        url={`${window.location.origin}/campaigns/${campaign.slug}`}
+        buttonClassName="w-full flex items-center justify-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+        buttonLabel="Share this campaign"
+      />
     </div>
   )
 }

@@ -5,6 +5,7 @@ import { useMyCampaign } from '@/hooks/useCampaigns'
 import { ProgressBar } from '@/components/custom/ProgressBar'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
 import { EmptyState } from '@/components/custom/EmptyState'
+import { ShareCampaign } from '@/components/custom/ShareCampaign'
 import { formatGMD, progressPercent } from '@/utils/formatters'
 import { ROUTES } from '@/constants'
 import { cn } from '@/utils/cn'
@@ -65,6 +66,11 @@ export function MyCampaignDetailPage() {
                 >
                   <Eye className="w-3.5 h-3.5" /> Public view
                 </Link>
+                <ShareCampaign
+                  title={campaign.title}
+                  url={`${window.location.origin}/campaigns/${campaign.slug}`}
+                  buttonClassName="inline-flex items-center gap-1.5 text-xs border font-medium px-3 py-1.5 rounded-full hover:bg-accent transition-colors"
+                />
               </div>
             </div>
 
