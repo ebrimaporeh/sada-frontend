@@ -5,9 +5,9 @@ import { useChangePassword, useLogout, useMe, useUpdateMe } from '@/hooks/useAut
 import { PAYOUT_METHODS } from '@/constants'
 import { cn } from '@/utils/cn'
 
-function Section({ title, description, children }) {
+function Section({ title, description, children, className }) {
   return (
-    <div className="border rounded-2xl p-6 bg-card space-y-5">
+    <div className={cn('border rounded-2xl p-6 bg-card space-y-5', className)}>
       <div className="space-y-1 pb-1 border-b">
         <h2 className="font-semibold">{title}</h2>
         {description && <p className="text-sm text-muted-foreground">{description}</p>}
@@ -193,13 +193,16 @@ export function SettingsPage() {
 
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-5xl mx-auto space-y-6">
       <PageHeader title="Settings" description="Manage your account preferences and security." />
 
-     
-
+      <div className="flex flex-wrap items-start gap-6">
       {/* Payment settings */}
-      <Section title="Payment Settings" description="Set your default mobile money account for campaign withdrawals.">
+      <Section
+        title="Payment Settings"
+        description="Set your default mobile money account for campaign withdrawals."
+        className="flex-1 min-w-[360px]"
+      >
         <form onSubmit={handlePaymentSubmit} className="space-y-5">
           <div className="space-y-2">
             <label className="text-sm font-medium">Default Payment Network</label>
@@ -273,7 +276,11 @@ export function SettingsPage() {
       </Section>
 
       {/* Change password */}
-      <Section title="Change Password" description="Use a strong password with at least 8 characters.">
+      <Section
+        title="Change Password"
+        description="Use a strong password with at least 8 characters."
+        className="flex-1 min-w-[360px]"
+      >
         <form onSubmit={handlePasswordSubmit} className="space-y-4">
           <div className="space-y-1.5">
             <label className="text-sm font-medium">Current Password</label>
@@ -311,6 +318,7 @@ export function SettingsPage() {
           </div>
         </form>
       </Section>
+      </div>
 
       {/* Notifications */}
       <Section title="Notifications" description="Choose what you'd like to be notified about.">
