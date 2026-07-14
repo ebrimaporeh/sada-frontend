@@ -622,10 +622,10 @@ export function CampaignForm() {
         ) : (
           <button
             onClick={handleSubmit}
-            disabled={createCampaign.isPending}
+            disabled={createCampaign.isPending || updateMedia.isPending}
             className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold px-6 py-2.5 rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-60"
           >
-            {createCampaign.isPending
+            {createCampaign.isPending || updateMedia.isPending
               ? <><Loader2 className="w-4 h-4 animate-spin" /> Submitting…</>
               : <><CheckCircle2 className="w-4 h-4" /> Submit Campaign</>
             }
