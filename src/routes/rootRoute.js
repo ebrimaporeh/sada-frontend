@@ -17,6 +17,8 @@ import { VerifyEmailPage } from '@/pages/public/VerifyEmailPage'
 import { CampaignsPage } from '@/pages/public/CampaignsPage'
 import { CategoriesPage as PublicCategoriesPage } from '@/pages/public/CategoriesPage'
 import { CampaignDetailPage } from '@/pages/public/CampaignDetailPage'
+import { CampaignersPage } from '@/pages/public/CampaignersPage'
+import { CampaignerDetailPage } from '@/pages/public/CampaignerDetailPage'
 import { DonatePage } from '@/pages/public/DonatePage'
 import { DonateSuccessPage } from '@/pages/public/DonateSuccessPage'
 import { AboutPage } from '@/pages/public/AboutPage'
@@ -139,6 +141,18 @@ const campaignDetailRoute = createRoute({
   getParentRoute: () => publicLayout,
   path: '/campaigns/$slug',
   component: CampaignDetailPage,
+})
+
+const campaignersRoute = createRoute({
+  getParentRoute: () => publicLayout,
+  path: ROUTES.CAMPAIGNERS,
+  component: CampaignersPage,
+})
+
+const campaignerDetailRoute = createRoute({
+  getParentRoute: () => publicLayout,
+  path: ROUTES.CAMPAIGNER_DETAIL,
+  component: CampaignerDetailPage,
 })
 
 const donateRoute = createRoute({
@@ -351,6 +365,8 @@ const routeTree = rootRoute.addChildren([
     campaignsRoute,
     categoriesRoute,
     campaignDetailRoute,
+    campaignersRoute,
+    campaignerDetailRoute,
     donateRoute,
     donateSuccessRoute,
     aboutRoute,

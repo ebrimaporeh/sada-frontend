@@ -20,6 +20,10 @@ export const ROUTES = {
   CAMPAIGN_NEW: '/campaigns/new',
   CATEGORIES: '/categories',
 
+  // Public campaigner profile routes
+  CAMPAIGNERS: '/campaigners',
+  CAMPAIGNER_DETAIL: '/campaigners/$id',
+
   // Authenticated routes
   DASHBOARD: '/dashboard',
   MY_CAMPAIGNS: '/my-campaigns',

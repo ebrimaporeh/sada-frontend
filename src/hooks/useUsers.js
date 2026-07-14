@@ -17,6 +17,44 @@ export function useUser(id) {
   })
 }
 
+// ── Public campaigner profiles ────────────────────────────────────────────────
+
+export function usePublicCampaigners(filters = {}) {
+  const params = {}
+  if (filters.region) params.region = filters.region
+  if (filters.search) params.search = filters.search
+  if (filters.page) params.page = filters.page
+
+  const query = useQuery({
+    queryKey: queryKeys.campaigners.list(params),
+    queryFn: () => userApi.getCampaigners(params),
+    select: (res) => ({
+      campaigners: res?.results ?? [],
+      count: res?.count ?? 0,
+      totalPages: res?.total_pages ?? 1,
+      page: res?.page ?? 1,
+    }),
+  })
+  return {
+    campaigners: query.data?.campaigners ?? [],
+    count: query.data?.count ?? 0,
+    totalPages: query.data?.totalPages ?? 1,
+    page: query.data?.page ?? 1,
+    isLoading: query.isLoading,
+    isError: query.isError,
+  }
+}
+
+export function usePublicCampaigner(id) {
+  const query = useQuery({
+    queryKey: queryKeys.campaigners.detail(id),
+    queryFn: () => userApi.getCampaigner(id),
+    enabled: Boolean(id),
+    retry: false,
+  })
+  return { campaigner: query.data ?? null, isLoading: query.isLoading, isError: query.isError }
+}
+
 export function useUpdateMe() {
   const queryClient = useQueryClient()
   return useMutation({

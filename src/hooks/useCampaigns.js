@@ -90,12 +90,13 @@ export function useCampaigns(filters = {}) {
   }
 }
 
-function _toApiParams({ category, region, search, urgent }) {
+function _toApiParams({ category, region, search, urgent, owner }) {
   const p = {}
   if (category && category !== 'all') p.category = category
   if (region) p.region = region
   if (search) p.search = search
   if (urgent) p.urgent = 'true'
+  if (owner) p.owner = owner
   return p
 }
 

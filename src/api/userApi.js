@@ -24,4 +24,7 @@ export const userApi = {
   getVerifications: (params) => apiClient.get('/users/admin/verifications/', { params }).then((r) => r.data),
   reviewVerification: (id, action, reason) =>
     apiClient.post(`/users/admin/verifications/${id}/${action}/`, reason ? { reason } : {}).then((r) => r.data),
+
+  getCampaigners: (params) => apiClient.get('/users/campaigners/', { params }).then((r) => r.data),
+  getCampaigner: (id) => apiClient.get(`/users/campaigners/${id}/`).then((r) => r.data),
 }

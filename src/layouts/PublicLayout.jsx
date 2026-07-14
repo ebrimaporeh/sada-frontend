@@ -12,6 +12,7 @@ export function PublicLayout() {
 
   const navLinks = [
     { label: 'Campaigns', to: ROUTES.CAMPAIGNS },
+    { label: 'Campaigners', to: ROUTES.CAMPAIGNERS },
     { label: 'How It Works', to: '/#how-it-works' },
     { label: 'About', to: ROUTES.ABOUT },
   ]

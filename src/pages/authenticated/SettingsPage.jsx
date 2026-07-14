@@ -91,6 +91,18 @@ export function SettingsPage() {
   const [pwSaved, setPwSaved] = useState(false)
   const [googleLinkError, setGoogleLinkError] = useState('')
 
+  // Public profile privacy
+  const [privacyError, setPrivacyError] = useState('')
+  const showTotalRaised = me?.show_total_raised !== false
+
+  function handleToggleShowTotalRaised(value) {
+    setPrivacyError('')
+    updateMe.mutate(
+      { show_total_raised: value },
+      { onError: (err) => setPrivacyError(err?.response?.data?.message || 'Failed to save this setting.') },
+    )
+  }
+
   // Notifications — seed once when me first loads
   const notifSeeded = useRef(false)
   const [notif, setNotif] = useState({
@@ -386,6 +398,25 @@ export function SettingsPage() {
         {googleLinkError && (
           <p className="text-sm text-destructive flex items-center gap-1.5 mt-3">
             <AlertCircle className="w-4 h-4" /> {googleLinkError}
+          </p>
+        )}
+      </Section>
+
+      {/* Public profile privacy */}
+      <Section
+        title="Public Profile"
+        description="Control what's shown on your public campaigner profile."
+        className="flex-1 min-w-[360px]"
+      >
+        <Toggle
+          checked={showTotalRaised}
+          onChange={handleToggleShowTotalRaised}
+          label="Show total raised"
+          description="Display the total amount raised across your campaigns on your public profile"
+        />
+        {privacyError && (
+          <p className="text-sm text-destructive flex items-center gap-1.5 mt-3">
+            <AlertCircle className="w-4 h-4" /> {privacyError}
           </p>
         )}
       </Section>

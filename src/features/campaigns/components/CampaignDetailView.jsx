@@ -181,7 +181,18 @@ export function CampaignDetailView({ campaign }) {
               </span>
               <span>Beneficiary: <strong className="text-foreground">{campaign.beneficiary}</strong></span>
               <span className="flex items-center gap-1">
-                By: <strong className="text-foreground">{campaign.owner_name || campaign.owner?.name}</strong>
+                By:{' '}
+                {campaign.owner_id ? (
+                  <Link
+                    to="/campaigners/$id"
+                    params={{ id: campaign.owner_id }}
+                    className="font-bold text-foreground hover:text-primary transition-colors"
+                  >
+                    {campaign.owner_name || campaign.owner?.name}
+                  </Link>
+                ) : (
+                  <strong className="text-foreground">{campaign.owner_name || campaign.owner?.name}</strong>
+                )}
                 {campaign.owner_is_verified && <VerifiedTick />}
               </span>
             </div>
