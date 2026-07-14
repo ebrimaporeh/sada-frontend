@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link } from '@tanstack/react-router'
-import { Banknote, Smartphone, CheckCircle2, AlertCircle, Lock, ChevronDown, ChevronUp, Settings } from 'lucide-react'
-import { useRequestPayout, usePlatformSettings } from '@/hooks/usePayments'
+import { Banknote, Smartphone, CheckCircle2, AlertCircle, Lock, ChevronDown, ChevronUp, Settings, Loader2 } from 'lucide-react'
+import { useRequestPayout, usePlatformSettings, usePayoutFeePreview } from '@/hooks/usePayments'
 import { useMe } from '@/hooks/useAuth'
 import { PAYMENT_METHODS, PAYOUT_METHODS } from '@/constants'
 import { formatGMD, formatDateTime } from '@/utils/formatters'
@@ -42,17 +42,20 @@ export function WithdrawTab({ campaign, payouts, availableBalance, totalPaidOut 
   const hasDefault = Boolean(defaultProvider && defaultPhone)
 
   const numAmount = Number(amount)
-  const fee = numAmount ? Math.ceil(numAmount * (feePercent / 100)) : 0
-  const youReceive = numAmount - fee
-
   const activeProvider = useDefault && hasDefault ? defaultProvider : provider
   const activePhone = useDefault && hasDefault ? defaultPhone : phone
   const activeProviderMeta = PAYMENT_METHODS.find((p) => p.id === activeProvider)
+
+  const { preview, isLoading: feeLoading } = usePayoutFeePreview(numAmount, activeProvider)
+  const platformFee = preview ? Number(preview.platform_fee) : 0
+  const providerFee = preview ? Number(preview.provider_fee) : 0
+  const youReceive = preview ? Number(preview.net_amount) : 0
 
   function validate() {
     if (!numAmount || numAmount < 50) { setError('Minimum withdrawal is D 50'); return false }
     if (numAmount > availableBalance) { setError(`Maximum available is ${formatGMD(availableBalance)}`); return false }
     if (!activePhone.trim() || activePhone.trim().length < 7) { setError('Enter a valid phone number'); return false }
+    if (feeLoading || !preview) { setError('Still calculating fees — please wait a moment.'); return false }
     setError('')
     return true
   }
@@ -178,19 +181,32 @@ export function WithdrawTab({ campaign, payouts, availableBalance, totalPaidOut 
 
             {numAmount > 0 && (
               <div className="bg-muted/50 rounded-xl p-4 space-y-2">
-                {[
-                  ['Withdrawal amount', formatGMD(numAmount)],
-                  [`Processing fee (${feePercent}%)`, `- ${formatGMD(fee)}`],
-                ].map(([label, value]) => (
-                  <div key={label} className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">{label}</span>
-                    <span className="font-medium">{value}</span>
-                  </div>
-                ))}
-                <div className="flex justify-between font-bold text-base border-t pt-2">
-                  <span>You receive</span>
-                  <span className="text-primary">{formatGMD(youReceive)}</span>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Withdrawal amount</span>
+                  <span className="font-medium">{formatGMD(numAmount)}</span>
                 </div>
+                {feeLoading ? (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground py-1">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" /> Calculating fees…
+                  </div>
+                ) : preview ? (
+                  <>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Platform fee ({feePercent}%)</span>
+                      <span className="font-medium">- {formatGMD(platformFee)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">{activeProviderMeta?.name || 'Network'} transfer fee</span>
+                      <span className="font-medium">- {formatGMD(providerFee)}</span>
+                    </div>
+                    <div className="flex justify-between font-bold text-base border-t pt-2">
+                      <span>You receive</span>
+                      <span className="text-primary">{formatGMD(youReceive)}</span>
+                    </div>
+                  </>
+                ) : (
+                  <p className="text-xs text-destructive">Could not calculate fees. Try a different amount.</p>
+                )}
               </div>
             )}
           </div>
@@ -330,7 +346,8 @@ export function WithdrawTab({ campaign, payouts, availableBalance, totalPaidOut 
             <button
               type="button"
               onClick={handleConfirm}
-              className="w-full bg-primary text-primary-foreground font-bold py-3 rounded-xl hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 text-sm"
+              disabled={numAmount > 0 && (feeLoading || !preview)}
+              className="w-full bg-primary text-primary-foreground font-bold py-3 rounded-xl hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 text-sm disabled:opacity-60"
             >
               <Banknote className="w-5 h-5" /> Continue to Confirm
             </button>
@@ -343,7 +360,8 @@ export function WithdrawTab({ campaign, payouts, availableBalance, totalPaidOut 
           <div className="border rounded-xl divide-y">
             {[
               ['Amount', formatGMD(numAmount)],
-              [`Processing fee (${feePercent}%)`, `- ${formatGMD(fee)}`],
+              [`Platform fee (${feePercent}%)`, `- ${formatGMD(platformFee)}`],
+              [`${activeProviderMeta?.name || 'Network'} transfer fee`, `- ${formatGMD(providerFee)}`],
               ['You receive', formatGMD(youReceive)],
               ['Provider', activeProviderMeta?.name],
               ['Phone', `+220 ${activePhone}`],

@@ -40,6 +40,7 @@ export const queryKeys = {
   payments: {
     payouts: (slug) => ['payments', 'payouts', slug],
     settings: () => ['payments', 'settings'],
+    feePreview: (amount, provider) => ['payments', 'fee-preview', amount, provider],
   },
   notifications: {
     all: () => ['notifications'],
