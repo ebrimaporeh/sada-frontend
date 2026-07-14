@@ -6,6 +6,7 @@ export const authApi = {
   logout: (refresh) => apiClient.post('/auth/logout/', { refresh }).then((r) => r.data),
   refresh: (refresh) => apiClient.post('/auth/refresh/', { refresh }).then((r) => r.data),
   changePassword: (data) => apiClient.post('/auth/change-password/', data).then((r) => r.data),
+  setPassword: (data) => apiClient.post('/auth/set-password/', data).then((r) => r.data),
   verifyEmail: (token) => apiClient.post('/auth/verify-email/', { token }).then((r) => r.data),
   resendVerification: (email) => apiClient.post('/auth/resend-verification/', { email }).then((r) => r.data),
   requestPasswordReset: (email) =>
@@ -13,4 +14,5 @@ export const authApi = {
   confirmPasswordReset: (data) =>
     apiClient.post('/auth/password-reset/confirm/', data).then((r) => r.data),
   googleOAuth: (idToken) => apiClient.post('/auth/google/', { id_token: idToken }).then((r) => r.data),
+  linkGoogleAccount: (idToken) => apiClient.post('/auth/google/link/', { id_token: idToken }).then((r) => r.data),
 }

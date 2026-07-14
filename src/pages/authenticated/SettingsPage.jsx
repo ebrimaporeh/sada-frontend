@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
+import { GoogleLogin } from '@react-oauth/google'
 import { CheckCircle2, AlertCircle, Eye, EyeOff, Bell, Shield, Trash2, Moon, Sun, Monitor, Smartphone, CreditCard } from 'lucide-react'
 import { PageHeader } from '@/components/custom/PageHeader'
-import { useChangePassword, useLogout, useMe, useUpdateMe } from '@/hooks/useAuth'
+import { useChangePassword, useSetPassword, useLinkGoogleAccount, useLogout, useMe, useUpdateMe } from '@/hooks/useAuth'
 import { PAYOUT_METHODS } from '@/constants'
 import { cn } from '@/utils/cn'
 
@@ -47,6 +48,8 @@ function Toggle({ checked, onChange, label, description }) {
 
 export function SettingsPage() {
   const changePassword = useChangePassword()
+  const setPassword = useSetPassword()
+  const linkGoogleAccount = useLinkGoogleAccount()
   const logout = useLogout()
   const { data: me } = useMe()
   const updateMe = useUpdateMe()
@@ -83,9 +86,10 @@ export function SettingsPage() {
 
   // Password
   const [pwForm, setPwForm] = useState({ current_password: '', new_password: '', confirm_password: '' })
-  const [pwVisible, setPwVisible] = useState({ current: false, new: false, confirm: false })
+  const [pwVisible, setPwVisible] = useState({ current_password: false, new_password: false, confirm_password: false })
   const [pwError, setPwError] = useState('')
   const [pwSaved, setPwSaved] = useState(false)
+  const [googleLinkError, setGoogleLinkError] = useState('')
 
   // Notifications — seed once when me first loads
   const notifSeeded = useRef(false)
@@ -119,6 +123,8 @@ export function SettingsPage() {
   // Theme
   const [theme, setTheme] = useState('system')
 
+  const hasPassword = me?.has_usable_password !== false
+
   function handlePasswordSubmit(e) {
     e.preventDefault()
     setPwError('')
@@ -130,19 +136,27 @@ export function SettingsPage() {
       setPwError('Password must be at least 8 characters.')
       return
     }
-    changePassword.mutate(
-      { current_password: pwForm.current_password, new_password: pwForm.new_password },
-      {
-        onSuccess: () => {
-          setPwSaved(true)
-          setTimeout(() => setPwSaved(false), 3000)
-          setPwForm({ current_password: '', new_password: '', confirm_password: '' })
-        },
-        onError: (err) => {
-          setPwError(err?.response?.data?.message || 'Failed to change password. Check your current password.')
-        },
+    const mutation = hasPassword ? changePassword : setPassword
+    const payload = hasPassword
+      ? {
+          old_password: pwForm.current_password,
+          new_password: pwForm.new_password,
+          new_password_confirm: pwForm.confirm_password,
+        }
+      : {
+          new_password: pwForm.new_password,
+          new_password_confirm: pwForm.confirm_password,
+        }
+    mutation.mutate(payload, {
+      onSuccess: () => {
+        setPwSaved(true)
+        setTimeout(() => setPwSaved(false), 3000)
+        setPwForm({ current_password: '', new_password: '', confirm_password: '' })
       },
-    )
+      onError: (err) => {
+        setPwError(err?.response?.data?.message || 'Failed to save password. Check your current password.')
+      },
+    })
   }
 
   const setPw = (field) => (e) => setPwForm((f) => ({ ...f, [field]: e.target.value }))
@@ -275,24 +289,30 @@ export function SettingsPage() {
         </form>
       </Section>
 
-      {/* Change password */}
+      {/* Change / set password */}
       <Section
-        title="Change Password"
-        description="Use a strong password with at least 8 characters."
+        title={hasPassword ? 'Change Password' : 'Set a Password'}
+        description={
+          hasPassword
+            ? 'Use a strong password with at least 8 characters.'
+            : 'You signed up with Google and have no password yet. Set one to also be able to log in with your email.'
+        }
         className="flex-1 min-w-[360px]"
       >
         <form onSubmit={handlePasswordSubmit} className="space-y-4">
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium">Current Password</label>
-            <PasswordInput field="current" placeholder="Enter current password" />
-          </div>
+          {hasPassword && (
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Current Password</label>
+              <PasswordInput field="current_password" placeholder="Enter current password" />
+            </div>
+          )}
           <div className="space-y-1.5">
             <label className="text-sm font-medium">New Password</label>
-            <PasswordInput field="new" placeholder="At least 8 characters" />
+            <PasswordInput field="new_password" placeholder="At least 8 characters" />
           </div>
           <div className="space-y-1.5">
             <label className="text-sm font-medium">Confirm New Password</label>
-            <PasswordInput field="confirm" placeholder="Repeat new password" />
+            <PasswordInput field="confirm_password" placeholder="Repeat new password" />
           </div>
 
           {pwError && (
@@ -304,19 +324,70 @@ export function SettingsPage() {
           <div className="flex items-center justify-between gap-4">
             {pwSaved ? (
               <span className="text-sm text-green-600 flex items-center gap-1.5 font-medium">
-                <CheckCircle2 className="w-4 h-4" /> Password updated
+                <CheckCircle2 className="w-4 h-4" /> Password {hasPassword ? 'updated' : 'set'}
               </span>
             ) : <span />}
             <button
               type="submit"
-              disabled={changePassword.isPending || !pwForm.current_password || !pwForm.new_password || !pwForm.confirm_password}
+              disabled={
+                (hasPassword ? changePassword.isPending : setPassword.isPending) ||
+                (hasPassword && !pwForm.current_password) ||
+                !pwForm.new_password ||
+                !pwForm.confirm_password
+              }
               className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold px-5 py-2 rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50 text-sm"
             >
               <Shield className="w-4 h-4" />
-              {changePassword.isPending ? 'Updating…' : 'Update Password'}
+              {(hasPassword ? changePassword.isPending : setPassword.isPending)
+                ? 'Saving…'
+                : hasPassword ? 'Update Password' : 'Set Password'}
             </button>
           </div>
         </form>
+      </Section>
+
+      {/* Connected accounts */}
+      <Section
+        title="Connected Accounts"
+        description="Link your Google account so you can also sign in with it."
+        className="flex-1 min-w-[360px]"
+      >
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+              <svg className="w-4.5 h-4.5" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l5.7-5.7C34.6 6 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-4z" />
+                <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.8 1.1 8 3l5.7-5.7C34.6 6 29.6 4 24 4 16.3 4 9.7 8.3 6.3 14.7z" />
+                <path fill="#4CAF50" d="M24 44c5.5 0 10.4-1.9 14.2-5.1l-6.5-5.5C29.6 35.4 26.9 36.3 24 36.3c-5.2 0-9.6-3.3-11.2-7.9l-6.6 5.1C9.6 39.6 16.3 44 24 44z" />
+                <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.3-4.1 5.7l6.5 5.5C41.4 35.9 44 30.4 44 24c0-1.3-.1-2.7-.4-3.5z" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm font-medium">Google</p>
+              <p className="text-xs text-muted-foreground">{me?.is_google_linked ? me.email : 'Not connected'}</p>
+            </div>
+          </div>
+          {me?.is_google_linked ? (
+            <span className="text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-medium flex items-center gap-1 flex-shrink-0">
+              <CheckCircle2 className="w-3.5 h-3.5" /> Connected
+            </span>
+          ) : (
+            <GoogleLogin
+              onSuccess={(credentialResponse) => {
+                setGoogleLinkError('')
+                linkGoogleAccount.mutate(credentialResponse.credential, {
+                  onError: (err) => setGoogleLinkError(err?.response?.data?.message || 'Failed to connect Google account.'),
+                })
+              }}
+              onError={() => setGoogleLinkError('Google sign-in failed. Please try again.')}
+            />
+          )}
+        </div>
+        {googleLinkError && (
+          <p className="text-sm text-destructive flex items-center gap-1.5 mt-3">
+            <AlertCircle className="w-4 h-4" /> {googleLinkError}
+          </p>
+        )}
       </Section>
       </div>
 

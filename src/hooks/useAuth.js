@@ -78,6 +78,16 @@ export function useChangePassword() {
   return useMutation({ mutationFn: authApi.changePassword })
 }
 
+export function useSetPassword() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: authApi.setPassword,
+    onSuccess: () => {
+      queryClient.setQueryData(queryKeys.auth.me(), (prev) => prev && { ...prev, has_usable_password: true })
+    },
+  })
+}
+
 export function useRequestPasswordReset() {
   return useMutation({ mutationFn: (email) => authApi.requestPasswordReset(email) })
 }
@@ -92,6 +102,16 @@ export function useResendVerification() {
 
 export function useConfirmPasswordReset() {
   return useMutation({ mutationFn: (data) => authApi.confirmPasswordReset(data) })
+}
+
+export function useLinkGoogleAccount() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (idToken) => authApi.linkGoogleAccount(idToken),
+    onSuccess: (data) => {
+      queryClient.setQueryData(queryKeys.auth.me(), data.data.user)
+    },
+  })
 }
 
 export function useGoogleOAuth() {
