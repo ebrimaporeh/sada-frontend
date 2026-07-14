@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { ShieldCheck, Upload, AlertCircle, Clock, CheckCircle2, XCircle, X, Image as ImageIcon } from 'lucide-react'
+import { ShieldCheck, Upload, AlertCircle, Clock, CheckCircle2, XCircle, X, Image as ImageIcon, ZoomIn } from 'lucide-react'
 import { useMe } from '@/hooks/useAuth'
 import { useMyVerification, useSubmitVerification } from '@/hooks/useUsers'
 import { formatDate } from '@/utils/formatters'
+import { ImageZoomModal } from '@/components/custom/ImageZoomModal'
 
 const ID_TYPES = [
   { value: 'national_id', label: 'National ID Card' },
@@ -70,6 +71,8 @@ function FilePicker({ label, file, onChange, required }) {
 }
 
 function SubmittedPhotos({ verification }) {
+  const [zoomedPhoto, setZoomedPhoto] = useState(null)
+
   const photos = [
     { label: 'Front', url: verification?.id_photo_front },
     { label: 'Back', url: verification?.id_photo_back },
@@ -78,22 +81,39 @@ function SubmittedPhotos({ verification }) {
   if (!photos.length) return null
 
   return (
-    <div className="grid grid-cols-2 gap-3 max-w-xs">
-      {photos.map((p) => (
-        <a key={p.label} href={p.url} target="_blank" rel="noreferrer" className="block group">
-          <div className="rounded-lg overflow-hidden border aspect-video bg-muted">
-            <img
-              src={p.url}
-              alt={`${p.label} of submitted ID`}
-              className="w-full h-full object-cover group-hover:opacity-80 transition-opacity"
-            />
-          </div>
-          <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-1">
-            <ImageIcon className="w-3 h-3" /> {p.label} photo
-          </p>
-        </a>
-      ))}
-    </div>
+    <>
+      <div className="grid grid-cols-2 gap-3 max-w-md">
+        {photos.map((p) => (
+          <button
+            key={p.label}
+            type="button"
+            onClick={() => setZoomedPhoto(p)}
+            className="block group text-left"
+          >
+            <div className="relative rounded-lg overflow-hidden border bg-muted">
+              <img
+                src={p.url}
+                alt={`${p.label} of submitted ID`}
+                className="w-full h-40 object-contain"
+              />
+              <span className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                <ZoomIn className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+              </span>
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-1">
+              <ImageIcon className="w-3 h-3" /> {p.label} photo
+            </p>
+          </button>
+        ))}
+      </div>
+
+      <ImageZoomModal
+        isOpen={!!zoomedPhoto}
+        onClose={() => setZoomedPhoto(null)}
+        src={zoomedPhoto?.url}
+        alt={zoomedPhoto ? `${zoomedPhoto.label} of submitted ID` : undefined}
+      />
+    </>
   )
 }
 
@@ -113,6 +133,41 @@ function VerificationDetails({ verification }) {
         </div>
       </div>
       <SubmittedPhotos verification={verification} />
+    </div>
+  )
+}
+
+// Some verified users (staff granted is_verified directly, seed/legacy accounts)
+// have no IdentityVerification record at all — there's no ID submission to show,
+// so fall back to their own account info rather than rendering nothing.
+function VerifiedAccountInfo({ user }) {
+  if (!user) return null
+
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-3 max-w-xs">
+        <div>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Name</p>
+          <p className="text-sm font-medium">{user.full_name || `${user.first_name} ${user.last_name}`.trim() || '—'}</p>
+        </div>
+        <div>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Email</p>
+          <p className="text-sm font-medium truncate">{user.email || '—'}</p>
+        </div>
+        {user.phone && (
+          <div>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Phone</p>
+            <p className="text-sm font-medium">{user.phone}</p>
+          </div>
+        )}
+        {user.region && (
+          <div>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Region</p>
+            <p className="text-sm font-medium">{user.region}</p>
+          </div>
+        )}
+      </div>
+      <p className="text-xs text-muted-foreground">No ID submission on file — this account was verified directly by an administrator.</p>
     </div>
   )
 }
@@ -183,7 +238,7 @@ export function IdentityVerificationSection() {
           <p className="text-xs text-muted-foreground">
             Your identity was verified{verification?.reviewed_at ? ` on ${formatDate(verification.reviewed_at)}` : ''}.
           </p>
-          <VerificationDetails verification={verification} />
+          {verification ? <VerificationDetails verification={verification} /> : <VerifiedAccountInfo user={user} />}
         </div>
       ) : verification && verification.status === 'pending' ? (
         <div className="text-xs text-muted-foreground border rounded-lg p-3 bg-muted/30 space-y-3">
@@ -191,7 +246,7 @@ export function IdentityVerificationSection() {
             <p>Submitted {formatDate(verification.created_at)} — {ID_TYPES.find((t) => t.value === verification.id_type)?.label}.</p>
             <p>We'll email you once it's been reviewed.</p>
           </div>
-          <SubmittedPhotos verification={verification} />
+          <VerificationDetails verification={verification} />
         </div>
       ) : verification && verification.status === 'rejected' && !showForm ? (
         <div className="text-xs space-y-3">
@@ -202,7 +257,7 @@ export function IdentityVerificationSection() {
               {verification.rejection_reason && <p className="text-red-700 mt-0.5">{verification.rejection_reason}</p>}
             </div>
           </div>
-          <SubmittedPhotos verification={verification} />
+          <VerificationDetails verification={verification} />
         </div>
       ) : null}
 

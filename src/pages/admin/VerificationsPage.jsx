@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { ShieldCheck, Clock, CheckCircle2, XCircle, Loader2, AlertCircle } from 'lucide-react'
+import { ShieldCheck, Clock, CheckCircle2, XCircle, Loader2, AlertCircle, ZoomIn } from 'lucide-react'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { Sheet } from '@/components/custom/Sheet'
 import { AdminPagination } from '@/components/custom/AdminPagination'
+import { ImageZoomModal } from '@/components/custom/ImageZoomModal'
 import { useAdminVerifications, useReviewVerification } from '@/hooks/useUsers'
 import { formatDate } from '@/utils/formatters'
 import { cn } from '@/utils/cn'
@@ -25,6 +26,7 @@ export function VerificationsPage() {
   const [selected, setSelected] = useState(null)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [reason, setReason] = useState('')
+  const [zoomedPhoto, setZoomedPhoto] = useState(null)
   const limit = 10
 
   useEffect(() => {
@@ -150,12 +152,38 @@ export function VerificationsPage() {
 
             <div className="space-y-2">
               <p className="text-xs text-muted-foreground">Front Photo</p>
-              <img src={selected.id_photo_front} alt="ID front" className="w-full rounded-lg border object-cover" />
+              <button
+                type="button"
+                onClick={() => setZoomedPhoto({ src: selected.id_photo_front, alt: 'ID front' })}
+                className="relative block w-full group"
+              >
+                <img
+                  src={selected.id_photo_front}
+                  alt="ID front"
+                  className="w-full max-h-[28rem] rounded-lg border object-contain bg-muted"
+                />
+                <span className="absolute inset-0 rounded-lg bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                  <ZoomIn className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                </span>
+              </button>
             </div>
             {selected.id_photo_back && (
               <div className="space-y-2">
                 <p className="text-xs text-muted-foreground">Back Photo</p>
-                <img src={selected.id_photo_back} alt="ID back" className="w-full rounded-lg border object-cover" />
+                <button
+                  type="button"
+                  onClick={() => setZoomedPhoto({ src: selected.id_photo_back, alt: 'ID back' })}
+                  className="relative block w-full group"
+                >
+                  <img
+                    src={selected.id_photo_back}
+                    alt="ID back"
+                    className="w-full max-h-[28rem] rounded-lg border object-contain bg-muted"
+                  />
+                  <span className="absolute inset-0 rounded-lg bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                    <ZoomIn className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </span>
+                </button>
               </div>
             )}
 
@@ -205,6 +233,13 @@ export function VerificationsPage() {
           </div>
         )}
       </Sheet>
+
+      <ImageZoomModal
+        isOpen={!!zoomedPhoto}
+        onClose={() => setZoomedPhoto(null)}
+        src={zoomedPhoto?.src}
+        alt={zoomedPhoto?.alt}
+      />
     </div>
   )
 }
