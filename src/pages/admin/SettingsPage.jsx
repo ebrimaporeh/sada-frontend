@@ -1,32 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Percent, Save, CheckCircle2, AlertCircle, CreditCard } from 'lucide-react'
+import { Percent, Save, CheckCircle2, AlertCircle } from 'lucide-react'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
 import { usePlatformSettings, useUpdatePlatformSettings } from '@/hooks/usePayments'
-import { cn } from '@/utils/cn'
-
-function Toggle({ checked, onChange, disabled }) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      disabled={disabled}
-      onClick={() => onChange(!checked)}
-      className={cn(
-        'relative flex-shrink-0 w-10 h-6 rounded-full transition-colors focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-60',
-        checked ? 'bg-primary' : 'bg-muted-foreground/30',
-      )}
-    >
-      <span
-        className={cn(
-          'absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow-sm transition-transform',
-          checked ? 'translate-x-4' : 'translate-x-0',
-        )}
-      />
-    </button>
-  )
-}
 
 export function SettingsPage() {
   const { data: platformSettings, isLoading } = usePlatformSettings()
@@ -57,16 +33,6 @@ export function SettingsPage() {
       {
         onSuccess: () => showNotification('success', 'Platform fee updated.'),
         onError: (err) => showNotification('error', err?.response?.data?.message || 'Could not update platform fee.'),
-      },
-    )
-  }
-
-  const handleToggleCardPayments = (enabled) => {
-    updateSettings.mutate(
-      { card_payments_enabled: enabled },
-      {
-        onSuccess: () => showNotification('success', `Card payments ${enabled ? 'enabled' : 'disabled'}.`),
-        onError: (err) => showNotification('error', err?.response?.data?.message || 'Could not update card payments setting.'),
       },
     )
   }
@@ -127,32 +93,6 @@ export function SettingsPage() {
               {updateSettings.isPending ? 'Saving…' : 'Save Changes'}
             </button>
           </>
-        )}
-      </div>
-
-      <div className="border rounded-xl bg-card p-5 max-w-md space-y-4">
-        <div>
-          <h2 className="font-semibold flex items-center gap-2">
-            <CreditCard className="w-4 h-4" /> Card Payments
-          </h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Let donors pay by Visa/Mastercard via ModemPay, alongside mobile money. Keep this off
-            until card processing is confirmed live on your ModemPay account — ModemPay's API
-            currently accepts the request but its checkout doesn't render a card option yet.
-          </p>
-        </div>
-
-        {isLoading ? (
-          <LoadingSpinner />
-        ) : (
-          <label className="flex items-center justify-between gap-4 cursor-pointer">
-            <span className="text-sm font-medium">Enable card payments</span>
-            <Toggle
-              checked={!!platformSettings?.card_payments_enabled}
-              onChange={handleToggleCardPayments}
-              disabled={updateSettings.isPending}
-            />
-          </label>
         )}
       </div>
     </div>

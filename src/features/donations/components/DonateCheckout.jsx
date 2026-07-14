@@ -6,10 +6,11 @@ import { ShareCampaign } from '@/components/custom/ShareCampaign'
 import { formatGMD, progressPercent, daysLeft } from '@/utils/formatters'
 import { useDonateToCampaign } from '@/hooks/useDonations'
 import { useMe } from '@/hooks/useAuth'
-import { usePlatformSettings } from '@/hooks/usePayments'
 import { settings } from '@/settings'
 import { PAYMENT_METHODS } from '@/constants'
 import { cn } from '@/utils/cn'
+
+const PROVIDERS = PAYMENT_METHODS
 
 function CampaignSummaryCard({ campaign }) {
   const pct = progressPercent(campaign.raised, campaign.goal)
@@ -53,12 +54,7 @@ export function DonateCheckout({ campaign }) {
   const [error, setError] = useState('')
 
   const donateToCampaign = useDonateToCampaign()
-  const { data: platformSettings } = usePlatformSettings()
   const isAuthenticated = Boolean(me)
-
-  const providers = PAYMENT_METHODS.filter((p) => p.id !== 'card' || platformSettings?.card_payments_enabled)
-  const selectedMethod = providers.find((p) => p.id === provider)
-  const needsPhone = selectedMethod?.requiresPhone !== false
 
   // Seed user data if authenticated
   const seeded = useRef(false)
@@ -89,7 +85,7 @@ export function DonateCheckout({ campaign }) {
   }
 
   function goToConfirm() {
-    if (needsPhone && (!phone.trim() || phone.trim().length < 7)) {
+    if (!phone.trim() || phone.trim().length < 7) {
       setError('Please enter a valid phone number')
       return
     }
@@ -106,7 +102,7 @@ export function DonateCheckout({ campaign }) {
         slug: campaign.slug,
         amount: numAmount,
         provider,
-        phone: needsPhone ? `+220${phone.trim()}` : '',
+        phone: `+220${phone.trim()}`,
         is_anonymous: anonymous,
         message: message.trim() || undefined,
         donor_name: anonymous ? '' : donorName.trim(),
@@ -225,7 +221,7 @@ export function DonateCheckout({ campaign }) {
               <div>
                 <p className="text-sm font-medium mb-3">Select payment method</p>
                 <div className="space-y-2">
-                  {providers.map((p) => (
+                  {PROVIDERS.map((p) => (
                     <button
                       key={p.id}
                       onClick={() => setProvider(p.id)}
@@ -247,25 +243,23 @@ export function DonateCheckout({ campaign }) {
                 </div>
               </div>
 
-              {needsPhone && (
-                <div>
-                  <label className="text-sm font-medium block mb-1.5">
-                    <Smartphone className="w-4 h-4 inline mr-1" />
-                    Your phone number
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">+220</span>
-                    <input
-                      type="tel"
-                      value={phone}
-                      onChange={(e) => { setPhone(e.target.value); setError('') }}
-                      placeholder="7XXXXXXX"
-                      className="w-full pl-14 pr-4 py-2.5 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
-                    />
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">You'll receive a payment prompt on this number</p>
+              <div>
+                <label className="text-sm font-medium block mb-1.5">
+                  <Smartphone className="w-4 h-4 inline mr-1" />
+                  Your phone number
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">+220</span>
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => { setPhone(e.target.value); setError('') }}
+                    placeholder="7XXXXXXX"
+                    className="w-full pl-14 pr-4 py-2.5 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
+                  />
                 </div>
-              )}
+                <p className="text-xs text-muted-foreground mt-1">You'll receive a payment prompt on this number</p>
+              </div>
 
               {error && (
                 <p className="text-sm text-destructive flex items-center gap-1.5">
@@ -302,14 +296,12 @@ export function DonateCheckout({ campaign }) {
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground mb-1">Via</p>
-                    <p className="font-medium text-sm">{selectedMethod?.name}</p>
+                    <p className="font-medium text-sm">{PROVIDERS.find((p) => p.id === provider)?.name}</p>
                   </div>
-                  {needsPhone && (
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-1">Phone</p>
-                      <p className="font-medium text-sm">+220 {phone}</p>
-                    </div>
-                  )}
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Phone</p>
+                    <p className="font-medium text-sm">+220 {phone}</p>
+                  </div>
                   <div>
                     <p className="text-xs text-muted-foreground mb-1">Donor</p>
                     <p className="font-medium text-sm">{anonymous ? 'Anonymous' : donorName || 'Not provided'}</p>

@@ -66,16 +66,13 @@ export const DONATION_STATUS = {
 }
 
 // ModemPay is the payment gateway, not itself a provider — these are the
-// underlying networks/methods it processes payments through.
-// Donations can go through any of these; ModemPay's checkout page decides
-// what's actually offered to the donor. `requiresPhone: false` marks methods
-// that don't need a mobile money number (e.g. card) — see DonateCheckout.
-// Card is admin-gated by PlatformSettings.card_payments_enabled; filter it
-// out unless that's on (see DonateCheckout.jsx).
+// underlying networks it processes payments through. Card is not supported
+// by ModemPay (confirmed 2026-07-14) — mobile money only.
+// Donations can go through either network; ModemPay's checkout page decides
+// what's actually offered to the donor.
 export const PAYMENT_METHODS = [
   { id: 'wave', name: 'Wave', short: 'W', color: 'bg-cyan-500', description: 'Wave mobile money' },
   { id: 'aps', name: 'APS Wallet', short: 'APS', color: 'bg-blue-800', description: 'APS mobile wallet' },
-  { id: 'card', name: 'Card', short: 'CARD', color: 'bg-slate-700', description: 'Visa / Mastercard', requiresPhone: false },
   // { id: 'modempay_bank', name: 'ModemPay Bank', short: 'MPB', color: 'bg-indigo-600', description: 'Bank transfer via ModemPay' },
 ]
 

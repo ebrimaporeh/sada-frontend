@@ -26,7 +26,7 @@ export function usePlatformSettings() {
   return useQuery({
     queryKey: queryKeys.payments.settings(),
     queryFn: () => paymentApi.getPlatformSettings(),
-    select: (res) => res?.data ?? { platform_fee_percent: '1.00', card_payments_enabled: false },
+    select: (res) => res?.data ?? { platform_fee_percent: '1.00' },
   })
 }
 
