@@ -19,7 +19,7 @@ import {
 import {
   TrendingUp,
   Users,
-  Flag,
+  Megaphone,
   DollarSign,
   AlertCircle,
   CheckCircle,
@@ -33,7 +33,7 @@ import { analyticsApi } from '@/api/adminApi'
 import { DatePicker } from '@/components/custom/DatePicker'
 
 const quickActions = [
-  { label: 'Campaigns', icon: Flag, to: ROUTES.ADMIN_CAMPAIGNS, color: 'text-blue-600', bg: 'bg-blue-50' },
+  { label: 'Campaigns', icon: Megaphone, to: ROUTES.ADMIN_CAMPAIGNS, color: 'text-blue-600', bg: 'bg-blue-50' },
   { label: 'Users', icon: Users, to: ROUTES.ADMIN_USERS, color: 'text-purple-600', bg: 'bg-purple-50' },
   { label: 'Donations', icon: DollarSign, to: ROUTES.ADMIN_DONATIONS, color: 'text-green-600', bg: 'bg-green-50' },
   { label: 'Reports', icon: AlertCircle, to: '/admin/reports', color: 'text-red-600', bg: 'bg-red-50' },
@@ -212,7 +212,7 @@ export function AdminDashboardPage() {
     {
       label: 'Total Campaigns',
       value: stats.campaigns_count?.toString() || '0',
-      icon: Flag,
+      icon: Megaphone,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',
     },

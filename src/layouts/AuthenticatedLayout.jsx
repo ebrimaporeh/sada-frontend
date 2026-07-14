@@ -7,13 +7,13 @@ import { cn } from '@/utils/cn'
 import { isAdminAreaRole } from '@/utils/permissions'
 import {
   Heart, LayoutDashboard, PlusCircle, User, Settings,
-  LogOut, Menu, X, Flag, Bell, Home, ShieldCheck,
+  LogOut, Menu, X, Megaphone, Bell, Home, ShieldCheck,
 } from 'lucide-react'
 import { NotificationBell } from '@/components/custom/NotificationBell'
 
 const navItems = [
   { label: 'Dashboard', to: ROUTES.DASHBOARD, icon: LayoutDashboard },
-  { label: 'My Campaigns', to: ROUTES.MY_CAMPAIGNS, icon: Flag },
+  { label: 'My Campaigns', to: ROUTES.MY_CAMPAIGNS, icon: Megaphone },
   { label: 'Start Campaign', to: ROUTES.CAMPAIGN_NEW, icon: PlusCircle },
   { label: 'Notifications', to: ROUTES.NOTIFICATIONS, icon: Bell },
   { label: 'Verification', to: ROUTES.VERIFICATION, icon: ShieldCheck },
@@ -136,7 +136,7 @@ export function AuthenticatedLayout() {
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-card border-t flex items-center safe-area-inset-bottom">
         {[
           { label: 'Home', to: ROUTES.DASHBOARD, icon: LayoutDashboard },
-          { label: 'Campaigns', to: ROUTES.MY_CAMPAIGNS, icon: Flag },
+          { label: 'Campaigns', to: ROUTES.MY_CAMPAIGNS, icon: Megaphone },
           { label: 'New', to: ROUTES.CAMPAIGN_NEW, icon: PlusCircle, primary: true },
           { label: 'Profile', to: ROUTES.PROFILE, icon: User },
           { label: 'Settings', to: ROUTES.SETTINGS, icon: Settings },

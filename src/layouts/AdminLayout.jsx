@@ -1,7 +1,7 @@
 import { Outlet, Link, Navigate } from '@tanstack/react-router'
 import { useMe, useLogout } from '@/hooks/useAuth'
 import { ROUTES } from '@/constants'
-import { User, Users, UserCog, Flag, Heart, LayoutDashboard, Home, LogOut, AlertCircle, BarChart3, Layers, Settings, ShieldCheck, Menu, X } from 'lucide-react'
+import { User, Users, UserCog, Megaphone, Heart, LayoutDashboard, Home, LogOut, AlertCircle, BarChart3, Layers, Settings, ShieldCheck, Menu, X } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import { settings } from '@/settings'
 import { useEffect, useState } from 'react'
@@ -58,7 +58,7 @@ function SidebarNav({ onNavigate, role }) {
       )}
       {can(Resource.CAMPAIGNS_VIEW) && (
         <Link to={ROUTES.ADMIN_CAMPAIGNS} className={cn(navLinkClass)} onClick={onNavigate}>
-          <Flag className="w-4 h-4" /> Campaigns
+          <Megaphone className="w-4 h-4" /> Campaigns
         </Link>
       )}
       {can(Resource.DONATIONS) && (
@@ -104,9 +104,9 @@ function SidebarNav({ onNavigate, role }) {
       <Link to={ROUTES.ADMIN_PROFILE} className={cn(navLinkClass)} onClick={onNavigate}>
         <User className="w-4 h-4" /> Profile
       </Link>
-      <Link to={ROUTES.ADMIN_VERIFICATION} className={cn(navLinkClass)} onClick={onNavigate}>
+      {/* <Link to={ROUTES.ADMIN_VERIFICATION} className={cn(navLinkClass)} onClick={onNavigate}>
         <ShieldCheck className="w-4 h-4" /> My Verification
-      </Link>
+      </Link> */}
     </nav>
   )
 }
