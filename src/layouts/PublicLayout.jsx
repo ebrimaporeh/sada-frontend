@@ -1,9 +1,10 @@
 import { Outlet, Link, useRouterState } from '@tanstack/react-router'
-import { Heart, ChevronRight, MapPin, LayoutDashboard, Home, LayoutGrid, PlusCircle, LogIn } from 'lucide-react'
+import { Heart, ChevronRight, LayoutDashboard, Home, LayoutGrid, PlusCircle, LogIn } from 'lucide-react'
 import { settings } from '@/settings'
 import { ROUTES } from '@/constants'
 import { useMe } from '@/hooks/useAuth'
 import { cn } from '@/utils/cn'
+import { Footer } from '@/components/custom/Footer'
 
 export function PublicLayout() {
   const { data: me } = useMe()
@@ -118,59 +119,7 @@ export function PublicLayout() {
         </div>
       </nav>
 
-      {/* Footer */}
-      <footer className="bg-foreground text-background mt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div className="md:col-span-2">
-            <div className="flex items-center gap-2 font-bold text-xl mb-3">
-              <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
-                <Heart className="w-3.5 h-3.5 fill-primary-foreground text-primary-foreground" />
-              </div>
-              {settings.siteName}
-            </div>
-            <p className="text-sm text-background/60 leading-relaxed max-w-sm">
-              The Gambia's crowdfunding platform. Helping Gambians raise funds for medical, education, community, and more — powered by local mobile money.
-            </p>
-            <div className="mt-4 flex items-center gap-2">
-              <span className="text-xs text-background/50">Payments powered by</span>
-              <span className="text-sm font-bold text-background/80">ModemPay</span>
-            </div>
-          </div>
-          <div>
-            <p className="text-sm font-semibold mb-3">Platform</p>
-            <ul className="space-y-2 text-sm text-background/60">
-              {[['Campaigns', ROUTES.CAMPAIGNS], ['Start a Campaign', ROUTES.CAMPAIGN_NEW], ['How It Works', '/#how-it-works'], ['About Us', ROUTES.ABOUT]].map(([label, to]) => (
-                <li key={label}>
-                  <Link to={to} className="hover:text-background transition-colors">{label}</Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <p className="text-sm font-semibold mb-3">Support</p>
-            <ul className="space-y-2 text-sm text-background/60">
-              {[
-                ['Help Center', ROUTES.HELP],
-                ['Trust & Safety', ROUTES.TRUST_SAFETY],
-                ['Privacy Policy', ROUTES.PRIVACY],
-                ['Terms of Service', ROUTES.TERMS],
-              ].map(([label, to]) => (
-                <li key={label}>
-                  <Link to={to} className="hover:text-background transition-colors">{label}</Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-        <div className="border-t border-background/10 max-w-7xl mx-auto px-4 sm:px-6 py-4 pb-24 md:pb-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p className="text-xs text-background/40 flex items-center gap-1">
-            &copy; {new Date().getFullYear()} {settings.siteName}. Made with <Heart className="w-3 h-3 fill-current text-red-400" /> in The Gambia.
-          </p>
-          <p className="text-xs text-background/40 flex items-center gap-1">
-            <MapPin className="w-3 h-3" /> Built for Gambians, by Gambians.
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }
