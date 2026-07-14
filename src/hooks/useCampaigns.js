@@ -112,6 +112,15 @@ export function useCampaign(slug) {
   return { campaign: query.data ?? null, isLoading: query.isLoading, isError: query.isError, error: query.error }
 }
 
+// Fire-and-forget view beacon — errors are swallowed since a dropped view
+// count shouldn't ever surface to the visitor.
+export function useRecordCampaignView() {
+  return useMutation({
+    mutationFn: (slug) => campaignApi.recordView(slug),
+    onError: () => {},
+  })
+}
+
 // ── Featured campaigns (home page) ───────────────────────────────────────────
 
 export function useFeaturedCampaigns() {

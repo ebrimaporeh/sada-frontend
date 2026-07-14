@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { TrendingUp, Users, Clock, ExternalLink } from 'lucide-react'
+import { TrendingUp, Users, Clock, Eye, ExternalLink } from 'lucide-react'
 import { StatCard, SectionCard } from './shared'
 import { ProgressBar } from '@/components/custom/ProgressBar'
 import { formatGMD, formatDate, progressPercent, daysLeft } from '@/utils/formatters'
@@ -13,9 +13,10 @@ export function OverviewTab({ campaign, donors, payouts, totalPaidOut, available
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         <StatCard label="Total Raised" value={formatGMD(campaign.raised)} sub="GMD" icon={TrendingUp} color="bg-primary/10 text-primary" />
         <StatCard label="Donors" value={campaign.donors_count.toLocaleString()} sub="generous supporters" icon={Users} color="bg-blue-100 text-blue-700" />
+        <StatCard label="Views" value={(campaign.views_count ?? 0).toLocaleString()} sub="page visits" icon={Eye} color="bg-purple-100 text-purple-700" />
         <StatCard label="Days Left" value={days > 0 ? days : 'Ended'} sub={days > 0 ? `until ${formatDate(campaign.deadline)}` : 'campaign ended'} icon={Clock} color="bg-amber-100 text-amber-700" />
         <StatCard label="Funded" value={`${pct}%`} sub={`of ${formatGMD(campaign.goal)} goal`} icon={TrendingUp} color="bg-green-100 text-green-700" />
       </div>

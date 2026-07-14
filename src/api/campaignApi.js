@@ -17,6 +17,9 @@ export const campaignApi = {
   getCampaign: (slug) =>
     apiClient.get(`/campaigns/${slug}/`).then((r) => r.data),
 
+  recordView: (slug) =>
+    apiClient.post(`/campaigns/${slug}/view/`).then((r) => r.data),
+
   // ── Owner ────────────────────────────────────────────────────────────────
   createCampaign: (data) =>
     apiClient.post('/campaigns/create/', data).then((r) => r.data),
