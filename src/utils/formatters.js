@@ -41,9 +41,12 @@ export function initials(name) {
     .slice(0, 2)
 }
 
+// Uncapped — campaigns can be overfunded, so this can read above 100
+// (250%, 2256%, etc). Cap separately at the call site if you need a
+// bounded value, e.g. for a progress bar's fill width.
 export function progressPercent(raised, goal) {
   if (!goal || goal === 0) return 0
-  return Math.min(Math.round((raised / goal) * 100), 100)
+  return Math.round((raised / goal) * 100)
 }
 
 export function daysLeft(deadline) {
