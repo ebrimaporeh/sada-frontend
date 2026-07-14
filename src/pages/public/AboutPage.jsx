@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { HeartHandshake, ShieldCheck, Smartphone, Users, ArrowRight, Target, Sparkles } from 'lucide-react'
+import { ShieldCheck, Smartphone, ArrowRight, Target } from 'lucide-react'
 import { usePublicStats } from '@/hooks/useCampaigns'
 import { StatsGrid } from '@/components/custom/StatsGrid'
 import { formatGMD, compactNumber } from '@/utils/formatters'
@@ -13,19 +13,9 @@ const pillars = [
     body: "No bank account required. Donate or withdraw straight through Wave or APS Wallet — the mobile money networks people here already use every day.",
   },
   {
-    icon: HeartHandshake,
-    title: 'No fee on the way in',
-    body: 'Every donation goes to the campaign in full — donors only ever pay whatever their mobile money provider itself charges. GambiaFund only takes a small fee when a campaign owner withdraws.',
-  },
-  {
     icon: ShieldCheck,
     title: 'Real people, reviewed',
     body: 'Campaign owners can verify their identity with a government ID, and every campaign shows its real donation and withdrawal history — nothing hidden.',
-  },
-  {
-    icon: Users,
-    title: 'For the diaspora too',
-    body: "Family and friends abroad can support a campaign back home in seconds, from anywhere in the world.",
   },
 ]
 
