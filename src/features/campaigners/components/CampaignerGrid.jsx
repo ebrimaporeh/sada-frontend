@@ -1,7 +1,7 @@
-import { useState } from 'react'
-import { Search, X, SearchX } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Search, X, SearchX, Loader2 } from 'lucide-react'
 import { usePublicCampaigners } from '@/hooks/useUsers'
-import { CampaignerCard } from './CampaignerCard'
+import { CampaignerPhotoTile } from './CampaignerPhotoTile'
 import { CampaignerCardSkeleton } from './CampaignerCardSkeleton'
 import { GAMBIA_REGIONS } from '@/constants'
 
@@ -10,9 +10,12 @@ export function CampaignerGrid() {
   const [search, setSearch] = useState('')
   const [region, setRegion] = useState('')
 
-  const { campaigners, isLoading } = usePublicCampaigners({ search, region })
+  const {
+    campaigners, isLoading, hasNextPage, isFetchingNextPage, fetchNextPage,
+  } = usePublicCampaigners({ search, region })
 
   const hasFilters = search || searchInput || region
+  const sentinelRef = useRef(null)
 
   const submitSearch = () => setSearch(searchInput)
 
@@ -21,6 +24,21 @@ export function CampaignerGrid() {
     setSearch('')
     setRegion('')
   }
+
+  // Auto-load the next page as the sentinel below the grid scrolls into
+  // view; the "Load more" button below stays as a visible, click-driven
+  // fallback for anyone who'd rather not rely on scroll-triggered loading.
+  useEffect(() => {
+    if (!hasNextPage || isFetchingNextPage) return
+    const node = sentinelRef.current
+    if (!node) return
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) fetchNextPage() },
+      { rootMargin: '600px' },
+    )
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
@@ -85,11 +103,11 @@ export function CampaignerGrid() {
         </div>
       </div>
 
-      {/* Grid */}
+      {/* Masonry grid */}
       {isLoading ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <CampaignerCardSkeleton key={i} />
+        <div className="columns-2 sm:columns-3 lg:columns-4 xl:columns-5 gap-4">
+          {Array.from({ length: 10 }).map((_, i) => (
+            <CampaignerCardSkeleton key={i} index={i} />
           ))}
         </div>
       ) : campaigners.length === 0 ? (
@@ -102,11 +120,29 @@ export function CampaignerGrid() {
           </button>
         </div>
       ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-          {campaigners.map((c) => (
-            <CampaignerCard key={c.id} campaigner={c} />
-          ))}
-        </div>
+        <>
+          <div className="columns-2 sm:columns-3 lg:columns-4 xl:columns-5 gap-4">
+            {campaigners.map((c) => (
+              <CampaignerPhotoTile key={c.id} campaigner={c} />
+            ))}
+          </div>
+
+          {/* Scroll sentinel — triggers fetchNextPage when it enters the viewport */}
+          <div ref={sentinelRef} className="h-1" />
+
+          {hasNextPage && (
+            <div className="flex justify-center mt-4">
+              <button
+                onClick={() => fetchNextPage()}
+                disabled={isFetchingNextPage}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border bg-card hover:bg-accent transition-colors text-sm font-medium disabled:opacity-60"
+              >
+                {isFetchingNextPage ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                {isFetchingNextPage ? 'Loading…' : 'Load more'}
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   )

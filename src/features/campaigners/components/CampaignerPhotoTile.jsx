@@ -1,0 +1,55 @@
+import { Link } from '@tanstack/react-router'
+import { Building2 } from 'lucide-react'
+import { VerifiedTick } from '@/components/custom/VerifiedTick'
+import { initials } from '@/utils/formatters'
+import { GAMBIA_REGIONS, ORGANIZATION_TYPES, ACCOUNT_TYPES } from '@/constants'
+
+// A deterministic-but-varied portrait ratio for campaigners without a photo,
+// so the placeholder tiles still break up into a masonry-like rhythm instead
+// of a flat grid of identical squares.
+const FALLBACK_RATIOS = ['aspect-[3/4]', 'aspect-square', 'aspect-[4/5]', 'aspect-[2/3]']
+
+function fallbackRatio(id) {
+  const hash = String(id).split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0)
+  return FALLBACK_RATIOS[hash % FALLBACK_RATIOS.length]
+}
+
+export function CampaignerPhotoTile({ campaigner }) {
+  const regionLabel = GAMBIA_REGIONS.find((r) => r.value === campaigner.region)?.label
+  const isOrg = campaigner.account_type === ACCOUNT_TYPES.ORGANIZATION
+  const orgTypeLabel = ORGANIZATION_TYPES.find((t) => t.value === campaigner.organization_type)?.label
+  const subtitle = isOrg ? orgTypeLabel : regionLabel
+
+  return (
+    <Link
+      to="/campaigners/$id"
+      params={{ id: campaigner.id }}
+      className="group relative block mb-4 break-inside-avoid rounded-2xl overflow-hidden bg-muted"
+    >
+      {campaigner.avatar ? (
+        <img
+          src={campaigner.avatar}
+          alt={campaigner.full_name}
+          loading="lazy"
+          className="w-full h-auto block transition-transform duration-300 group-hover:scale-105"
+        />
+      ) : (
+        <div className={`w-full ${fallbackRatio(campaigner.id)} bg-gradient-to-br from-primary/25 to-primary/60 flex items-center justify-center transition-transform duration-300 group-hover:scale-105`}>
+          <span className="text-3xl font-bold text-primary-foreground/90">{initials(campaigner.full_name)}</span>
+        </div>
+      )}
+
+      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent px-3 pt-10 pb-3">
+        <p className="text-white text-sm font-semibold truncate flex items-center gap-1">
+          {campaigner.full_name}
+          {campaigner.is_verified && <VerifiedTick size="w-3.5 h-3.5" className="text-white fill-blue-500" />}
+        </p>
+        {subtitle && (
+          <p className="text-white/75 text-xs flex items-center gap-1 truncate">
+            {isOrg && <Building2 className="w-3 h-3 flex-shrink-0" />} {subtitle}
+          </p>
+        )}
+      </div>
+    </Link>
+  )
+}

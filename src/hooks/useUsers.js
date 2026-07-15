@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/api/queryKeys'
 import { userApi } from '@/api/userApi'
 
@@ -19,29 +19,28 @@ export function useUser(id) {
 
 // ── Public campaigner profiles ────────────────────────────────────────────────
 
+const CAMPAIGNERS_PAGE_SIZE = 10
+
 export function usePublicCampaigners(filters = {}) {
   const params = {}
   if (filters.region) params.region = filters.region
   if (filters.search) params.search = filters.search
-  if (filters.page) params.page = filters.page
 
-  const query = useQuery({
+  const query = useInfiniteQuery({
     queryKey: queryKeys.campaigners.list(params),
-    queryFn: () => userApi.getCampaigners(params),
-    select: (res) => ({
-      campaigners: res?.results ?? [],
-      count: res?.count ?? 0,
-      totalPages: res?.total_pages ?? 1,
-      page: res?.page ?? 1,
-    }),
+    queryFn: ({ pageParam }) => userApi.getCampaigners({ ...params, page: pageParam, page_size: CAMPAIGNERS_PAGE_SIZE }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => (lastPage.page < lastPage.total_pages ? lastPage.page + 1 : undefined),
   })
+
   return {
-    campaigners: query.data?.campaigners ?? [],
-    count: query.data?.count ?? 0,
-    totalPages: query.data?.totalPages ?? 1,
-    page: query.data?.page ?? 1,
+    campaigners: query.data?.pages.flatMap((page) => page.results ?? []) ?? [],
+    count: query.data?.pages[0]?.count ?? 0,
     isLoading: query.isLoading,
     isError: query.isError,
+    hasNextPage: query.hasNextPage,
+    isFetchingNextPage: query.isFetchingNextPage,
+    fetchNextPage: query.fetchNextPage,
   }
 }
 
