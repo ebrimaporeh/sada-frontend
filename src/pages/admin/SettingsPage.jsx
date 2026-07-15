@@ -55,52 +55,56 @@ export function SettingsPage() {
         </div>
       )}
 
-      <SiteBrandingCard onNotify={showNotification} />
+      <div className="grid lg:grid-cols-2 gap-6 items-start">
+        <SiteBrandingCard onNotify={showNotification} />
 
-      <ZakatSettingsCard onNotify={showNotification} />
+        <div className="space-y-6">
+          <ZakatSettingsCard onNotify={showNotification} />
 
-      <div className="border rounded-xl bg-card p-5 max-w-md space-y-4">
-        <div>
-          <h2 className="font-semibold flex items-center gap-2">
-            <Percent className="w-4 h-4" /> Payout Platform Fee
-          </h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Percentage the platform takes from each campaign payout when an owner withdraws funds.
-            Donations themselves carry no platform fee — donors only pay whatever their payment
-            provider charges directly.
-          </p>
-        </div>
-
-        {isLoading ? (
-          <LoadingSpinner />
-        ) : (
-          <>
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium">Fee percentage</label>
-              <div className="relative max-w-[160px]">
-                <input
-                  type="number"
-                  value={feePercent}
-                  onChange={(e) => setFeePercent(e.target.value)}
-                  min="0"
-                  max="100"
-                  step="0.01"
-                  className="w-full pr-8 pl-3 py-2.5 border rounded-lg bg-background focus:outline-hidden focus:ring-2 focus:ring-ring text-lg font-bold"
-                />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 font-bold text-muted-foreground">%</span>
-              </div>
+          <div className="border rounded-xl bg-card p-5 space-y-4">
+            <div>
+              <h2 className="font-semibold flex items-center gap-2">
+                <Percent className="w-4 h-4" /> Payout Platform Fee
+              </h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Percentage the platform takes from each campaign payout when an owner withdraws funds.
+                Donations themselves carry no platform fee — donors only pay whatever their payment
+                provider charges directly.
+              </p>
             </div>
 
-            <button
-              onClick={handleSave}
-              disabled={updateSettings.isPending}
-              className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold px-5 py-2.5 rounded-xl hover:bg-primary/90 transition-colors text-sm disabled:opacity-60"
-            >
-              <Save className="w-4 h-4" />
-              {updateSettings.isPending ? 'Saving…' : 'Save Changes'}
-            </button>
-          </>
-        )}
+            {isLoading ? (
+              <LoadingSpinner />
+            ) : (
+              <>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium">Fee percentage</label>
+                  <div className="relative max-w-[160px]">
+                    <input
+                      type="number"
+                      value={feePercent}
+                      onChange={(e) => setFeePercent(e.target.value)}
+                      min="0"
+                      max="100"
+                      step="0.01"
+                      className="w-full pr-8 pl-3 py-2.5 border rounded-lg bg-background focus:outline-hidden focus:ring-2 focus:ring-ring text-lg font-bold"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 font-bold text-muted-foreground">%</span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleSave}
+                  disabled={updateSettings.isPending}
+                  className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold px-5 py-2.5 rounded-xl hover:bg-primary/90 transition-colors text-sm disabled:opacity-60"
+                >
+                  <Save className="w-4 h-4" />
+                  {updateSettings.isPending ? 'Saving…' : 'Save Changes'}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -189,14 +193,14 @@ function ZakatSettingsCard({ onNotify }) {
 
   if (isLoading || !form) {
     return (
-      <div className="border rounded-xl bg-card p-5 max-w-lg">
+      <div className="border rounded-xl bg-card p-5 w-full">
         <LoadingSpinner />
       </div>
     )
   }
 
   return (
-    <div className="border rounded-xl bg-card p-5 max-w-lg space-y-5">
+    <div className="border rounded-xl bg-card p-5 w-full space-y-5">
       <div>
         <h2 className="font-semibold flex items-center gap-2">
           <HandHeart className="w-4 h-4" /> Zakat Calculator
@@ -347,7 +351,7 @@ function SiteBrandingCard({ onNotify }) {
   }
 
   return (
-    <div className="border rounded-xl bg-card p-5 max-w-lg space-y-5">
+    <div className="border rounded-xl bg-card p-5 w-full space-y-5">
       <div>
         <h2 className="font-semibold flex items-center gap-2">
           <ImageIcon className="w-4 h-4" /> Site Branding
