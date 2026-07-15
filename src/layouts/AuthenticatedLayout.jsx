@@ -1,15 +1,15 @@
 import { useState } from 'react'
 import { Outlet, Link, useRouter, Navigate } from '@tanstack/react-router'
 import { useMe, useLogout } from '@/hooks/useAuth'
-import { settings } from '@/settings'
 import { ROUTES } from '@/constants'
 import { cn } from '@/utils/cn'
 import { isAdminAreaRole } from '@/utils/permissions'
 import {
-  Heart, LayoutDashboard, PlusCircle, User, Settings,
+  LayoutDashboard, PlusCircle, User, Settings,
   LogOut, Menu, X, Megaphone, Bell, Home, ShieldCheck,
 } from 'lucide-react'
 import { NotificationBell } from '@/components/custom/NotificationBell'
+import { Logo } from '@/components/custom/Logo'
 
 const navItems = [
   { label: 'Dashboard', to: ROUTES.DASHBOARD, icon: LayoutDashboard },
@@ -59,11 +59,8 @@ export function AuthenticatedLayout() {
       >
         {/* Logo */}
         <div className="h-16 px-5 border-b flex items-center justify-between">
-          <Link to={ROUTES.HOME} className="flex items-center gap-2 font-bold text-lg">
-            <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
-              <Heart className="w-3.5 h-3.5 text-primary-foreground fill-primary-foreground" />
-            </div>
-            <span>{settings.siteName}</span>
+          <Link to={ROUTES.HOME}>
+            <Logo imgClassName="h-7 w-auto" />
           </Link>
           <button className="md:hidden p-1" onClick={() => setSidebarOpen(false)}>
             <X className="w-4 h-4" />

@@ -2,6 +2,8 @@ import { Link } from '@tanstack/react-router'
 import { Heart, MapPin, ArrowRight, Smartphone } from 'lucide-react'
 import { settings } from '@/settings'
 import { ROUTES } from '@/constants'
+import { Logo } from '@/components/custom/Logo'
+import { useSiteSettings } from '@/hooks/useSiteSettings'
 
 const PLATFORM_LINKS = [
   ['Campaigns', ROUTES.CAMPAIGNS],
@@ -20,6 +22,7 @@ const SUPPORT_LINKS = [
 const PAYMENT_PARTNERS = ['Wave',  'APS']
 
 export function Footer() {
+  const { siteName } = useSiteSettings()
   return (
     <footer className="mt-16 bg-foreground text-background">
       {/* CTA strip */}
@@ -50,11 +53,8 @@ export function Footer() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 grid grid-cols-2 md:grid-cols-5 gap-x-6 gap-y-10">
         <div className="col-span-2 md:col-span-2">
-          <Link to={ROUTES.HOME} className="flex items-center gap-2 font-bold text-xl mb-3 w-fit">
-            <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
-              <Heart className="w-3.5 h-3.5 fill-primary-foreground text-primary-foreground" />
-            </div>
-            {settings.siteName}
+          <Link to={ROUTES.HOME} className="mb-3 w-fit block">
+            <Logo variant="with-background" imgClassName="h-7 w-auto" />
           </Link>
           <p className="text-sm text-background/60 leading-relaxed max-w-sm">
             {settings.country}'s crowdfunding platform. Helping Gambians raise funds for medical,
@@ -113,7 +113,7 @@ export function Footer() {
       <div className="border-t border-background/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 pb-24 md:pb-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <p className="text-xs text-background/40 flex items-center gap-1">
-            &copy; {new Date().getFullYear()} {settings.siteName}. Made with <Heart className="w-3 h-3 fill-current text-red-400" /> in The Gambia.
+            &copy; {new Date().getFullYear()} {siteName}. Made with <Heart className="w-3 h-3 fill-current text-red-400" /> in The Gambia.
           </p>
           <p className="text-xs text-background/40 flex items-center gap-1">
             <MapPin className="w-3 h-3" /> Built for Gambians, by Gambians.

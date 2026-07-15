@@ -1,5 +1,5 @@
 export const settings = {
-  siteName: import.meta.env.VITE_SITE_NAME || 'GambiaFund',
+  siteName: import.meta.env.VITE_SITE_NAME || 'Dolelma',
   siteDescription: import.meta.env.VITE_SITE_DESCRIPTION || 'Crowdfunding for The Gambia',
   apiUrl: import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1',
   currency: 'GMD',

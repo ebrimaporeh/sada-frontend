@@ -3,10 +3,10 @@ import { useMe, useLogout } from '@/hooks/useAuth'
 import { ROUTES } from '@/constants'
 import { User, Users, UserCog, Megaphone, Heart, LayoutDashboard, Home, LogOut, AlertCircle, BarChart3, Layers, Settings, ShieldCheck, Menu, X } from 'lucide-react'
 import { cn } from '@/utils/cn'
-import { settings } from '@/settings'
 import { useEffect, useState } from 'react'
 import { Resource, hasResourceAccess, isAdminAreaRole } from '@/utils/permissions'
 import { useAdminBadgeCounts } from '@/hooks/useAdmin'
+import { Logo } from '@/components/custom/Logo'
 
 const navLinkClass = 'flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-accent [&.active]:bg-primary/10 [&.active]:text-primary'
 
@@ -114,13 +114,8 @@ function SidebarNav({ onNavigate, role }) {
 function SidebarBrand() {
   return (
     <div className="px-5 py-4 border-b flex items-center gap-2">
-      <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
-        <Heart className="w-3.5 h-3.5 text-primary-foreground fill-primary-foreground" />
-      </div>
-      <div>
-        <p className="font-bold text-sm">{settings.siteName}</p>
-        <p className="text-xs text-muted-foreground">Admin Panel</p>
-      </div>
+      <Logo imgClassName="h-7 w-auto" />
+      <p className="text-xs text-muted-foreground">Admin Panel</p>
     </div>
   )
 }

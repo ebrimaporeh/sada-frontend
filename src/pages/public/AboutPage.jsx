@@ -3,7 +3,7 @@ import { ShieldCheck, Smartphone, ArrowRight, Target } from 'lucide-react'
 import { usePublicStats } from '@/hooks/useCampaigns'
 import { StatsGrid } from '@/components/custom/StatsGrid'
 import { formatGMD, compactNumber } from '@/utils/formatters'
-import { settings } from '@/settings'
+import { useSiteSettings } from '@/hooks/useSiteSettings'
 import { ROUTES } from '@/constants'
 
 const pillars = [
@@ -21,6 +21,7 @@ const pillars = [
 
 export function AboutPage() {
   const { stats } = usePublicStats()
+  const { siteName } = useSiteSettings()
 
   return (
     <div>
@@ -32,7 +33,7 @@ export function AboutPage() {
             Crowdfunding, built for The Gambia
           </h1>
           <p className="text-lg text-muted-foreground mt-6 leading-relaxed">
-            {settings.siteName} exists so that medical bills, school fees, community projects, and
+            {siteName} exists so that medical bills, school fees, community projects, and
             emergencies don't have to depend on who you happen to know. We connect Gambians who need
             help with the people — at home and in the diaspora — who want to give it, using the
             mobile money networks everyone already trusts.

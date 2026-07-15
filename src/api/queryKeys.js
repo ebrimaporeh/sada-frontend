@@ -59,4 +59,7 @@ export const queryKeys = {
     reports: (params) => ['admin', 'reports', params],
     financeSummary: (params) => ['admin', 'finance-summary', params],
   },
+  siteSettings: {
+    all: () => ['site-settings'],
+  },
 }

@@ -1,10 +1,10 @@
 import { Outlet, Link, useRouterState } from '@tanstack/react-router'
-import { Heart, ChevronRight, LayoutDashboard, Home, LayoutGrid, PlusCircle, LogIn } from 'lucide-react'
-import { settings } from '@/settings'
+import { ChevronRight, LayoutDashboard, Home, LayoutGrid, PlusCircle, LogIn } from 'lucide-react'
 import { ROUTES } from '@/constants'
 import { useMe } from '@/hooks/useAuth'
 import { cn } from '@/utils/cn'
 import { Footer } from '@/components/custom/Footer'
+import { Logo } from '@/components/custom/Logo'
 
 export function PublicLayout() {
   const { data: me } = useMe()
@@ -33,11 +33,8 @@ export function PublicLayout() {
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           {/* Logo */}
-          <Link to={ROUTES.HOME} className="flex items-center gap-2 font-bold text-xl">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <Heart className="w-4 h-4 text-primary-foreground fill-primary-foreground" />
-            </div>
-            <span className="text-foreground">{settings.siteName}</span>
+          <Link to={ROUTES.HOME}>
+            <Logo />
           </Link>
 
           {/* Desktop Nav */}

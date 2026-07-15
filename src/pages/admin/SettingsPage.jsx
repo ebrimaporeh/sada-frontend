@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
-import { Percent, Save, CheckCircle2, AlertCircle } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Percent, Save, CheckCircle2, AlertCircle, Image as ImageIcon, Upload } from 'lucide-react'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
 import { usePlatformSettings, useUpdatePlatformSettings } from '@/hooks/usePayments'
+import { useSiteSettings, useUpdateSiteSettings } from '@/hooks/useSiteSettings'
 
 export function SettingsPage() {
   const { data: platformSettings, isLoading } = usePlatformSettings()
@@ -39,7 +40,7 @@ export function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Platform Settings" description="Fees and platform-wide configuration" />
+      <PageHeader title="Platform Settings" description="Branding, fees, and platform-wide configuration" />
 
       {notification && (
         <div
@@ -51,6 +52,8 @@ export function SettingsPage() {
           {notification.message}
         </div>
       )}
+
+      <SiteBrandingCard onNotify={showNotification} />
 
       <div className="border rounded-xl bg-card p-5 max-w-md space-y-4">
         <div>
@@ -95,6 +98,156 @@ export function SettingsPage() {
           </>
         )}
       </div>
+    </div>
+  )
+}
+
+function LogoUpload({ label, hint, currentUrl, onFileSelected, preview, surfaceClassName }) {
+  const fileRef = useRef()
+
+  function handleChange(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    onFileSelected(file)
+  }
+
+  const displaySrc = preview || currentUrl
+
+  return (
+    <div className="space-y-1.5">
+      <label className="text-sm font-medium">{label}</label>
+      <p className="text-xs text-muted-foreground">{hint}</p>
+      <div className="flex items-center gap-4">
+        <div className={`w-24 h-24 rounded-xl border flex items-center justify-center overflow-hidden flex-shrink-0 ${surfaceClassName}`}>
+          {displaySrc ? (
+            <img src={displaySrc} alt={label} className="max-w-full max-h-full object-contain" />
+          ) : (
+            <ImageIcon className="w-6 h-6 text-muted-foreground" />
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={() => fileRef.current?.click()}
+          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border hover:bg-accent transition-colors text-sm font-medium"
+        >
+          <Upload className="w-3.5 h-3.5" /> Upload
+        </button>
+        <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleChange} />
+      </div>
+    </div>
+  )
+}
+
+function SiteBrandingCard({ onNotify }) {
+  const { siteName, siteDescription, logo, logoWithBackground, isLoading } = useSiteSettings()
+  const updateSiteSettings = useUpdateSiteSettings()
+
+  const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
+  const logoFile = useRef(null)
+  const logoWithBgFile = useRef(null)
+  const [logoPreview, setLogoPreview] = useState(null)
+  const [logoWithBgPreview, setLogoWithBgPreview] = useState(null)
+  const [hydrated, setHydrated] = useState(false)
+
+  useEffect(() => {
+    if (!isLoading && !hydrated) {
+      setName(siteName)
+      setDescription(siteDescription)
+      setHydrated(true)
+    }
+  }, [isLoading, hydrated, siteName, siteDescription])
+
+  const handleSave = () => {
+    if (!name.trim()) {
+      onNotify('error', 'Site name cannot be blank.')
+      return
+    }
+    const payload = { site_name: name.trim(), site_description: description }
+    if (logoFile.current) payload.logo = logoFile.current
+    if (logoWithBgFile.current) payload.logo_with_background = logoWithBgFile.current
+
+    updateSiteSettings.mutate(payload, {
+      onSuccess: () => {
+        logoFile.current = null
+        logoWithBgFile.current = null
+        setLogoPreview(null)
+        setLogoWithBgPreview(null)
+        onNotify('success', 'Site branding updated.')
+      },
+      onError: (err) => onNotify('error', err?.response?.data?.message || 'Could not update site branding.'),
+    })
+  }
+
+  return (
+    <div className="border rounded-xl bg-card p-5 max-w-lg space-y-5">
+      <div>
+        <h2 className="font-semibold flex items-center gap-2">
+          <ImageIcon className="w-4 h-4" /> Site Branding
+        </h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          The name, description, and logo shown across the site — nav, footer, login, and emails.
+        </p>
+      </div>
+
+      {isLoading ? (
+        <LoadingSpinner />
+      ) : (
+        <>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium">Site name</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full px-3 py-2.5 border rounded-lg bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium">Site description</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={2}
+              className="w-full px-3 py-2.5 border rounded-lg bg-background focus:outline-hidden focus:ring-2 focus:ring-ring resize-none"
+            />
+          </div>
+
+          <LogoUpload
+            label="Logo (transparent)"
+            hint="Used on light surfaces — nav bar, login, footer."
+            currentUrl={logo}
+            preview={logoPreview}
+            surfaceClassName="bg-[repeating-conic-gradient(#e5e7eb_0%_25%,transparent_0%_50%)] bg-[length:12px_12px]"
+            onFileSelected={(file) => {
+              logoFile.current = file
+              setLogoPreview(URL.createObjectURL(file))
+            }}
+          />
+
+          <LogoUpload
+            label="Logo (with background)"
+            hint="Used on dark surfaces where the transparent logo would lose contrast."
+            currentUrl={logoWithBackground}
+            preview={logoWithBgPreview}
+            surfaceClassName="bg-muted"
+            onFileSelected={(file) => {
+              logoWithBgFile.current = file
+              setLogoWithBgPreview(URL.createObjectURL(file))
+            }}
+          />
+
+          <button
+            onClick={handleSave}
+            disabled={updateSiteSettings.isPending}
+            className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold px-5 py-2.5 rounded-xl hover:bg-primary/90 transition-colors text-sm disabled:opacity-60"
+          >
+            <Save className="w-4 h-4" />
+            {updateSiteSettings.isPending ? 'Saving…' : 'Save Changes'}
+          </button>
+        </>
+      )}
     </div>
   )
 }
