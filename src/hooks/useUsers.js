@@ -210,3 +210,42 @@ export function useReviewOrganizationVerification() {
     },
   })
 }
+
+// ── Organization change requests ──────────────────────────────────────────────
+
+export function useMyOrganizationChangeRequests({ enabled = true } = {}) {
+  return useQuery({
+    queryKey: queryKeys.organizationChangeRequest.mine(),
+    queryFn: () => userApi.getMyOrganizationChangeRequests().then((r) => r.data.change_requests),
+    enabled,
+  })
+}
+
+export function useSubmitOrganizationChangeRequest() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data) => userApi.submitOrganizationChangeRequest(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.organizationChangeRequest.mine() })
+    },
+  })
+}
+
+export function useAdminOrganizationChangeRequests(params = {}, { enabled = true } = {}) {
+  return useQuery({
+    queryKey: queryKeys.organizationChangeRequest.adminList(params),
+    queryFn: () => userApi.getOrganizationChangeRequests(params),
+    enabled,
+  })
+}
+
+export function useReviewOrganizationChangeRequest() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, action, reason }) => userApi.reviewOrganizationChangeRequest(id, action, reason),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['organization-change-request'] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.all() })
+    },
+  })
+}

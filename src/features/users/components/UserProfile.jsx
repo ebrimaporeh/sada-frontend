@@ -1,12 +1,104 @@
 import { useState, useRef } from 'react'
 import { Link } from '@tanstack/react-router'
-import { Camera, CheckCircle2, ShieldCheck, ShieldQuestion, AlertCircle, Building2 } from 'lucide-react'
+import { Camera, CheckCircle2, ShieldCheck, ShieldQuestion, AlertCircle, Building2, Clock } from 'lucide-react'
 import { useMe } from '@/hooks/useAuth'
-import { useUpdateMe } from '@/hooks/useUsers'
+import { useUpdateMe, useMyOrganizationChangeRequests, useSubmitOrganizationChangeRequest } from '@/hooks/useUsers'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { initials } from '@/utils/formatters'
 import { GAMBIA_REGIONS, ORGANIZATION_TYPES, ACCOUNT_TYPES, ROLES, ROUTES } from '@/constants'
 import { cn } from '@/utils/cn'
+
+const CHANGEABLE_FIELD_LABELS = {
+  phone: 'Primary Phone Number',
+  phone_2: 'Second Phone Number',
+  recovery_email_1: 'Recovery Email 1',
+  recovery_email_2: 'Recovery Email 2',
+}
+
+function ChangeableField({ fieldName, label, currentValue, pendingRequest, type = 'text' }) {
+  const [editing, setEditing] = useState(false)
+  const [value, setValue] = useState('')
+  const [error, setError] = useState('')
+  const submitChange = useSubmitOrganizationChangeRequest()
+
+  function startEdit() {
+    setValue(currentValue || '')
+    setError('')
+    setEditing(true)
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault()
+    setError('')
+    submitChange.mutate(
+      { field_name: fieldName, proposed_value: value.trim() },
+      {
+        onSuccess: () => setEditing(false),
+        onError: (err) => setError(err?.response?.data?.message || 'Failed to submit change request.'),
+      },
+    )
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-xs text-muted-foreground">{label}</p>
+        {!editing && !pendingRequest && (
+          <button
+            type="button"
+            onClick={startEdit}
+            className="text-xs text-primary hover:underline font-medium flex-shrink-0"
+          >
+            Change
+          </button>
+        )}
+      </div>
+
+      {editing ? (
+        <form onSubmit={handleSubmit} className="space-y-1.5 mt-1">
+          <input
+            type={type}
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            autoFocus
+            className="w-full px-2.5 py-1.5 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
+          />
+          {error && (
+            <p className="text-xs text-destructive flex items-center gap-1">
+              <AlertCircle className="w-3 h-3 flex-shrink-0" /> {error}
+            </p>
+          )}
+          <div className="flex items-center gap-2">
+            <button
+              type="submit"
+              disabled={submitChange.isPending || !value.trim()}
+              className="text-xs bg-primary text-primary-foreground font-medium px-3 py-1.5 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
+            >
+              {submitChange.isPending ? 'Submitting…' : 'Submit for approval'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setEditing(false)}
+              disabled={submitChange.isPending}
+              className="text-xs text-muted-foreground hover:text-foreground px-2 py-1.5"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      ) : (
+        <>
+          <p className="font-medium">{currentValue || '—'}</p>
+          {pendingRequest && (
+            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1 mt-1 flex items-center gap-1.5">
+              <Clock className="w-3 h-3 flex-shrink-0" /> Pending review: {pendingRequest.proposed_value}
+            </p>
+          )}
+        </>
+      )}
+    </div>
+  )
+}
 
 function Field({ label, hint, error, children }) {
   return (
@@ -79,6 +171,10 @@ export function UserProfile() {
   function handleSubmit(e) {
     e.preventDefault()
     const payload = { ...form }
+    // Primary phone is account-recovery-critical for organizations — it
+    // only changes via a reviewed change request (see Organization Details
+    // below), never through this free-edit form.
+    if (isOrg) delete payload.phone
     if (avatarFile.current) {
       payload.avatar = avatarFile.current
     }
@@ -94,6 +190,10 @@ export function UserProfile() {
   const isOrg = user?.account_type === ACCOUNT_TYPES.ORGANIZATION
   const org = user?.organization
   const orgTypeLabel = ORGANIZATION_TYPES.find((t) => t.value === org?.organization_type)?.label
+
+  const { data: changeRequests } = useMyOrganizationChangeRequests({ enabled: isOrg })
+  const pendingRequestFor = (fieldName) =>
+    changeRequests?.find((r) => r.field_name === fieldName && r.status === 'pending')
 
   const displayName = isOrg
     ? org?.organization_name || user?.email || ''
@@ -175,15 +275,17 @@ export function UserProfile() {
           </div>
         )}
 
-        <Field label="Phone Number" hint="Used for mobile money contact and account security">
-          <Input
-            value={form.phone}
-            onChange={set('phone')}
-            type="tel"
-            placeholder="7XXXXXXX"
-            prefix="+220"
-          />
-        </Field>
+        {!isOrg && (
+          <Field label="Phone Number" hint="Used for mobile money contact and account security">
+            <Input
+              value={form.phone}
+              onChange={set('phone')}
+              type="tel"
+              placeholder="7XXXXXXX"
+              prefix="+220"
+            />
+          </Field>
+        )}
 
         <Field label="Region" hint="Your region in The Gambia">
           <select
@@ -257,9 +359,11 @@ export function UserProfile() {
               <Building2 className="w-4 h-4" /> Organization Details
             </h2>
             <p className="text-xs text-muted-foreground">
-              These details were set at registration and aren't editable here yet. Contact support if anything needs to change.
+              Name, type, and contact person were set at registration and aren't editable here. Phone numbers and
+              recovery emails can be changed, but each change needs admin approval first — this protects your
+              organization's account recovery from being redirected by a single member without oversight.
             </p>
-            <div className="space-y-2.5 text-sm pt-1">
+            <div className="space-y-3 text-sm pt-1">
               <div>
                 <p className="text-xs text-muted-foreground">Organization Name</p>
                 <p className="font-medium">{org.organization_name}</p>
@@ -272,17 +376,34 @@ export function UserProfile() {
                 <p className="text-xs text-muted-foreground">Contact Person</p>
                 <p className="font-medium">{org.contact_person_name}</p>
               </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Second Phone Number</p>
-                <p className="font-medium">{org.phone_2 || '—'}</p>
-              </div>
-              {(org.recovery_email_1 || org.recovery_email_2) && (
-                <div>
-                  <p className="text-xs text-muted-foreground">Recovery Emails</p>
-                  {org.recovery_email_1 && <p className="font-medium">{org.recovery_email_1}</p>}
-                  {org.recovery_email_2 && <p className="font-medium">{org.recovery_email_2}</p>}
-                </div>
-              )}
+              <ChangeableField
+                fieldName="phone"
+                label={CHANGEABLE_FIELD_LABELS.phone}
+                currentValue={user.phone}
+                pendingRequest={pendingRequestFor('phone')}
+                type="tel"
+              />
+              <ChangeableField
+                fieldName="phone_2"
+                label={CHANGEABLE_FIELD_LABELS.phone_2}
+                currentValue={org.phone_2}
+                pendingRequest={pendingRequestFor('phone_2')}
+                type="tel"
+              />
+              <ChangeableField
+                fieldName="recovery_email_1"
+                label={CHANGEABLE_FIELD_LABELS.recovery_email_1}
+                currentValue={org.recovery_email_1}
+                pendingRequest={pendingRequestFor('recovery_email_1')}
+                type="email"
+              />
+              <ChangeableField
+                fieldName="recovery_email_2"
+                label={CHANGEABLE_FIELD_LABELS.recovery_email_2}
+                currentValue={org.recovery_email_2}
+                pendingRequest={pendingRequestFor('recovery_email_2')}
+                type="email"
+              />
             </div>
           </div>
         )}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ShieldCheck, Clock, CheckCircle2, XCircle, Loader2, AlertCircle, ZoomIn, User, Building2 } from 'lucide-react'
+import { ShieldCheck, Clock, CheckCircle2, XCircle, Loader2, AlertCircle, ZoomIn, User, Building2, RefreshCw, ArrowRight } from 'lucide-react'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { Sheet } from '@/components/custom/Sheet'
 import { AdminPagination } from '@/components/custom/AdminPagination'
@@ -7,6 +7,7 @@ import { ImageZoomModal } from '@/components/custom/ImageZoomModal'
 import {
   useAdminVerifications, useReviewVerification,
   useAdminOrganizationVerifications, useReviewOrganizationVerification,
+  useAdminOrganizationChangeRequests, useReviewOrganizationChangeRequest,
 } from '@/hooks/useUsers'
 import { ORGANIZATION_TYPES } from '@/constants'
 import { formatDate } from '@/utils/formatters'
@@ -27,7 +28,7 @@ const STATUS_CONFIG = {
 }
 
 export function VerificationsPage() {
-  const [type, setType] = useState('individual') // individual | organization
+  const [type, setType] = useState('individual') // individual | organization | change_request
   const [filter, setFilter] = useState('pending')
   const [page, setPage] = useState(1)
   const [selected, setSelected] = useState(null)
@@ -43,13 +44,16 @@ export function VerificationsPage() {
   const queryParams = { status: filter === 'all' ? undefined : filter, page, page_size: limit }
   const { data: indivData, isLoading: indivLoading } = useAdminVerifications(queryParams, { enabled: type === 'individual' })
   const { data: orgData, isLoading: orgLoading } = useAdminOrganizationVerifications(queryParams, { enabled: type === 'organization' })
+  const { data: changeData, isLoading: changeLoading } = useAdminOrganizationChangeRequests(queryParams, { enabled: type === 'change_request' })
   const reviewVerification = useReviewVerification()
   const reviewOrgVerification = useReviewOrganizationVerification()
+  const reviewChangeRequest = useReviewOrganizationChangeRequest()
 
   const isOrg = type === 'organization'
-  const data = isOrg ? orgData : indivData
-  const isLoading = isOrg ? orgLoading : indivLoading
-  const reviewMutation = isOrg ? reviewOrgVerification : reviewVerification
+  const isChangeRequest = type === 'change_request'
+  const data = isChangeRequest ? changeData : isOrg ? orgData : indivData
+  const isLoading = isChangeRequest ? changeLoading : isOrg ? orgLoading : indivLoading
+  const reviewMutation = isChangeRequest ? reviewChangeRequest : isOrg ? reviewOrgVerification : reviewVerification
 
   const requests = data?.results || []
   const totalPages = data?.total_pages || 1
@@ -66,7 +70,7 @@ export function VerificationsPage() {
       { id: selected.id, action, reason: action === 'reject' ? reason : undefined },
       {
         onSuccess: (res) => {
-          setSelected(res.data.verification)
+          setSelected(isChangeRequest ? res.data.change_request : res.data.verification)
           if (action === 'approve') setIsSheetOpen(false)
         },
       },
@@ -99,6 +103,15 @@ export function VerificationsPage() {
             )}
           >
             <Building2 className="w-4 h-4" /> Organization
+          </button>
+          <button
+            onClick={() => setType('change_request')}
+            className={cn(
+              'flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+              type === 'change_request' ? 'bg-primary text-primary-foreground' : 'border hover:bg-accent text-muted-foreground',
+            )}
+          >
+            <RefreshCw className="w-4 h-4" /> Change Requests
           </button>
         </div>
 
@@ -140,7 +153,10 @@ export function VerificationsPage() {
                     <p className="font-semibold text-sm truncate">{req.user_name}</p>
                     <p className="text-xs text-muted-foreground truncate">{req.user_email}</p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {isOrg ? ORG_TYPE_LABELS[req.organization_type] : ID_TYPE_LABELS[req.id_type]} · Submitted {formatDate(req.created_at)}
+                      {isChangeRequest
+                        ? req.field_label
+                        : isOrg ? ORG_TYPE_LABELS[req.organization_type] : ID_TYPE_LABELS[req.id_type]
+                      } · Submitted {formatDate(req.created_at)}
                     </p>
                   </div>
                   <div className={cn('px-3 py-1.5 rounded-lg flex items-center gap-1.5 text-xs font-medium flex-shrink-0', status.bg)}>
@@ -158,7 +174,11 @@ export function VerificationsPage() {
         <AdminPagination page={page} totalPages={totalPages} onPageChange={setPage} totalCount={totalCount} limit={limit} />
       )}
 
-      <Sheet isOpen={isSheetOpen} onClose={() => setIsSheetOpen(false)} title={isOrg ? 'Organization Verification' : 'Verification Request'}>
+      <Sheet
+        isOpen={isSheetOpen}
+        onClose={() => setIsSheetOpen(false)}
+        title={isChangeRequest ? 'Change Request' : isOrg ? 'Organization Verification' : 'Verification Request'}
+      >
         {selected && (
           <div className="space-y-5">
             <div>
@@ -171,7 +191,27 @@ export function VerificationsPage() {
               <span className={STATUS_CONFIG[selected.status].color}>{STATUS_CONFIG[selected.status].label}</span>
             </div>
 
-            {isOrg ? (
+            {isChangeRequest ? (
+              <>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Field</p>
+                    <p className="font-medium">{selected.field_label}</p>
+                  </div>
+                </div>
+                <div className="border rounded-xl p-4 bg-muted/30 flex items-center gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-muted-foreground mb-1">Current</p>
+                    <p className="text-sm font-medium truncate">{selected.current_value || '—'}</p>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-muted-foreground mb-1">Proposed</p>
+                    <p className="text-sm font-medium truncate text-primary">{selected.proposed_value}</p>
+                  </div>
+                </div>
+              </>
+            ) : isOrg ? (
               <>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>

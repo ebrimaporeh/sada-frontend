@@ -39,6 +39,12 @@ export const userApi = {
   reviewOrganizationVerification: (id, action, reason) =>
     apiClient.post(`/users/admin/organization-verifications/${id}/${action}/`, reason ? { reason } : {}).then((r) => r.data),
 
+  getMyOrganizationChangeRequests: () => apiClient.get('/users/organization-change-requests/mine/').then((r) => r.data),
+  submitOrganizationChangeRequest: (data) => apiClient.post('/users/organization-change-requests/', data).then((r) => r.data),
+  getOrganizationChangeRequests: (params) => apiClient.get('/users/admin/organization-change-requests/', { params }).then((r) => r.data),
+  reviewOrganizationChangeRequest: (id, action, reason) =>
+    apiClient.post(`/users/admin/organization-change-requests/${id}/${action}/`, reason ? { reason } : {}).then((r) => r.data),
+
   getCampaigners: (params) => apiClient.get('/users/campaigners/', { params }).then((r) => r.data),
   getCampaigner: (id) => apiClient.get(`/users/campaigners/${id}/`).then((r) => r.data),
 }

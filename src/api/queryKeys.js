@@ -19,6 +19,10 @@ export const queryKeys = {
     mine: () => ['organization-verification', 'mine'],
     adminList: (params) => ['organization-verification', 'admin', params],
   },
+  organizationChangeRequest: {
+    mine: () => ['organization-change-request', 'mine'],
+    adminList: (params) => ['organization-change-request', 'admin', params],
+  },
   campaigners: {
     list: (params) => ['campaigners', 'list', params],
     detail: (id) => ['campaigners', 'detail', id],

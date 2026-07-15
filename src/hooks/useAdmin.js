@@ -77,9 +77,16 @@ export function useAdminBadgeCounts({ enabled = true } = {}) {
     refetchInterval: 30000,
     enabled,
   })
+  const organizationChangeRequestsQuery = useQuery({
+    queryKey: ['admin', 'badge-counts', 'organization-change-requests'],
+    queryFn: () => userApi.getOrganizationChangeRequests({ status: 'pending', page_size: 1 }),
+    select: (data) => data?.count ?? 0,
+    refetchInterval: 30000,
+    enabled,
+  })
   return {
     pendingReports: reportsQuery.data ?? 0,
-    pendingVerifications: (verificationsQuery.data ?? 0) + (organizationVerificationsQuery.data ?? 0),
+    pendingVerifications: (verificationsQuery.data ?? 0) + (organizationVerificationsQuery.data ?? 0) + (organizationChangeRequestsQuery.data ?? 0),
   }
 }
 
