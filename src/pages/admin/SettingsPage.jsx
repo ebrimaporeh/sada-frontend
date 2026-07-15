@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
-import { Percent, Save, CheckCircle2, AlertCircle, Image as ImageIcon, Upload } from 'lucide-react'
+import { Percent, Save, CheckCircle2, AlertCircle, Image as ImageIcon, Upload, HandHeart } from 'lucide-react'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
 import { usePlatformSettings, useUpdatePlatformSettings } from '@/hooks/usePayments'
 import { useSiteSettings, useUpdateSiteSettings } from '@/hooks/useSiteSettings'
+import { useZakatSettings, useUpdateZakatSettings } from '@/hooks/useZakat'
+import { formatGMD } from '@/utils/formatters'
 
 export function SettingsPage() {
   const { data: platformSettings, isLoading } = usePlatformSettings()
@@ -54,6 +56,8 @@ export function SettingsPage() {
       )}
 
       <SiteBrandingCard onNotify={showNotification} />
+
+      <ZakatSettingsCard onNotify={showNotification} />
 
       <div className="border rounded-xl bg-card p-5 max-w-md space-y-4">
         <div>
@@ -134,6 +138,169 @@ function LogoUpload({ label, hint, currentUrl, onFileSelected, preview, surfaceC
         </button>
         <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleChange} />
       </div>
+    </div>
+  )
+}
+
+function ZakatSettingsCard({ onNotify }) {
+  const { settings: zakatSettings, isLoading } = useZakatSettings()
+  const updateZakatSettings = useUpdateZakatSettings()
+
+  const [form, setForm] = useState(null)
+
+  useEffect(() => {
+    if (zakatSettings && !form) {
+      setForm({
+        nisab_basis: zakatSettings.nisab_basis,
+        nisab_gold_grams: String(zakatSettings.nisab_gold_grams),
+        nisab_silver_grams: String(zakatSettings.nisab_silver_grams),
+        gold_price_per_gram: String(zakatSettings.gold_price_per_gram),
+        silver_price_per_gram: String(zakatSettings.silver_price_per_gram),
+        zakat_percentage: String(zakatSettings.zakat_percentage),
+        minimum_amount_override: zakatSettings.minimum_amount_override != null ? String(zakatSettings.minimum_amount_override) : '',
+      })
+    }
+  }, [zakatSettings, form])
+
+  const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }))
+
+  const handleSave = () => {
+    const percentage = Number(form.zakat_percentage)
+    if (!form.zakat_percentage || Number.isNaN(percentage) || percentage <= 0 || percentage > 100) {
+      onNotify('error', 'Enter a Zakat percentage between 0 and 100.')
+      return
+    }
+    updateZakatSettings.mutate(
+      {
+        nisab_basis: form.nisab_basis,
+        nisab_gold_grams: form.nisab_gold_grams || '0',
+        nisab_silver_grams: form.nisab_silver_grams || '0',
+        gold_price_per_gram: form.gold_price_per_gram || '0',
+        silver_price_per_gram: form.silver_price_per_gram || '0',
+        zakat_percentage: form.zakat_percentage,
+        minimum_amount_override: form.minimum_amount_override === '' ? null : form.minimum_amount_override,
+      },
+      {
+        onSuccess: () => onNotify('success', 'Zakat settings updated.'),
+        onError: (err) => onNotify('error', err?.response?.data?.message || 'Could not update Zakat settings.'),
+      },
+    )
+  }
+
+  if (isLoading || !form) {
+    return (
+      <div className="border rounded-xl bg-card p-5 max-w-lg">
+        <LoadingSpinner />
+      </div>
+    )
+  }
+
+  return (
+    <div className="border rounded-xl bg-card p-5 max-w-lg space-y-5">
+      <div>
+        <h2 className="font-semibold flex items-center gap-2">
+          <HandHeart className="w-4 h-4" /> Zakat Calculator
+        </h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          Nisab is computed from a gold or silver weight and its current price — keep the price per gram
+          up to date, or set a flat override below to skip that calculation entirely.
+        </p>
+      </div>
+
+      <div className="space-y-1.5">
+        <label className="text-sm font-medium">Nisab basis</label>
+        <div className="flex gap-2">
+          {['silver', 'gold'].map((basis) => (
+            <button
+              key={basis}
+              type="button"
+              onClick={() => setForm((f) => ({ ...f, nisab_basis: basis }))}
+              className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-colors ${
+                form.nisab_basis === basis ? 'bg-primary text-primary-foreground' : 'border hover:bg-accent'
+              }`}
+            >
+              {basis}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium">Gold weight (g)</label>
+          <input
+            type="number" min="0" step="0.01"
+            value={form.nisab_gold_grams}
+            onChange={set('nisab_gold_grams')}
+            className="w-full px-3 py-2 border rounded-lg bg-background focus:outline-hidden focus:ring-2 focus:ring-ring text-sm"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium">Gold price / g (D)</label>
+          <input
+            type="number" min="0" step="0.01"
+            value={form.gold_price_per_gram}
+            onChange={set('gold_price_per_gram')}
+            className="w-full px-3 py-2 border rounded-lg bg-background focus:outline-hidden focus:ring-2 focus:ring-ring text-sm"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium">Silver weight (g)</label>
+          <input
+            type="number" min="0" step="0.01"
+            value={form.nisab_silver_grams}
+            onChange={set('nisab_silver_grams')}
+            className="w-full px-3 py-2 border rounded-lg bg-background focus:outline-hidden focus:ring-2 focus:ring-ring text-sm"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium">Silver price / g (D)</label>
+          <input
+            type="number" min="0" step="0.01"
+            value={form.silver_price_per_gram}
+            onChange={set('silver_price_per_gram')}
+            className="w-full px-3 py-2 border rounded-lg bg-background focus:outline-hidden focus:ring-2 focus:ring-ring text-sm"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium">Zakat percentage</label>
+          <div className="relative">
+            <input
+              type="number" min="0" max="100" step="0.01"
+              value={form.zakat_percentage}
+              onChange={set('zakat_percentage')}
+              className="w-full pr-8 pl-3 py-2 border rounded-lg bg-background focus:outline-hidden focus:ring-2 focus:ring-ring text-sm"
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">%</span>
+          </div>
+        </div>
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium">Flat nisab override (D)</label>
+          <input
+            type="number" min="0" step="0.01"
+            value={form.minimum_amount_override}
+            onChange={set('minimum_amount_override')}
+            placeholder="Optional"
+            className="w-full px-3 py-2 border rounded-lg bg-background focus:outline-hidden focus:ring-2 focus:ring-ring text-sm"
+          />
+        </div>
+      </div>
+
+      <p className="text-sm text-muted-foreground border-t pt-3">
+        Current nisab threshold: <span className="font-semibold text-foreground">{formatGMD(zakatSettings.nisab_amount)}</span>
+      </p>
+
+      <button
+        onClick={handleSave}
+        disabled={updateZakatSettings.isPending}
+        className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold px-5 py-2.5 rounded-xl hover:bg-primary/90 transition-colors text-sm disabled:opacity-60"
+      >
+        <Save className="w-4 h-4" />
+        {updateZakatSettings.isPending ? 'Saving…' : 'Save Changes'}
+      </button>
     </div>
   )
 }

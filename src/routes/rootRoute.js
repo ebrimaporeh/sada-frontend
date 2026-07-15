@@ -21,6 +21,7 @@ import { CampaignersPage } from '@/pages/public/CampaignersPage'
 import { CampaignerDetailPage } from '@/pages/public/CampaignerDetailPage'
 import { DonatePage } from '@/pages/public/DonatePage'
 import { DonateSuccessPage } from '@/pages/public/DonateSuccessPage'
+import { ZakatPage } from '@/pages/public/ZakatPage'
 import { AboutPage } from '@/pages/public/AboutPage'
 import { HelpPage } from '@/pages/public/HelpPage'
 import { TrustSafetyPage } from '@/pages/public/TrustSafetyPage'
@@ -165,6 +166,12 @@ const donateSuccessRoute = createRoute({
   getParentRoute: () => publicLayout,
   path: '/donate/$slug/success',
   component: DonateSuccessPage,
+})
+
+const zakatRoute = createRoute({
+  getParentRoute: () => publicLayout,
+  path: ROUTES.ZAKAT,
+  component: ZakatPage,
 })
 
 const aboutRoute = createRoute({
@@ -369,6 +376,7 @@ const routeTree = rootRoute.addChildren([
     campaignerDetailRoute,
     donateRoute,
     donateSuccessRoute,
+    zakatRoute,
     aboutRoute,
     helpRoute,
     trustSafetyRoute,

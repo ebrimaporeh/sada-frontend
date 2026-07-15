@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Link } from '@tanstack/react-router'
+import { Link, useSearch } from '@tanstack/react-router'
 import { Heart, ChevronLeft, CheckCircle2, AlertCircle, Lock, Smartphone } from 'lucide-react'
 import { ProgressBar } from '@/components/custom/ProgressBar'
 import { ShareCampaign } from '@/components/custom/ShareCampaign'
@@ -43,7 +43,10 @@ function CampaignSummaryCard({ campaign }) {
 
 export function DonateCheckout({ campaign }) {
   const { data: me } = useMe()
-  const [amount, setAmount] = useState('')
+  const search = useSearch({ strict: false })
+  // Lets a referring flow (e.g. the Zakat calculator) prefill the amount by
+  // linking to /donate/$slug?amount=1234.50 instead of the donor retyping it.
+  const [amount, setAmount] = useState(search?.amount ? String(search.amount) : '')
   const [provider, setProvider] = useState('wave')
   const [phone, setPhone] = useState('')
   const [donorName, setDonorName] = useState('')

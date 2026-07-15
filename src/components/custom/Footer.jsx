@@ -8,6 +8,7 @@ import { useSiteSettings } from '@/hooks/useSiteSettings'
 const PLATFORM_LINKS = [
   ['Campaigns', ROUTES.CAMPAIGNS],
   ['Start a Campaign', ROUTES.CAMPAIGN_NEW],
+  ['Zakat Calculator', ROUTES.ZAKAT],
   ['How It Works', '/#how-it-works'],
   ['About Us', ROUTES.ABOUT],
 ]

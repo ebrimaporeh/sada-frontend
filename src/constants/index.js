@@ -58,6 +58,9 @@ export const ROUTES = {
   ADMIN_VERIFICATIONS: '/admin/verifications',
   ADMIN_VERIFICATION: '/admin/verification',
 
+  // Zakat calculator
+  ZAKAT: '/zakat',
+
   // Support pages
   ABOUT: '/about',
   HELP: '/help',
