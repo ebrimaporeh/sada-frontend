@@ -20,14 +20,14 @@ const STATUS_COLORS = {
 
 function StatCard({ icon: Icon, label, value, sub, color }) {
   return (
-    <div className="border rounded-xl p-5 bg-card space-y-3">
-      <div className={cn('w-9 h-9 rounded-lg flex items-center justify-center', color)}>
-        <Icon className="w-4 h-4" />
+    <div className="border rounded-xl p-3 sm:p-5 space-y-2 sm:space-y-3 bg-card">
+      <div className={cn('w-7 h-7 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center', color)}>
+        <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
       </div>
-      <p className="text-2xl font-extrabold">{value}</p>
+      <p className="text-lg sm:text-2xl font-extrabold truncate">{value}</p>
       <div>
-        <p className="text-sm font-medium">{label}</p>
-        {sub && <p className="text-xs text-muted-foreground mt-0.5">{sub}</p>}
+        <p className="text-xs sm:text-sm font-medium">{label}</p>
+        {sub && <p className="text-[11px] sm:text-xs text-muted-foreground mt-0.5">{sub}</p>}
       </div>
     </div>
   )
@@ -125,7 +125,7 @@ export function Dashboard() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {statCards.map((s) => (
           <StatCard key={s.label} {...s} />
         ))}

@@ -59,7 +59,7 @@ export function AuthenticatedLayout() {
       >
         {/* Logo */}
         <div className="h-16 px-5 border-b flex items-center justify-between">
-          <Link to={ROUTES.HOME}>
+          <Link to={ROUTES.HOME} onClick={() => setSidebarOpen(false)}>
             <Logo imgClassName="h-7 w-auto" />
           </Link>
           <button className="md:hidden p-1" onClick={() => setSidebarOpen(false)}>
@@ -73,6 +73,7 @@ export function AuthenticatedLayout() {
             <Link
               key={label}
               to={to}
+              onClick={() => setSidebarOpen(false)}
               className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors [&.active]:bg-primary/10 [&.active]:text-primary"
             >
               <Icon className="w-4 h-4 flex-shrink-0" />
@@ -85,6 +86,7 @@ export function AuthenticatedLayout() {
         <div className="p-3 border-t">
           <Link
             to={ROUTES.HOME}
+            onClick={() => setSidebarOpen(false)}
             className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
           >
             <Home className="w-4 h-4" />
@@ -108,10 +110,10 @@ export function AuthenticatedLayout() {
           <div className="flex items-center gap-3">
             <Link
               to={ROUTES.CAMPAIGN_NEW}
-              className="hidden sm:inline-flex items-center gap-1.5 text-sm font-semibold bg-primary text-primary-foreground px-3 py-1.5 rounded-lg hover:bg-primary/90 transition-colors"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold bg-primary text-primary-foreground px-3 py-1.5 rounded-lg hover:bg-primary/90 transition-colors"
             >
               <PlusCircle className="w-3.5 h-3.5" />
-              New Campaign
+              <span className="hidden sm:inline">New Campaign</span>
             </Link>
             <NotificationBell />
             <button

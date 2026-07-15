@@ -50,7 +50,7 @@ export function NotificationBell() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 max-w-[90vw] bg-card border rounded-lg shadow-lg z-50">
+        <div className="fixed sm:absolute inset-x-3 top-16 sm:inset-x-auto sm:top-auto sm:right-0 sm:mt-2 sm:w-80 max-w-full sm:max-w-[90vw] bg-card border rounded-lg shadow-lg z-50">
           <div className="flex items-center justify-between px-4 py-3 border-b">
             <p className="font-semibold text-sm">Notifications</p>
             {unreadCount > 0 && (

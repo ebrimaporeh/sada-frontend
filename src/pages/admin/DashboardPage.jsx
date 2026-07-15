@@ -270,16 +270,16 @@ export function AdminDashboardPage() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {statCards.map(({ label, value, icon: Icon, color, bgColor }) => (
-          <div key={label} className="border rounded-xl p-5 bg-card hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-sm text-muted-foreground font-medium">{label}</p>
-              <div className={`w-10 h-10 rounded-lg ${bgColor} flex items-center justify-center`}>
-                <Icon className={`w-5 h-5 ${color}`} />
+          <div key={label} className="border rounded-xl p-3 sm:p-5 bg-card hover:shadow-md transition-shadow min-w-0">
+            <div className="flex items-center justify-between mb-2 sm:mb-3 gap-2">
+              <p className="text-xs sm:text-sm text-muted-foreground font-medium truncate">{label}</p>
+              <div className={`w-7 h-7 sm:w-10 sm:h-10 rounded-lg ${bgColor} flex items-center justify-center flex-shrink-0`}>
+                <Icon className={`w-3.5 h-3.5 sm:w-5 sm:h-5 ${color}`} />
               </div>
             </div>
-            <p className="text-2xl font-bold">{value}</p>
+            <p className="text-lg sm:text-2xl font-bold truncate">{value}</p>
           </div>
         ))}
       </div>
@@ -287,7 +287,7 @@ export function AdminDashboardPage() {
       {/* Charts Grid */}
       <div className="grid lg:grid-cols-2 gap-8">
         {/* Donations Over Time */}
-        <div className="border rounded-xl p-5 bg-card">
+        <div className="border rounded-xl p-5 bg-card min-w-0 overflow-x-auto">
           <h3 className="text-lg font-bold mb-4">Donations Over Time</h3>
           {donationsByDay.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
@@ -333,7 +333,7 @@ export function AdminDashboardPage() {
         </div>
 
         {/* Campaign Status Distribution */}
-        <div className="border rounded-xl p-5 bg-card">
+        <div className="border rounded-xl p-5 bg-card min-w-0 overflow-x-auto">
           <h3 className="text-lg font-bold mb-4">Campaign Status Distribution</h3>
           {campaignStatus.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
@@ -378,7 +378,7 @@ export function AdminDashboardPage() {
       {/* Secondary Charts */}
       <div className="grid lg:grid-cols-2 gap-8">
         {/* Top Donors */}
-        <div className="border rounded-xl p-5 bg-card">
+        <div className="border rounded-xl p-5 bg-card min-w-0 overflow-x-auto">
           <h3 className="text-lg font-bold mb-4">Top Donors</h3>
           {topDonors.length > 0 ? (
             <ResponsiveContainer width="100%" height={250}>
@@ -420,7 +420,7 @@ export function AdminDashboardPage() {
         </div>
 
         {/* Top Campaigns */}
-        <div className="border rounded-xl p-5 bg-card">
+        <div className="border rounded-xl p-5 bg-card min-w-0">
           <h3 className="text-lg font-bold mb-4">Top Campaigns</h3>
           {topCampaigns.length > 0 ? (
             <div className="space-y-3">
@@ -446,7 +446,7 @@ export function AdminDashboardPage() {
       {/* Quick Actions & Recent Activity */}
       <div className="grid lg:grid-cols-3 gap-8">
         {/* Quick Actions */}
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-1 min-w-0">
           <h2 className="text-lg font-bold mb-3">Quick Actions</h2>
           <div className="space-y-2">
             {quickActions.map(({ label, icon: Icon, to, color, bg }) => (
@@ -465,7 +465,7 @@ export function AdminDashboardPage() {
         </div>
 
         {/* Recent Activities */}
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 min-w-0">
           <h2 className="text-lg font-bold mb-3">Recent Donations</h2>
           <div className="border rounded-xl p-5 bg-card space-y-3">
             {recentDonations.length > 0 ? (
