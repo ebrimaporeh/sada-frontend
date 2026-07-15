@@ -1,8 +1,6 @@
 import { Link } from '@tanstack/react-router'
-import { Building2 } from 'lucide-react'
 import { VerifiedTick } from '@/components/custom/VerifiedTick'
 import { initials } from '@/utils/formatters'
-import { GAMBIA_REGIONS, ORGANIZATION_TYPES, ACCOUNT_TYPES } from '@/constants'
 
 // A deterministic-but-varied portrait ratio for campaigners without a photo,
 // so the placeholder tiles still break up into a masonry-like rhythm instead
@@ -15,11 +13,6 @@ function fallbackRatio(id) {
 }
 
 export function CampaignerPhotoTile({ campaigner }) {
-  const regionLabel = GAMBIA_REGIONS.find((r) => r.value === campaigner.region)?.label
-  const isOrg = campaigner.account_type === ACCOUNT_TYPES.ORGANIZATION
-  const orgTypeLabel = ORGANIZATION_TYPES.find((t) => t.value === campaigner.organization_type)?.label
-  const subtitle = isOrg ? orgTypeLabel : regionLabel
-
   return (
     <Link
       to="/campaigners/$id"
@@ -44,11 +37,6 @@ export function CampaignerPhotoTile({ campaigner }) {
           {campaigner.full_name}
           {campaigner.is_verified && <VerifiedTick size="w-3.5 h-3.5" className="text-white fill-blue-500" />}
         </p>
-        {subtitle && (
-          <p className="text-white/75 text-xs flex items-center gap-1 truncate">
-            {isOrg && <Building2 className="w-3 h-3 flex-shrink-0" />} {subtitle}
-          </p>
-        )}
       </div>
     </Link>
   )
