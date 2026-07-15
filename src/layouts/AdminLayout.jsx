@@ -48,7 +48,7 @@ function SidebarNav({ onNavigate, role }) {
       {showManagement && <NavSectionLabel>Management</NavSectionLabel>}
       {can(Resource.USERS) && (
         <Link to={ROUTES.ADMIN_USERS} className={cn(navLinkClass)} onClick={onNavigate}>
-          <Users className="w-4 h-4" /> Users
+          <Users className="w-4 h-4" /> Campaigners
         </Link>
       )}
       {can(Resource.STAFF) && (

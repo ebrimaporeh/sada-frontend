@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { ShieldCheck, ShieldOff, AlertCircle, CheckCircle2, Loader2, Image as ImageIcon } from 'lucide-react'
+import { ShieldCheck, ShieldOff, AlertCircle, CheckCircle2, Loader2, Image as ImageIcon, Building2 } from 'lucide-react'
 import { Sheet } from './Sheet'
 import { formatDate } from '@/utils/formatters'
-import { ROLES, GAMBIA_REGIONS } from '@/constants'
+import { ROLES, GAMBIA_REGIONS, ORGANIZATION_TYPES, ACCOUNT_TYPES } from '@/constants'
 import { useUpdateUser, useUser, useUserVerification } from '@/hooks/useUsers'
 import { useMe } from '@/hooks/useAuth'
 import { cn } from '@/utils/cn'
@@ -57,6 +57,9 @@ export function UserSheet({
   const roleName = Object.entries(ROLES).find(([_, val]) => val === user.role)?.[0] || user.role
   const regionLabel = GAMBIA_REGIONS.find((r) => r.value === user.region)?.label || user.region
   const isSelf = me?.id === user.id
+  const isOrg = user.account_type === ACCOUNT_TYPES.ORGANIZATION
+  const org = user.organization
+  const orgTypeLabel = ORGANIZATION_TYPES.find((t) => t.value === org?.organization_type)?.label
   const dirty = isActive !== (user.is_active ?? true) || isVerified !== (user.is_verified ?? false)
 
   function handleSave() {
@@ -122,6 +125,35 @@ export function UserSheet({
           <label className="text-xs font-semibold text-muted-foreground block mb-1">REGION</label>
           <p className="text-sm">{regionLabel || '—'}</p>
         </div>
+
+        {isOrg && org && (
+          <div className="p-3 rounded-lg bg-muted/50 border space-y-2.5">
+            <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+              <Building2 className="w-3 h-3" /> ORGANIZATION DETAILS
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Type</p>
+                <p className="text-sm font-medium">{orgTypeLabel || '—'}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Contact Person</p>
+                <p className="text-sm font-medium">{org.contact_person_name || '—'}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Second Phone</p>
+                <p className="text-sm font-medium">{org.phone_2 || '—'}</p>
+              </div>
+            </div>
+            {(org.recovery_email_1 || org.recovery_email_2) && (
+              <div>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Recovery Emails</p>
+                {org.recovery_email_1 && <p className="text-sm font-medium">{org.recovery_email_1}</p>}
+                {org.recovery_email_2 && <p className="text-sm font-medium">{org.recovery_email_2}</p>}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Status — editable */}
         <div className="p-3 rounded-lg bg-muted/50 border space-y-2">

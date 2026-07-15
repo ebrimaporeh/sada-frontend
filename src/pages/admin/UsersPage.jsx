@@ -1,24 +1,29 @@
-import { useState } from 'react'
-import { Eye, EyeOff, Loader2, ShieldCheck, ShieldOff } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { ShieldCheck, ShieldOff, User, Building2 } from 'lucide-react'
 import { useUsers } from '@/hooks/useUsers'
-// import { useUsersStats } from '@/hooks/useAdmin'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
 import { EmptyState } from '@/components/custom/EmptyState'
-import { StatSkeleton } from '@/components/custom/StatSkeleton'
 import { UserSheet } from '@/components/custom/UserSheet'
 import { AdminPagination } from '@/components/custom/AdminPagination'
+import { ORGANIZATION_TYPES, ACCOUNT_TYPES } from '@/constants'
 import { formatDate } from '@/utils/formatters'
 import { cn } from '@/utils/cn'
 
+const ORG_TYPE_LABELS = Object.fromEntries(ORGANIZATION_TYPES.map((t) => [t.value, t.label]))
+
 export function UsersPage() {
+  const [type, setType] = useState('individual') // individual | organization
   const [page, setPage] = useState(1)
   const [selectedUser, setSelectedUser] = useState(null)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const limit = 10
 
-  // const { data: statsData, isLoading: statsLoading } = useUsersStats()
-  const { data, isLoading } = useUsers({ page, page_size: limit })
+  useEffect(() => {
+    setPage(1)
+  }, [type])
+
+  const { data, isLoading } = useUsers({ account_type: type, page, page_size: limit })
 
   const handleSelectUser = (user) => {
     setSelectedUser(user)
@@ -27,6 +32,7 @@ export function UsersPage() {
 
   const users = data?.results || []
   const totalPages = data?.total_pages || Math.ceil((data?.count || 0) / limit)
+  const isOrg = type === 'organization'
 
   return (
     <div className="min-h-full flex flex-col">
@@ -34,45 +40,42 @@ export function UsersPage() {
       {/* Header */}
       <div>
         <PageHeader
-          title="Users"
-          description={`${data?.count || 0} total users`}
+          title="Campaigners"
+          description={`${data?.count || 0} total ${isOrg ? 'organizations' : 'users'}`}
         />
       </div>
 
-      {/* Stats Grid */}
-      {/* {showStats && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {statsLoading ? (
-            <>
-              <StatSkeleton />
-              <StatSkeleton />
-            </>
-          ) : (
-            <>
-              <div className="border rounded-xl p-5 bg-card space-y-3 hover:shadow-md transition-shadow">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-muted-foreground font-medium">Total Users</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-2xl font-bold">{statsData?.total_users || 0}</p>
-                  <p className="text-xs text-muted-foreground">All registered users</p>
-                </div>
-              </div>
-            </>
+      <div className="flex gap-2">
+        <button
+          onClick={() => setType('individual')}
+          className={cn(
+            'flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+            type === 'individual' ? 'bg-primary text-primary-foreground' : 'border hover:bg-accent text-muted-foreground',
           )}
-        </div>
-      )} */}
+        >
+          <User className="w-4 h-4" /> Users
+        </button>
+        <button
+          onClick={() => setType('organization')}
+          className={cn(
+            'flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+            type === 'organization' ? 'bg-primary text-primary-foreground' : 'border hover:bg-accent text-muted-foreground',
+          )}
+        >
+          <Building2 className="w-4 h-4" /> Organizations
+        </button>
+      </div>
 
       {/* Users Table */}
-      {users.length === 0 ? (
-        <EmptyState title="No users found" />
+      {!isLoading && users.length === 0 ? (
+        <EmptyState title={`No ${isOrg ? 'organizations' : 'users'} found`} />
       ) : (
         <div className="border rounded-lg overflow-hidden bg-card">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="border-b bg-muted">
                 <tr>
-                  {['Name', 'Email', 'Role', 'Status', 'Verification', 'Joined'].map((h) => (
+                  {[isOrg ? 'Organization' : 'Name', 'Email', isOrg ? 'Type' : 'Role', 'Status', 'Verification', 'Joined'].map((h) => (
                     <th key={h} className="px-4 py-3 text-left font-medium">{h}</th>
                   ))}
                 </tr>
@@ -93,7 +96,9 @@ export function UsersPage() {
                     >
                       <td className="px-4 py-3">{user.full_name || '—'}</td>
                       <td className="px-4 py-3">{user.email}</td>
-                      <td className="px-4 py-3 capitalize">{user.role}</td>
+                      <td className="px-4 py-3 capitalize">
+                        {isOrg ? (ORG_TYPE_LABELS[user.organization?.organization_type] || '—') : user.role}
+                      </td>
                       <td className="px-4 py-3">
                         <span
                           className={cn(
