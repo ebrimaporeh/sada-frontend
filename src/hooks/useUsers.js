@@ -150,6 +150,7 @@ export function useAdminVerifications(params = {}, { enabled = true } = {}) {
     queryKey: queryKeys.verification.adminList(params),
     queryFn: () => userApi.getVerifications(params),
     enabled,
+    refetchOnMount: 'always',
   })
 }
 
@@ -197,6 +198,7 @@ export function useAdminOrganizationVerifications(params = {}, { enabled = true 
     queryKey: queryKeys.organizationVerification.adminList(params),
     queryFn: () => userApi.getOrganizationVerifications(params),
     enabled,
+    refetchOnMount: 'always',
   })
 }
 
@@ -236,6 +238,7 @@ export function useAdminOrganizationChangeRequests(params = {}, { enabled = true
     queryKey: queryKeys.organizationChangeRequest.adminList(params),
     queryFn: () => userApi.getOrganizationChangeRequests(params),
     enabled,
+    refetchOnMount: 'always',
   })
 }
 
