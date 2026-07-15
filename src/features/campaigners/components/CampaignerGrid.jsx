@@ -105,7 +105,7 @@ export function CampaignerGrid() {
 
       {/* Masonry grid */}
       {isLoading ? (
-        <div className="columns-2 sm:columns-3 lg:columns-4 xl:columns-5 gap-4">
+        <div className="columns-2 sm:columns-3 lg:columns-4 gap-4">
           {Array.from({ length: 10 }).map((_, i) => (
             <CampaignerCardSkeleton key={i} index={i} />
           ))}
@@ -121,7 +121,7 @@ export function CampaignerGrid() {
         </div>
       ) : (
         <>
-          <div className="columns-2 sm:columns-3 lg:columns-4 xl:columns-5 gap-4">
+          <div className="columns-2 sm:columns-3 lg:columns-4 gap-4">
             {campaigners.map((c) => (
               <CampaignerPhotoTile key={c.id} campaigner={c} />
             ))}
