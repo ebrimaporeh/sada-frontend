@@ -145,10 +145,11 @@ export function useSubmitVerification() {
   })
 }
 
-export function useAdminVerifications(params = {}) {
+export function useAdminVerifications(params = {}, { enabled = true } = {}) {
   return useQuery({
     queryKey: queryKeys.verification.adminList(params),
     queryFn: () => userApi.getVerifications(params),
+    enabled,
   })
 }
 
@@ -167,6 +168,44 @@ export function useReviewVerification() {
     mutationFn: ({ id, action, reason }) => userApi.reviewVerification(id, action, reason),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['verification'] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.all() })
+    },
+  })
+}
+
+// ── Organization verification ─────────────────────────────────────────────────
+
+export function useMyOrganizationVerification() {
+  return useQuery({
+    queryKey: queryKeys.organizationVerification.mine(),
+    queryFn: () => userApi.getMyOrganizationVerification().then((r) => r.data.verification),
+  })
+}
+
+export function useSubmitOrganizationVerification() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data) => userApi.submitOrganizationVerification(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.organizationVerification.mine() })
+    },
+  })
+}
+
+export function useAdminOrganizationVerifications(params = {}, { enabled = true } = {}) {
+  return useQuery({
+    queryKey: queryKeys.organizationVerification.adminList(params),
+    queryFn: () => userApi.getOrganizationVerifications(params),
+    enabled,
+  })
+}
+
+export function useReviewOrganizationVerification() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, action, reason }) => userApi.reviewOrganizationVerification(id, action, reason),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['organization-verification'] })
       queryClient.invalidateQueries({ queryKey: queryKeys.users.all() })
     },
   })

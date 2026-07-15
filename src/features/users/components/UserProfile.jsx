@@ -1,11 +1,11 @@
 import { useState, useRef } from 'react'
 import { Link } from '@tanstack/react-router'
-import { Camera, CheckCircle2, ShieldCheck, ShieldQuestion, AlertCircle } from 'lucide-react'
+import { Camera, CheckCircle2, ShieldCheck, ShieldQuestion, AlertCircle, Building2 } from 'lucide-react'
 import { useMe } from '@/hooks/useAuth'
 import { useUpdateMe } from '@/hooks/useUsers'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { initials } from '@/utils/formatters'
-import { GAMBIA_REGIONS, ROLES, ROUTES } from '@/constants'
+import { GAMBIA_REGIONS, ORGANIZATION_TYPES, ACCOUNT_TYPES, ROLES, ROUTES } from '@/constants'
 import { cn } from '@/utils/cn'
 
 function Field({ label, hint, error, children }) {
@@ -91,9 +91,15 @@ export function UserProfile() {
     })
   }
 
-  const displayName = form.first_name
-    ? `${form.first_name} ${form.last_name}`.trim()
-    : user?.email || ''
+  const isOrg = user?.account_type === ACCOUNT_TYPES.ORGANIZATION
+  const org = user?.organization
+  const orgTypeLabel = ORGANIZATION_TYPES.find((t) => t.value === org?.organization_type)?.label
+
+  const displayName = isOrg
+    ? org?.organization_name || user?.email || ''
+    : form.first_name
+      ? `${form.first_name} ${form.last_name}`.trim()
+      : user?.email || ''
 
   const verificationRoute = user?.role === ROLES.ADMIN ? ROUTES.ADMIN_VERIFICATION : ROUTES.VERIFICATION
 
@@ -104,7 +110,10 @@ export function UserProfile() {
       {/* Avatar section */}
       <div className="border rounded-2xl p-6 bg-card flex flex-col sm:flex-row items-center sm:items-start gap-6">
         <div className="relative flex-shrink-0">
-          <div className="w-20 h-20 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xl font-bold overflow-hidden">
+          <div className={cn(
+            'w-20 h-20 bg-primary flex items-center justify-center text-primary-foreground text-xl font-bold overflow-hidden',
+            isOrg ? 'rounded-xl' : 'rounded-full',
+          )}>
             {avatarPreview || user?.avatar
               ? <img src={avatarPreview || user?.avatar} alt="avatar" className="w-full h-full object-cover" />
               : initials(displayName || user?.email)
@@ -153,16 +162,18 @@ export function UserProfile() {
       <div className="flex flex-wrap items-start gap-6">
       {/* Form */}
       <form onSubmit={handleSubmit} className="flex-[2] min-w-[360px] border rounded-2xl p-6 bg-card space-y-5">
-        <h2 className="font-semibold text-base">Personal Information</h2>
+        <h2 className="font-semibold text-base">{isOrg ? 'Profile Information' : 'Personal Information'}</h2>
 
-        <div className="grid sm:grid-cols-2 gap-4">
-          <Field label="First Name">
-            <Input value={form.first_name} onChange={set('first_name')} placeholder="Ousman" />
-          </Field>
-          <Field label="Last Name">
-            <Input value={form.last_name} onChange={set('last_name')} placeholder="Camara" />
-          </Field>
-        </div>
+        {!isOrg && (
+          <div className="grid sm:grid-cols-2 gap-4">
+            <Field label="First Name">
+              <Input value={form.first_name} onChange={set('first_name')} placeholder="Ousman" />
+            </Field>
+            <Field label="Last Name">
+              <Input value={form.last_name} onChange={set('last_name')} placeholder="Camara" />
+            </Field>
+          </div>
+        )}
 
         <Field label="Phone Number" hint="Used for mobile money contact and account security">
           <Input
@@ -239,6 +250,42 @@ export function UserProfile() {
             <p className="text-xs text-muted-foreground mt-1">Email address cannot be changed here. Contact support if needed.</p>
           </div>
         </div>
+
+        {isOrg && org && (
+          <div className="border rounded-2xl p-6 bg-card space-y-3">
+            <h2 className="font-semibold text-base flex items-center gap-2">
+              <Building2 className="w-4 h-4" /> Organization Details
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              These details were set at registration and aren't editable here yet. Contact support if anything needs to change.
+            </p>
+            <div className="space-y-2.5 text-sm pt-1">
+              <div>
+                <p className="text-xs text-muted-foreground">Organization Name</p>
+                <p className="font-medium">{org.organization_name}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Type</p>
+                <p className="font-medium">{orgTypeLabel}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Contact Person</p>
+                <p className="font-medium">{org.contact_person_name}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Second Phone Number</p>
+                <p className="font-medium">{org.phone_2 || '—'}</p>
+              </div>
+              {(org.recovery_email_1 || org.recovery_email_2) && (
+                <div>
+                  <p className="text-xs text-muted-foreground">Recovery Emails</p>
+                  {org.recovery_email_1 && <p className="font-medium">{org.recovery_email_1}</p>}
+                  {org.recovery_email_2 && <p className="font-medium">{org.recovery_email_2}</p>}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
       </div>
     </div>

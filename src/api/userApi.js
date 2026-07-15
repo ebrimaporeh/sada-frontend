@@ -25,6 +25,20 @@ export const userApi = {
   reviewVerification: (id, action, reason) =>
     apiClient.post(`/users/admin/verifications/${id}/${action}/`, reason ? { reason } : {}).then((r) => r.data),
 
+  getMyOrganizationVerification: () => apiClient.get('/users/organization-verification/me/').then((r) => r.data),
+  submitOrganizationVerification: (data) => {
+    const form = new FormData()
+    Object.entries(data).forEach(([k, v]) => {
+      if (v !== undefined && v !== null) form.append(k, v)
+    })
+    return apiClient.post('/users/organization-verification/', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }).then((r) => r.data)
+  },
+  getOrganizationVerifications: (params) => apiClient.get('/users/admin/organization-verifications/', { params }).then((r) => r.data),
+  reviewOrganizationVerification: (id, action, reason) =>
+    apiClient.post(`/users/admin/organization-verifications/${id}/${action}/`, reason ? { reason } : {}).then((r) => r.data),
+
   getCampaigners: (params) => apiClient.get('/users/campaigners/', { params }).then((r) => r.data),
   getCampaigner: (id) => apiClient.get(`/users/campaigners/${id}/`).then((r) => r.data),
 }

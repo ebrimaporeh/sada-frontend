@@ -1,15 +1,18 @@
 import { Link } from '@tanstack/react-router'
-import { Megaphone, MapPin, Calendar, ChevronLeft } from 'lucide-react'
+import { Megaphone, MapPin, Calendar, ChevronLeft, Building2 } from 'lucide-react'
 import { VerifiedTick } from '@/components/custom/VerifiedTick'
 import { CampaignCard } from '@/components/custom/CampaignCard'
 import { CampaignCardSkeleton } from '@/components/custom/CampaignCardSkeleton'
 import { useCampaigns } from '@/hooks/useCampaigns'
 import { formatGMD, formatDate, initials } from '@/utils/formatters'
-import { GAMBIA_REGIONS, ROUTES } from '@/constants'
+import { GAMBIA_REGIONS, ORGANIZATION_TYPES, ACCOUNT_TYPES, ROUTES } from '@/constants'
+import { cn } from '@/utils/cn'
 
 export function CampaignerProfileView({ campaigner }) {
   const { campaigns, isLoading } = useCampaigns({ owner: campaigner.id })
   const regionLabel = GAMBIA_REGIONS.find((r) => r.value === campaigner.region)?.label
+  const isOrg = campaigner.account_type === ACCOUNT_TYPES.ORGANIZATION
+  const orgTypeLabel = ORGANIZATION_TYPES.find((t) => t.value === campaigner.organization_type)?.label
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 space-y-8">
@@ -21,7 +24,10 @@ export function CampaignerProfileView({ campaigner }) {
 
       {/* Profile header */}
       <div className="border rounded-2xl p-6 bg-card flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left">
-        <div className="w-24 h-24 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-2xl font-bold overflow-hidden flex-shrink-0">
+        <div className={cn(
+          'w-24 h-24 bg-primary flex items-center justify-center text-primary-foreground text-2xl font-bold overflow-hidden flex-shrink-0',
+          isOrg ? 'rounded-2xl' : 'rounded-full',
+        )}>
           {campaigner.avatar
             ? <img src={campaigner.avatar} alt={campaigner.full_name} className="w-full h-full object-cover" />
             : initials(campaigner.full_name)
@@ -35,6 +41,9 @@ export function CampaignerProfileView({ campaigner }) {
           </div>
 
           <div className="flex items-center justify-center sm:justify-start gap-4 text-sm text-muted-foreground mt-1.5 flex-wrap">
+            {isOrg && orgTypeLabel && (
+              <span className="flex items-center gap-1"><Building2 className="w-3.5 h-3.5" /> {orgTypeLabel}</span>
+            )}
             {regionLabel && (
               <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" /> {regionLabel}</span>
             )}

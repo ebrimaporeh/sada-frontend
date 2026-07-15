@@ -6,6 +6,20 @@ export const ROLES = {
   CAMPAIGN_OWNER: 'campaign_owner',
 }
 
+export const ACCOUNT_TYPES = {
+  INDIVIDUAL: 'individual',
+  ORGANIZATION: 'organization',
+}
+
+export const ORGANIZATION_TYPES = [
+  { value: 'religious', label: 'Religious Organization' },
+  { value: 'student_union', label: 'Student Union' },
+  { value: 'community', label: 'Community-Based Organization' },
+  { value: 'national_agency', label: 'National Agency' },
+  { value: 'media', label: 'Media Organization' },
+  { value: 'other', label: 'Other' },
+]
+
 export const ROUTES = {
   HOME: '/',
   LOGIN: '/login',

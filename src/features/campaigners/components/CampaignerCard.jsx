@@ -1,12 +1,14 @@
 import { Link } from '@tanstack/react-router'
-import { Megaphone } from 'lucide-react'
+import { Megaphone, Building2 } from 'lucide-react'
 import { VerifiedTick } from '@/components/custom/VerifiedTick'
 import { formatGMD, initials } from '@/utils/formatters'
-import { GAMBIA_REGIONS } from '@/constants'
+import { GAMBIA_REGIONS, ORGANIZATION_TYPES, ACCOUNT_TYPES } from '@/constants'
 import { cn } from '@/utils/cn'
 
 export function CampaignerCard({ campaigner, className }) {
   const regionLabel = GAMBIA_REGIONS.find((r) => r.value === campaigner.region)?.label
+  const isOrg = campaigner.account_type === ACCOUNT_TYPES.ORGANIZATION
+  const orgTypeLabel = ORGANIZATION_TYPES.find((t) => t.value === campaigner.organization_type)?.label
 
   return (
     <Link
@@ -17,7 +19,10 @@ export function CampaignerCard({ campaigner, className }) {
         className,
       )}
     >
-      <div className="w-16 h-16 rounded-full bg-primary mx-auto flex items-center justify-center text-primary-foreground text-lg font-bold overflow-hidden">
+      <div className={cn(
+        'w-16 h-16 bg-primary mx-auto flex items-center justify-center text-primary-foreground text-lg font-bold overflow-hidden',
+        isOrg ? 'rounded-xl' : 'rounded-full',
+      )}>
         {campaigner.avatar
           ? <img src={campaigner.avatar} alt={campaigner.full_name} className="w-full h-full object-cover" />
           : initials(campaigner.full_name)
@@ -28,7 +33,13 @@ export function CampaignerCard({ campaigner, className }) {
         <p className="font-semibold text-sm truncate">{campaigner.full_name}</p>
         {campaigner.is_verified && <VerifiedTick />}
       </div>
-      {regionLabel && <p className="text-xs text-muted-foreground">{regionLabel}</p>}
+      {isOrg ? (
+        <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+          <Building2 className="w-3 h-3" /> {orgTypeLabel}
+        </p>
+      ) : (
+        regionLabel && <p className="text-xs text-muted-foreground">{regionLabel}</p>
+      )}
 
       {campaigner.bio && (
         <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{campaigner.bio}</p>
