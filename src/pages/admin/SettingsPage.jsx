@@ -250,6 +250,11 @@ function ZakatSettingsCard({ onNotify }) {
         </div>
       </div>
 
+      <p className="text-xs text-muted-foreground -mt-2">
+        These weights are the classical nisab standard set by the Supreme Islamic Council of The Gambia —
+        only the prices normally need updating, and only when no flat override is set below.
+      </p>
+
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
           <label className="text-sm font-medium">Zakat percentage</label>
