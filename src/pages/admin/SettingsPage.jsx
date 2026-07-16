@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Percent, Save, CheckCircle2, AlertCircle, Image as ImageIcon, Upload, HandHeart, FileText } from 'lucide-react'
+import { Percent, Save, CheckCircle2, AlertCircle, Image as ImageIcon, Upload, HandHeart, FileText, Palette } from 'lucide-react'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
 import { MarkdownEditor } from '@/components/custom/MarkdownEditor'
@@ -10,12 +10,20 @@ import { useLegalContent, useUpdateLegalContent } from '@/hooks/useLegalContent'
 import { formatGMD } from '@/utils/formatters'
 import { compressImage } from '@/utils/imageCompression'
 
+const PAGE_TABS = [
+  { key: 'branding', label: 'Branding', icon: Palette },
+  { key: 'fees', label: 'Payout Fee', icon: Percent },
+  { key: 'zakat', label: 'Zakat', icon: HandHeart },
+  { key: 'legal', label: 'Legal & Help', icon: FileText },
+]
+
 export function SettingsPage() {
   const { data: platformSettings, isLoading } = usePlatformSettings()
   const updateSettings = useUpdatePlatformSettings()
 
   const [feePercent, setFeePercent] = useState('')
   const [notification, setNotification] = useState(null)
+  const [activeTab, setActiveTab] = useState(PAGE_TABS[0].key)
 
   useEffect(() => {
     if (platformSettings?.platform_fee_percent != null) {
@@ -58,59 +66,78 @@ export function SettingsPage() {
         </div>
       )}
 
-      <div className="grid lg:grid-cols-2 gap-6 items-start">
-        <SiteBrandingCard onNotify={showNotification} />
-
-        <div className="space-y-6">
-          <ZakatSettingsCard onNotify={showNotification} />
-
-          <div className="border rounded-xl bg-card p-5 space-y-4">
-            <div>
-              <h2 className="font-semibold flex items-center gap-2">
-                <Percent className="w-4 h-4" /> Payout Platform Fee
-              </h2>
-              <p className="text-sm text-muted-foreground mt-1">
-                Percentage the platform takes from each campaign payout when an owner withdraws funds.
-                Donations themselves carry no platform fee — donors only pay whatever their payment
-                provider charges directly.
-              </p>
-            </div>
-
-            {isLoading ? (
-              <LoadingSpinner />
-            ) : (
-              <>
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium">Fee percentage</label>
-                  <div className="relative max-w-[160px]">
-                    <input
-                      type="number"
-                      value={feePercent}
-                      onChange={(e) => setFeePercent(e.target.value)}
-                      min="0"
-                      max="100"
-                      step="0.01"
-                      className="w-full pr-8 pl-3 py-2.5 border rounded-lg bg-background focus:outline-hidden focus:ring-2 focus:ring-ring text-lg font-bold"
-                    />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 font-bold text-muted-foreground">%</span>
-                  </div>
-                </div>
-
-                <button
-                  onClick={handleSave}
-                  disabled={updateSettings.isPending}
-                  className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold px-5 py-2.5 rounded-xl hover:bg-primary/90 transition-colors text-sm disabled:opacity-60"
-                >
-                  <Save className="w-4 h-4" />
-                  {updateSettings.isPending ? 'Saving…' : 'Save Changes'}
-                </button>
-              </>
-            )}
-          </div>
-        </div>
+      <div className="flex gap-2 flex-wrap border-b">
+        {PAGE_TABS.map((tab) => {
+          const Icon = tab.icon
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setActiveTab(tab.key)}
+              className={`inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${
+                activeTab === tab.key
+                  ? 'border-primary text-foreground'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Icon className="w-4 h-4" />
+              {tab.label}
+            </button>
+          )
+        })}
       </div>
 
-      <LegalContentCard onNotify={showNotification} />
+      {activeTab === 'branding' && <SiteBrandingCard onNotify={showNotification} />}
+
+      {activeTab === 'fees' && (
+        <div className="border rounded-xl bg-card p-5 space-y-4">
+          <div>
+            <h2 className="font-semibold flex items-center gap-2">
+              <Percent className="w-4 h-4" /> Payout Platform Fee
+            </h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Percentage the platform takes from each campaign payout when an owner withdraws funds.
+              Donations themselves carry no platform fee — donors only pay whatever their payment
+              provider charges directly.
+            </p>
+          </div>
+
+          {isLoading ? (
+            <LoadingSpinner />
+          ) : (
+            <>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium">Fee percentage</label>
+                <div className="relative max-w-[160px]">
+                  <input
+                    type="number"
+                    value={feePercent}
+                    onChange={(e) => setFeePercent(e.target.value)}
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    className="w-full pr-8 pl-3 py-2.5 border rounded-lg bg-background focus:outline-hidden focus:ring-2 focus:ring-ring text-lg font-bold"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 font-bold text-muted-foreground">%</span>
+                </div>
+              </div>
+
+              <button
+                onClick={handleSave}
+                disabled={updateSettings.isPending}
+                className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold px-5 py-2.5 rounded-xl hover:bg-primary/90 transition-colors text-sm disabled:opacity-60"
+              >
+                <Save className="w-4 h-4" />
+                {updateSettings.isPending ? 'Saving…' : 'Save Changes'}
+              </button>
+            </>
+          )}
+        </div>
+      )}
+
+      {activeTab === 'zakat' && <ZakatSettingsCard onNotify={showNotification} />}
+
+      {activeTab === 'legal' && <LegalContentCard onNotify={showNotification} />}
     </div>
   )
 }
