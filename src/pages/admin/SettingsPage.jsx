@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
-import { Percent, Save, CheckCircle2, AlertCircle, Image as ImageIcon, Upload, HandHeart } from 'lucide-react'
+import { Percent, Save, CheckCircle2, AlertCircle, Image as ImageIcon, Upload, HandHeart, FileText } from 'lucide-react'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
+import { MarkdownEditor } from '@/components/custom/MarkdownEditor'
 import { usePlatformSettings, useUpdatePlatformSettings } from '@/hooks/usePayments'
 import { useSiteSettings, useUpdateSiteSettings } from '@/hooks/useSiteSettings'
 import { useZakatSettings, useUpdateZakatSettings } from '@/hooks/useZakat'
+import { useLegalContent, useUpdateLegalContent } from '@/hooks/useLegalContent'
 import { formatGMD } from '@/utils/formatters'
 import { compressImage } from '@/utils/imageCompression'
 
@@ -107,6 +109,91 @@ export function SettingsPage() {
           </div>
         </div>
       </div>
+
+      <LegalContentCard onNotify={showNotification} />
+    </div>
+  )
+}
+
+const LEGAL_TABS = [
+  { key: 'help_content', label: 'Help' },
+  { key: 'trust_safety_content', label: 'Trust & Safety' },
+  { key: 'privacy_content', label: 'Privacy' },
+  { key: 'terms_content', label: 'Terms' },
+]
+
+function LegalContentCard({ onNotify }) {
+  const { content, isLoading } = useLegalContent()
+  const updateLegalContent = useUpdateLegalContent()
+  const [form, setForm] = useState(null)
+  const [activeTab, setActiveTab] = useState(LEGAL_TABS[0].key)
+
+  useEffect(() => {
+    if (content && !form) {
+      setForm({
+        help_content: content.help_content,
+        trust_safety_content: content.trust_safety_content,
+        privacy_content: content.privacy_content,
+        terms_content: content.terms_content,
+      })
+    }
+  }, [content, form])
+
+  const handleSave = () => {
+    updateLegalContent.mutate(form, {
+      onSuccess: () => onNotify('success', 'Legal content updated.'),
+      onError: (err) => onNotify('error', err?.response?.data?.message || 'Could not update content.'),
+    })
+  }
+
+  if (isLoading || !form) {
+    return (
+      <div className="border rounded-xl bg-card p-5 w-full">
+        <LoadingSpinner />
+      </div>
+    )
+  }
+
+  return (
+    <div className="border rounded-xl bg-card p-5 w-full space-y-4">
+      <div>
+        <h2 className="font-semibold flex items-center gap-2">
+          <FileText className="w-4 h-4" /> Legal &amp; Help Pages
+        </h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          Edit the content shown on the public Help, Trust &amp; Safety, Privacy, and Terms pages. Markdown supported.
+        </p>
+      </div>
+
+      <div className="flex gap-2 flex-wrap border-b pb-4">
+        {LEGAL_TABS.map((tab) => (
+          <button
+            key={tab.key}
+            type="button"
+            onClick={() => setActiveTab(tab.key)}
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              activeTab === tab.key ? 'bg-primary text-primary-foreground' : 'border hover:bg-accent'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      <MarkdownEditor
+        value={form[activeTab]}
+        onChange={(e) => setForm((f) => ({ ...f, [activeTab]: e.target.value }))}
+        placeholder="Write content here…"
+      />
+
+      <button
+        onClick={handleSave}
+        disabled={updateLegalContent.isPending}
+        className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold px-5 py-2.5 rounded-xl hover:bg-primary/90 transition-colors text-sm disabled:opacity-60"
+      >
+        <Save className="w-4 h-4" />
+        {updateLegalContent.isPending ? 'Saving…' : 'Save Changes'}
+      </button>
     </div>
   )
 }

@@ -14,4 +14,7 @@ export const settingsApi = {
       headers: { 'Content-Type': 'multipart/form-data' },
     }).then((r) => r.data)
   },
+
+  getLegalContent: () => apiClient.get('/settings/legal/').then((r) => r.data),
+  updateLegalContent: (data) => apiClient.patch('/settings/legal/', data).then((r) => r.data),
 }

@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react'
+import ReactMarkdown from 'react-markdown'
 import { Eye, Code, Bold, Italic, Heading2, List, Link2 } from 'lucide-react'
 import { cn } from '@/utils/cn'
 
@@ -85,7 +86,7 @@ export function MarkdownEditor({ value, onChange, placeholder = 'Write your cont
           className="w-full px-4 py-3 border rounded-xl text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring resize-vertical font-mono"
         />
       ) : (
-        <div className="border rounded-xl p-4 min-h-[300px] bg-background prose prose-sm max-w-none">
+        <div className="border rounded-xl p-4 min-h-[300px] bg-background">
           <MarkdownContent content={value} />
         </div>
       )}
@@ -93,41 +94,29 @@ export function MarkdownEditor({ value, onChange, placeholder = 'Write your cont
   )
 }
 
+// There's no @tailwindcss/typography plugin in this project, so markdown
+// elements need their own Tailwind classes rather than relying on a
+// `prose` wrapper (which would otherwise be a silent no-op).
+const MARKDOWN_COMPONENTS = {
+  h1: (props) => <h1 className="text-2xl font-bold mt-6 mb-3 first:mt-0" {...props} />,
+  h2: (props) => <h2 className="text-xl font-bold mt-6 mb-3 first:mt-0" {...props} />,
+  h3: (props) => <h3 className="text-lg font-bold mt-4 mb-2 first:mt-0" {...props} />,
+  p: (props) => <p className="mb-3 last:mb-0 text-foreground/90 leading-relaxed" {...props} />,
+  ul: (props) => <ul className="list-disc pl-5 mb-3 space-y-1 text-foreground/90" {...props} />,
+  ol: (props) => <ol className="list-decimal pl-5 mb-3 space-y-1 text-foreground/90" {...props} />,
+  li: (props) => <li className="leading-relaxed" {...props} />,
+  strong: (props) => <strong className="font-semibold text-foreground" {...props} />,
+  a: (props) => <a target="_blank" rel="noopener noreferrer" className="text-primary hover:underline" {...props} />,
+}
+
+// Renders markdown to actual React elements (not dangerouslySetInnerHTML) —
+// safer, and correctly handles everything CommonMark supports (bullet/
+// numbered lists, nested formatting, etc.) that the old regex-based parser
+// silently dropped.
 export function MarkdownContent({ content }) {
-  const parseMarkdown = (text) => {
-    if (!text) return ''
-
-    let html = text
-      // Headings
-      .replace(/^### (.*?)$/gm, '<h3 className="text-lg font-bold mt-4 mb-2">$1</h3>')
-      .replace(/^## (.*?)$/gm, '<h2 className="text-xl font-bold mt-4 mb-2">$1</h2>')
-      .replace(/^# (.*?)$/gm, '<h1 className="text-2xl font-bold mt-6 mb-3">$1</h1>')
-      // Bold
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/__(.*?)__/g, '<strong>$1</strong>')
-      // Italic
-      .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/_(.*?)_/g, '<em>$1</em>')
-      // Links
-      .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" className="text-primary hover:underline" target="_blank" rel="noopener">$1</a>')
-      // Line breaks
-      .replace(/\n\n/g, '</p><p>')
-      .replace(/\n/g, '<br />')
-
-    return `<p>${html}</p>`
-  }
-
   return (
-    <div className="prose prose-sm dark:prose-invert max-w-none">
-      <div
-        dangerouslySetInnerHTML={{
-          __html: parseMarkdown(content)
-            .replace(/<p><\/p>/g, '')
-            .replace(/^<p>/, '')
-            .replace(/<\/p>$/, ''),
-        }}
-        className="space-y-3 leading-relaxed text-foreground/90"
-      />
+    <div className="max-w-none">
+      <ReactMarkdown components={MARKDOWN_COMPONENTS}>{content}</ReactMarkdown>
     </div>
   )
 }

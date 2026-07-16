@@ -62,6 +62,9 @@ export const queryKeys = {
   siteSettings: {
     all: () => ['site-settings'],
   },
+  legalContent: {
+    all: () => ['legal-content'],
+  },
   zakat: {
     settings: () => ['zakat', 'settings'],
     recommendedCampaigns: (limit) => ['zakat', 'recommended-campaigns', limit],
