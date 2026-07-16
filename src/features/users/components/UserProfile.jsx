@@ -1,8 +1,8 @@
 import { useState, useRef } from 'react'
 import { Link } from '@tanstack/react-router'
-import { Camera, CheckCircle2, ShieldCheck, ShieldQuestion, AlertCircle, Building2, Clock } from 'lucide-react'
+import { Camera, CheckCircle2, ShieldCheck, ShieldQuestion, AlertCircle, Building2, Clock, Loader2 } from 'lucide-react'
 import { useMe } from '@/hooks/useAuth'
-import { useUpdateMe, useMyOrganizationChangeRequests, useSubmitOrganizationChangeRequest } from '@/hooks/useUsers'
+import { useUpdateMe, useUploadAvatar, useMyOrganizationChangeRequests, useSubmitOrganizationChangeRequest } from '@/hooks/useUsers'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { initials } from '@/utils/formatters'
 import { GAMBIA_REGIONS, ORGANIZATION_TYPES, ACCOUNT_TYPES, ROLES, ROUTES } from '@/constants'
@@ -146,9 +146,10 @@ function Input({ value, onChange, type = 'text', placeholder, prefix, ...props }
 export function UserProfile() {
   const { data: user } = useMe()
   const updateMe = useUpdateMe()
+  const uploadAvatar = useUploadAvatar()
   const fileRef = useRef()
-  const avatarFile = useRef(null)
   const [avatarPreview, setAvatarPreview] = useState(null)
+  const [avatarError, setAvatarError] = useState('')
   const [saved, setSaved] = useState(false)
 
   const [form, setForm] = useState({
@@ -164,8 +165,11 @@ export function UserProfile() {
   function handleAvatarChange(e) {
     const file = e.target.files?.[0]
     if (!file) return
-    avatarFile.current = file
     setAvatarPreview(URL.createObjectURL(file))
+    setAvatarError('')
+    uploadAvatar.mutate(file, {
+      onError: (err) => setAvatarError(err?.response?.data?.message || 'Could not upload avatar.'),
+    })
   }
 
   function handleSubmit(e) {
@@ -175,12 +179,8 @@ export function UserProfile() {
     // only changes via a reviewed change request (see Organization Details
     // below), never through this free-edit form.
     if (isOrg) delete payload.phone
-    if (avatarFile.current) {
-      payload.avatar = avatarFile.current
-    }
     updateMe.mutate(payload, {
       onSuccess: () => {
-        avatarFile.current = null
         setSaved(true)
         setTimeout(() => setSaved(false), 3000)
       },
@@ -211,13 +211,18 @@ export function UserProfile() {
       <div className="border rounded-2xl p-6 bg-card flex flex-col sm:flex-row items-center sm:items-start gap-6">
         <div className="relative flex-shrink-0">
           <div className={cn(
-            'w-20 h-20 bg-primary flex items-center justify-center text-primary-foreground text-xl font-bold overflow-hidden',
+            'relative w-20 h-20 bg-primary flex items-center justify-center text-primary-foreground text-xl font-bold overflow-hidden',
             isOrg ? 'rounded-xl' : 'rounded-full',
           )}>
             {avatarPreview || user?.avatar
               ? <img src={avatarPreview || user?.avatar} alt="avatar" className="w-full h-full object-cover" />
               : initials(displayName || user?.email)
             }
+            {uploadAvatar.isPending && (
+              <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                <Loader2 className="w-5 h-5 text-white animate-spin" />
+              </div>
+            )}
           </div>
           <button
             type="button"
@@ -232,6 +237,7 @@ export function UserProfile() {
         <div className="flex-1 text-center sm:text-left space-y-1">
           <p className="font-bold text-lg">{displayName || user?.email}</p>
           <p className="text-sm text-muted-foreground">{user?.email}</p>
+          {avatarError && <p className="text-xs text-destructive">{avatarError}</p>}
           <div className="flex items-center justify-center sm:justify-start gap-2 mt-2 flex-wrap">
             {user?.is_verified ? (
               <Link

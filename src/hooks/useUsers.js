@@ -57,23 +57,21 @@ export function usePublicCampaigner(id) {
 export function useUpdateMe() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (data) => {
-      const hasFile = Object.values(data).some((v) => v instanceof File)
-      if (hasFile) {
-        const form = new FormData()
-        Object.entries(data).forEach(([k, v]) => {
-          if (v !== undefined && v !== null) form.append(k, v)
-        })
-        return import('@/api/client').then(({ apiClient }) =>
-          apiClient.patch('/users/me/', form, {
-            headers: { 'Content-Type': 'multipart/form-data' },
-          }).then((r) => r.data),
-        )
-      }
-      return userApi.updateMe(data)
-    },
+    mutationFn: (data) => userApi.updateMe(data),
     onSuccess: (data) => {
       queryClient.setQueryData(queryKeys.auth.me(), (prev) => ({ ...prev, ...data }))
+    },
+  })
+}
+
+// Avatar uploads instantly on file selection through its own endpoint,
+// separate from the rest of the profile form — see MyAvatarUploadView.
+export function useUploadAvatar() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (file) => userApi.uploadAvatar(file),
+    onSuccess: (res) => {
+      queryClient.setQueryData(queryKeys.auth.me(), (prev) => ({ ...prev, ...res.data }))
     },
   })
 }
