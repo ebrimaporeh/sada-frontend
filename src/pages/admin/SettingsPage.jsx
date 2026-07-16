@@ -156,7 +156,6 @@ function ZakatSettingsCard({ onNotify }) {
   useEffect(() => {
     if (zakatSettings && !form) {
       setForm({
-        nisab_basis: zakatSettings.nisab_basis,
         nisab_gold_grams: String(zakatSettings.nisab_gold_grams),
         nisab_silver_grams: String(zakatSettings.nisab_silver_grams),
         gold_price_per_gram: String(zakatSettings.gold_price_per_gram),
@@ -177,7 +176,6 @@ function ZakatSettingsCard({ onNotify }) {
     }
     updateZakatSettings.mutate(
       {
-        nisab_basis: form.nisab_basis,
         nisab_gold_grams: form.nisab_gold_grams || '0',
         nisab_silver_grams: form.nisab_silver_grams || '0',
         gold_price_per_gram: form.gold_price_per_gram || '0',
@@ -207,27 +205,10 @@ function ZakatSettingsCard({ onNotify }) {
           <HandHeart className="w-4 h-4" /> Zakat Calculator
         </h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Nisab is computed from a gold or silver weight and its current price — keep the price per gram
-          up to date, or set a flat override below to skip that calculation entirely.
+          Nisab is computed from both gold and silver weight/price — whichever comes out lower is used
+          automatically, since that's the more inclusive threshold most scholars favor. Keep both prices
+          per gram up to date, or set a flat override below to skip that calculation entirely.
         </p>
-      </div>
-
-      <div className="space-y-1.5">
-        <label className="text-sm font-medium">Nisab basis</label>
-        <div className="flex gap-2">
-          {['silver', 'gold'].map((basis) => (
-            <button
-              key={basis}
-              type="button"
-              onClick={() => setForm((f) => ({ ...f, nisab_basis: basis }))}
-              className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-colors ${
-                form.nisab_basis === basis ? 'bg-primary text-primary-foreground' : 'border hover:bg-accent'
-              }`}
-            >
-              {basis}
-            </button>
-          ))}
-        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
