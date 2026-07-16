@@ -6,6 +6,7 @@ import { usePlatformSettings, useUpdatePlatformSettings } from '@/hooks/usePayme
 import { useSiteSettings, useUpdateSiteSettings } from '@/hooks/useSiteSettings'
 import { useZakatSettings, useUpdateZakatSettings } from '@/hooks/useZakat'
 import { formatGMD } from '@/utils/formatters'
+import { compressImage } from '@/utils/imageCompression'
 
 export function SettingsPage() {
   const { data: platformSettings, isLoading } = usePlatformSettings()
@@ -113,10 +114,10 @@ export function SettingsPage() {
 function LogoUpload({ label, hint, currentUrl, onFileSelected, preview, surfaceClassName }) {
   const fileRef = useRef()
 
-  function handleChange(e) {
+  async function handleChange(e) {
     const file = e.target.files?.[0]
     if (!file) return
-    onFileSelected(file)
+    onFileSelected(await compressImage(file, 'logo'))
   }
 
   const displaySrc = preview || currentUrl

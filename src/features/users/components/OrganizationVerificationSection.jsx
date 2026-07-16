@@ -4,6 +4,7 @@ import { useMe } from '@/hooks/useAuth'
 import { useMyOrganizationVerification, useSubmitOrganizationVerification } from '@/hooks/useUsers'
 import { formatDate } from '@/utils/formatters'
 import { ImageZoomModal } from '@/components/custom/ImageZoomModal'
+import { compressImage } from '@/utils/imageCompression'
 
 const ID_TYPES = [
   { value: 'national_id', label: 'National ID Card' },
@@ -19,6 +20,16 @@ const STATUS_BADGE = {
 
 function FilePicker({ label, file, onChange, required }) {
   const [preview, setPreview] = useState(null)
+
+  async function handleFileInput(e) {
+    const selected = e.target.files?.[0]
+    e.target.value = ''
+    if (!selected) {
+      onChange(null)
+      return
+    }
+    onChange(await compressImage(selected, 'document'))
+  }
 
   useEffect(() => {
     if (!file) {
@@ -42,7 +53,7 @@ function FilePicker({ label, file, onChange, required }) {
               type="file"
               accept="image/*"
               className="hidden"
-              onChange={(e) => onChange(e.target.files?.[0] || null)}
+              onChange={handleFileInput}
             />
           </label>
           <button
@@ -62,7 +73,7 @@ function FilePicker({ label, file, onChange, required }) {
             type="file"
             accept="image/*"
             className="hidden"
-            onChange={(e) => onChange(e.target.files?.[0] || null)}
+            onChange={handleFileInput}
           />
         </label>
       )}

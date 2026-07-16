@@ -5,6 +5,7 @@ import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
 import { EmptyState } from '@/components/custom/EmptyState'
 import { AdminPagination } from '@/components/custom/AdminPagination'
 import { ConfirmModal } from '@/components/custom/ConfirmModal'
+import { compressImage } from '@/utils/imageCompression'
 import {
   useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory, useUploadCategoryImage,
 } from '@/hooks/useCampaigns'
@@ -61,17 +62,18 @@ export function CategoriesPage() {
     setImageFile(null)
   }
 
-  const handleImageChange = (e) => {
+  const handleImageChange = async (e) => {
     const file = e.target.files?.[0]
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
         showNotification('error', 'Image must be smaller than 5MB')
         return
       }
-      setImageFile(file)
+      const compressed = await compressImage(file, 'category')
+      setImageFile(compressed)
       const reader = new FileReader()
       reader.onload = (event) => setImagePreview(event.target?.result)
-      reader.readAsDataURL(file)
+      reader.readAsDataURL(compressed)
     }
   }
 

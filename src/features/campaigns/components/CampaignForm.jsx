@@ -8,6 +8,7 @@ import { PageHeader } from '@/components/custom/PageHeader'
 import { MarkdownEditor } from '@/components/custom/MarkdownEditor'
 import { DatePicker } from '@/components/custom/DatePicker'
 import { VerifyPromptModal } from '@/components/custom/VerifyPromptModal'
+import { compressImage } from '@/utils/imageCompression'
 import { useMe } from '@/hooks/useAuth'
 import { cn } from '@/utils/cn'
 
@@ -137,11 +138,14 @@ function ImageUploader({ images, onChange }) {
   const MAX = 5
   const [cover, ...rest] = images
 
-  function handleFiles(e) {
+  async function handleFiles(e) {
     const files = Array.from(e.target.files || [])
-    const previews = files.map((f) => ({ file: f, url: URL.createObjectURL(f), name: f.name }))
-    onChange([...images, ...previews].slice(0, MAX))
     e.target.value = ''
+    const compressedFiles = await Promise.all(
+      files.map((f, i) => compressImage(f, images.length + i === 0 ? 'campaign_cover' : 'campaign_gallery')),
+    )
+    const previews = compressedFiles.map((f) => ({ file: f, url: URL.createObjectURL(f), name: f.name }))
+    onChange([...images, ...previews].slice(0, MAX))
   }
 
   function remove(idx) {

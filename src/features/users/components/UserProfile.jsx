@@ -3,6 +3,7 @@ import { Link } from '@tanstack/react-router'
 import { Camera, CheckCircle2, ShieldCheck, ShieldQuestion, AlertCircle, Building2, Clock, Loader2 } from 'lucide-react'
 import { useMe } from '@/hooks/useAuth'
 import { useUpdateMe, useUploadAvatar, useMyOrganizationChangeRequests, useSubmitOrganizationChangeRequest } from '@/hooks/useUsers'
+import { compressImage } from '@/utils/imageCompression'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { initials } from '@/utils/formatters'
 import { GAMBIA_REGIONS, ORGANIZATION_TYPES, ACCOUNT_TYPES, ROLES, ROUTES } from '@/constants'
@@ -162,12 +163,13 @@ export function UserProfile() {
 
   const set = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }))
 
-  function handleAvatarChange(e) {
+  async function handleAvatarChange(e) {
     const file = e.target.files?.[0]
     if (!file) return
     setAvatarPreview(URL.createObjectURL(file))
     setAvatarError('')
-    uploadAvatar.mutate(file, {
+    const compressed = await compressImage(file, 'avatar')
+    uploadAvatar.mutate(compressed, {
       onError: (err) => setAvatarError(err?.response?.data?.message || 'Could not upload avatar.'),
     })
   }

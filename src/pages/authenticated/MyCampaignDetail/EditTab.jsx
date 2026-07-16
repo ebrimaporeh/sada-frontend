@@ -3,6 +3,7 @@ import { Info, CheckCircle2, AlertCircle, PauseCircle, PlayCircle, ImagePlus, X,
 import { useCategories, useUpdateMyCampaign, useTogglePauseCampaign, useUpdateCampaignMedia, useDeleteGalleryImage } from '@/hooks/useCampaigns'
 import { DatePicker } from '@/components/custom/DatePicker'
 import { GAMBIA_REGIONS, CAMPAIGN_STATUS } from '@/constants'
+import { compressImage } from '@/utils/imageCompression'
 
 const inputClass = 'w-full px-3 py-2.5 border rounded-xl text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring'
 const labelClass = 'text-sm font-medium block mb-1.5'
@@ -14,26 +15,28 @@ function CampaignPhotosCard({ campaign }) {
   const galleryRef = useRef()
   const [mediaError, setMediaError] = useState('')
 
-  function handleCoverChange(e) {
+  async function handleCoverChange(e) {
     const file = e.target.files?.[0]
+    e.target.value = ''
     if (!file) return
     setMediaError('')
+    const compressed = await compressImage(file, 'campaign_cover')
     updateMedia.mutate(
-      { slug: campaign.slug, cover: file, gallery: [] },
+      { slug: campaign.slug, cover: compressed, gallery: [] },
       { onError: (err) => setMediaError(err?.response?.data?.message || 'Failed to upload cover.') },
     )
-    e.target.value = ''
   }
 
-  function handleGalleryChange(e) {
+  async function handleGalleryChange(e) {
     const files = Array.from(e.target.files || [])
+    e.target.value = ''
     if (!files.length) return
     setMediaError('')
+    const compressed = await Promise.all(files.map((f) => compressImage(f, 'campaign_gallery')))
     updateMedia.mutate(
-      { slug: campaign.slug, cover: null, gallery: files },
+      { slug: campaign.slug, cover: null, gallery: compressed },
       { onError: (err) => setMediaError(err?.response?.data?.message || 'Failed to upload gallery images.') },
     )
-    e.target.value = ''
   }
 
   function handleDelete(imageId) {

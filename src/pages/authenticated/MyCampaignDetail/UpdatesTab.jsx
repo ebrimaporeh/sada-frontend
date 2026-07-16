@@ -3,6 +3,7 @@ import { PlusCircle, X, ImagePlus, AlertCircle, Megaphone, Edit2, Trash2 } from 
 import { useAddCampaignUpdate, useEditCampaignUpdate, useDeleteCampaignUpdate } from '@/hooks/useCampaigns'
 import { formatDate } from '@/utils/formatters'
 import { cn } from '@/utils/cn'
+import { compressImage } from '@/utils/imageCompression'
 
 export function UpdatesTab({ campaign }) {
   const addUpdate = useAddCampaignUpdate()
@@ -18,11 +19,12 @@ export function UpdatesTab({ campaign }) {
 
   const updates = campaign.updates || []
 
-  function handleFiles(e) {
+  async function handleFiles(e) {
     const files = Array.from(e.target.files || [])
-    const previews = files.map((f) => ({ file: f, url: URL.createObjectURL(f), isNew: true }))
-    setImages((prev) => [...prev, ...previews].slice(0, 4))
     e.target.value = ''
+    const compressed = await Promise.all(files.map((f) => compressImage(f, 'campaign_update')))
+    const previews = compressed.map((f) => ({ file: f, url: URL.createObjectURL(f), isNew: true }))
+    setImages((prev) => [...prev, ...previews].slice(0, 4))
   }
 
   function startEdit(update) {
