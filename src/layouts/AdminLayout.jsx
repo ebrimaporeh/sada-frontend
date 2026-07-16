@@ -115,7 +115,6 @@ function SidebarBrand() {
   return (
     <div className="px-5 py-4 border-b flex items-center gap-2">
       <Logo imgClassName="h-7 w-auto" />
-      <p className="text-xs text-muted-foreground">Admin Panel</p>
     </div>
   )
 }
