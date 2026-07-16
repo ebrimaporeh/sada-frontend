@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Loader2, Search, SearchX, Plus, Edit2, Trash2, Upload, X, CheckCircle2, AlertCircle, FolderOpen } from 'lucide-react'
 import { PageHeader } from '@/components/custom/PageHeader'
-import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
 import { EmptyState } from '@/components/custom/EmptyState'
 import { AdminPagination } from '@/components/custom/AdminPagination'
 import { ConfirmModal } from '@/components/custom/ConfirmModal'
@@ -11,6 +10,23 @@ import {
 } from '@/hooks/useCampaigns'
 
 const emptyForm = { name: '', description: '' }
+
+function CategoryCardSkeleton() {
+  return (
+    <div className="border rounded-lg overflow-hidden bg-card animate-pulse">
+      <div className="h-32 bg-muted" />
+      <div className="p-3 space-y-2">
+        <div className="h-3 bg-muted rounded w-3/4" />
+        <div className="h-2.5 bg-muted rounded w-1/2" />
+        <div className="h-2.5 bg-muted rounded w-full" />
+        <div className="pt-2 border-t flex gap-1">
+          <div className="h-6 bg-muted rounded flex-1" />
+          <div className="h-6 bg-muted rounded flex-1" />
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export function CategoriesPage() {
   const [search, setSearch] = useState('')
@@ -128,14 +144,6 @@ export function CategoriesPage() {
     })
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-16">
-        <LoadingSpinner />
-      </div>
-    )
-  }
-
   return (
     <div className="min-h-full flex flex-col">
       <div className="flex-1 space-y-6">
@@ -194,7 +202,11 @@ export function CategoriesPage() {
       </div>
 
       {/* Categories Grid */}
-      {filtered.length === 0 ? (
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+          {Array.from({ length: 8 }).map((_, i) => <CategoryCardSkeleton key={i} />)}
+        </div>
+      ) : filtered.length === 0 ? (
         <EmptyState
           icon={FolderOpen}
           title="No categories found"

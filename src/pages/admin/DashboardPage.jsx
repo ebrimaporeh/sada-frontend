@@ -25,7 +25,6 @@ import {
   CheckCircle,
   Activity,
   Calendar,
-  Loader2,
 } from 'lucide-react'
 import { ROUTES } from '@/constants'
 import { formatGMD, formatDate } from '@/utils/formatters'
@@ -46,6 +45,37 @@ const DATE_RANGES = [
   { label: 'Last 90 Days', value: 'year', days: 90 },
   { label: 'All Time', value: 'all', days: null },
 ]
+
+function StatCardSkeleton() {
+  return (
+    <div className="border rounded-xl p-3 sm:p-5 bg-card min-w-0 animate-pulse">
+      <div className="flex items-center justify-between mb-2 sm:mb-3 gap-2">
+        <div className="h-3 sm:h-4 bg-muted rounded w-16" />
+        <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-lg bg-muted flex-shrink-0" />
+      </div>
+      <div className="h-5 sm:h-7 bg-muted rounded w-20" />
+    </div>
+  )
+}
+
+function ChartSkeleton({ height = 300 }) {
+  return <div className="bg-muted rounded-lg animate-pulse" style={{ height }} />
+}
+
+function ListRowSkeleton() {
+  return (
+    <div className="flex items-center justify-between pb-3 border-b last:border-0 animate-pulse">
+      <div className="flex-1 min-w-0 space-y-1.5">
+        <div className="h-3.5 bg-muted rounded w-3/4" />
+        <div className="h-3 bg-muted rounded w-1/3" />
+      </div>
+      <div className="text-right ml-2 space-y-1.5 flex-shrink-0">
+        <div className="h-3.5 bg-muted rounded w-16 ml-auto" />
+        <div className="h-3 bg-muted rounded w-12 ml-auto" />
+      </div>
+    </div>
+  )
+}
 
 function DateRangeSelector({ selectedRange, customRange, onRangeChange, onCustomDate }) {
   const isCustomActive = Boolean(customRange)
@@ -191,16 +221,6 @@ export function AdminDashboardPage() {
     queryFn: () => analyticsApi.getRecentDonations(dateRange.start, dateRange.end, 10),
   })
 
-  const isLoading = statsLoading || donationsLoading || statusLoading
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-      </div>
-    )
-  }
-
   const stats = statsData?.data || { campaigns_count: 0, total_raised: 0, users_count: 0, donations_count: 0 }
   const donationsByDay = donationsData?.data || []
   const campaignStatus = campaignStatusData?.data || []
@@ -271,17 +291,21 @@ export function AdminDashboardPage() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        {statCards.map(({ label, value, icon: Icon, color, bgColor }) => (
-          <div key={label} className="border rounded-xl p-3 sm:p-5 bg-card hover:shadow-md transition-shadow min-w-0">
-            <div className="flex items-center justify-between mb-2 sm:mb-3 gap-2">
-              <p className="text-xs sm:text-sm text-muted-foreground font-medium truncate">{label}</p>
-              <div className={`w-7 h-7 sm:w-10 sm:h-10 rounded-lg ${bgColor} flex items-center justify-center flex-shrink-0`}>
-                <Icon className={`w-3.5 h-3.5 sm:w-5 sm:h-5 ${color}`} />
+        {statsLoading ? (
+          Array.from({ length: 4 }).map((_, i) => <StatCardSkeleton key={i} />)
+        ) : (
+          statCards.map(({ label, value, icon: Icon, color, bgColor }) => (
+            <div key={label} className="border rounded-xl p-3 sm:p-5 bg-card hover:shadow-md transition-shadow min-w-0">
+              <div className="flex items-center justify-between mb-2 sm:mb-3 gap-2">
+                <p className="text-xs sm:text-sm text-muted-foreground font-medium truncate">{label}</p>
+                <div className={`w-7 h-7 sm:w-10 sm:h-10 rounded-lg ${bgColor} flex items-center justify-center flex-shrink-0`}>
+                  <Icon className={`w-3.5 h-3.5 sm:w-5 sm:h-5 ${color}`} />
+                </div>
               </div>
+              <p className="text-lg sm:text-2xl font-bold truncate">{value}</p>
             </div>
-            <p className="text-lg sm:text-2xl font-bold truncate">{value}</p>
-          </div>
-        ))}
+          ))
+        )}
       </div>
 
       {/* Charts Grid */}
@@ -289,7 +313,9 @@ export function AdminDashboardPage() {
         {/* Donations Over Time */}
         <div className="border rounded-xl p-5 bg-card min-w-0 overflow-x-auto">
           <h3 className="text-lg font-bold mb-4">Donations Over Time</h3>
-          {donationsByDay.length > 0 ? (
+          {donationsLoading ? (
+            <ChartSkeleton height={300} />
+          ) : donationsByDay.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={donationsByDay} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
                 <defs>
@@ -335,7 +361,9 @@ export function AdminDashboardPage() {
         {/* Campaign Status Distribution */}
         <div className="border rounded-xl p-5 bg-card min-w-0 overflow-x-auto">
           <h3 className="text-lg font-bold mb-4">Campaign Status Distribution</h3>
-          {campaignStatus.length > 0 ? (
+          {statusLoading ? (
+            <ChartSkeleton height={300} />
+          ) : campaignStatus.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
@@ -380,7 +408,9 @@ export function AdminDashboardPage() {
         {/* Top Donors */}
         <div className="border rounded-xl p-5 bg-card min-w-0 overflow-x-auto">
           <h3 className="text-lg font-bold mb-4">Top Donors</h3>
-          {topDonors.length > 0 ? (
+          {topDonorsLoading ? (
+            <ChartSkeleton height={250} />
+          ) : topDonors.length > 0 ? (
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={topDonors} margin={{ top: 20, right: 30, left: 0, bottom: 60 }}>
                 <defs>
@@ -422,7 +452,11 @@ export function AdminDashboardPage() {
         {/* Top Campaigns */}
         <div className="border rounded-xl p-5 bg-card min-w-0">
           <h3 className="text-lg font-bold mb-4">Top Campaigns</h3>
-          {topCampaigns.length > 0 ? (
+          {topCampaignsLoading ? (
+            <div className="space-y-3">
+              {Array.from({ length: 5 }).map((_, i) => <ListRowSkeleton key={i} />)}
+            </div>
+          ) : topCampaigns.length > 0 ? (
             <div className="space-y-3">
               {topCampaigns.map((campaign) => (
                 <div key={campaign.id} className="flex items-center justify-between pb-3 border-b last:border-0">
@@ -468,7 +502,9 @@ export function AdminDashboardPage() {
         <div className="lg:col-span-2 min-w-0">
           <h2 className="text-lg font-bold mb-3">Recent Donations</h2>
           <div className="border rounded-xl p-5 bg-card space-y-3">
-            {recentDonations.length > 0 ? (
+            {recentLoading ? (
+              Array.from({ length: 5 }).map((_, i) => <ListRowSkeleton key={i} />)
+            ) : recentDonations.length > 0 ? (
               recentDonations.map((d, i) => (
                 <div key={i} className="flex items-center justify-between py-2 border-b last:border-0">
                   <div className="flex-1">
