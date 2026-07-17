@@ -119,7 +119,13 @@ export function useGoogleOAuth() {
   const navigate = useNavigate()
 
   return useMutation({
-    mutationFn: (idToken) => authApi.googleOAuth(idToken),
+    // Accepts either a bare idToken string (login page) or
+    // { idToken, accountType } (signup page, to signal individual vs
+    // organization intent for a brand-new account).
+    mutationFn: (arg) => {
+      const { idToken, accountType } = typeof arg === 'string' ? { idToken: arg } : arg
+      return authApi.googleOAuth(idToken, accountType)
+    },
     onSuccess: (data) => {
       localStorage.setItem('access_token', data.data.tokens.access)
       localStorage.setItem('refresh_token', data.data.tokens.refresh)

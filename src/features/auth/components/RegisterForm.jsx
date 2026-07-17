@@ -1,29 +1,22 @@
 import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
+import { GoogleLogin } from '@react-oauth/google'
 import { User, Building2 } from 'lucide-react'
-import { useRegister } from '@/hooks/useAuth'
-import { ROUTES, ACCOUNT_TYPES, ORGANIZATION_TYPES } from '@/constants'
+import { useRegister, useGoogleOAuth } from '@/hooks/useAuth'
+import { ROUTES, ACCOUNT_TYPES } from '@/constants'
 import { cn } from '@/utils/cn'
 
 const INITIAL_FORM = {
   email: '',
   password: '',
   password_confirm: '',
-  first_name: '',
-  last_name: '',
-  phone: '',
   account_type: ACCOUNT_TYPES.INDIVIDUAL,
-  organization_name: '',
-  organization_type: '',
-  contact_person_name: '',
-  phone_2: '',
-  recovery_email_1: '',
-  recovery_email_2: '',
 }
 
 export function RegisterForm() {
   const [form, setForm] = useState(INITIAL_FORM)
   const register = useRegister()
+  const googleOAuth = useGoogleOAuth()
   const isOrg = form.account_type === ACCOUNT_TYPES.ORGANIZATION
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
@@ -42,143 +35,67 @@ export function RegisterForm() {
         <p className="text-muted-foreground">Start your journey today</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {register.isError && (
-          <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm">
-            {register.error?.response?.data?.message || 'Registration failed.'}
-          </div>
-        )}
-
-        {/* Account type toggle */}
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={() => setAccountType(ACCOUNT_TYPES.INDIVIDUAL)}
-            className={cn(
-              'flex items-center justify-center gap-2 py-2.5 rounded-lg border text-sm font-medium transition-colors',
-              !isOrg ? 'border-primary bg-primary/5 text-primary' : 'hover:bg-accent',
-            )}
-          >
-            <User className="w-4 h-4" /> Individual
-          </button>
-          <button
-            type="button"
-            onClick={() => setAccountType(ACCOUNT_TYPES.ORGANIZATION)}
-            className={cn(
-              'flex items-center justify-center gap-2 py-2.5 rounded-lg border text-sm font-medium transition-colors',
-              isOrg ? 'border-primary bg-primary/5 text-primary' : 'hover:bg-accent',
-            )}
-          >
-            <Building2 className="w-4 h-4" /> Organization
-          </button>
+      {(register.isError || googleOAuth.isError) && (
+        <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm">
+          {register.error?.response?.data?.message
+            || googleOAuth.error?.response?.data?.message
+            || 'Registration failed.'}
         </div>
+      )}
 
-        {isOrg ? (
-          <>
-            <div className="space-y-1">
-              <label className="text-sm font-medium">Organization name</label>
-              <input
-                name="organization_name"
-                value={form.organization_name}
-                onChange={handleChange}
-                required
-                placeholder="e.g. Bakau Central Mosque Committee"
-                className="w-full px-3 py-2 border rounded-md text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
-              />
-            </div>
+      {/* Account type toggle */}
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          onClick={() => setAccountType(ACCOUNT_TYPES.INDIVIDUAL)}
+          className={cn(
+            'flex items-center justify-center gap-2 py-2.5 rounded-lg border text-sm font-medium transition-colors',
+            !isOrg ? 'border-primary bg-primary/5 text-primary' : 'hover:bg-accent',
+          )}
+        >
+          <User className="w-4 h-4" /> Individual
+        </button>
+        <button
+          type="button"
+          onClick={() => setAccountType(ACCOUNT_TYPES.ORGANIZATION)}
+          className={cn(
+            'flex items-center justify-center gap-2 py-2.5 rounded-lg border text-sm font-medium transition-colors',
+            isOrg ? 'border-primary bg-primary/5 text-primary' : 'hover:bg-accent',
+          )}
+        >
+          <Building2 className="w-4 h-4" /> Organization
+        </button>
+      </div>
 
-            <div className="space-y-1">
-              <label className="text-sm font-medium">Organization type</label>
-              <select
-                name="organization_type"
-                value={form.organization_type}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2 border rounded-md text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
-              >
-                <option value="">Select a type...</option>
-                {ORGANIZATION_TYPES.map((t) => (
-                  <option key={t.value} value={t.value}>{t.label}</option>
-                ))}
-              </select>
-            </div>
+      {isOrg && (
+        <p className="text-xs text-muted-foreground -mt-2">
+          You'll add your organization's details right after you sign up.
+        </p>
+      )}
 
-            <div className="space-y-1">
-              <label className="text-sm font-medium">Contact person's name</label>
-              <input
-                name="contact_person_name"
-                value={form.contact_person_name}
-                onChange={handleChange}
-                required
-                placeholder="Who we'll reach for verification"
-                className="w-full px-3 py-2 border rounded-md text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
-              />
-            </div>
+      {/* Google OAuth */}
+      <div className="flex justify-center">
+        <GoogleLogin
+          onSuccess={(credentialResponse) => {
+            googleOAuth.mutate({ idToken: credentialResponse.credential, accountType: form.account_type })
+          }}
+          onError={() => {
+            console.log('Google signup failed')
+          }}
+        />
+      </div>
 
-            <div className="flex gap-2">
-              <div className="flex-1 space-y-1">
-                <label className="text-sm font-medium">Phone number</label>
-                <input
-                  name="phone"
-                  value={form.phone}
-                  onChange={handleChange}
-                  required
-                  placeholder="+220 ..."
-                  className="w-full px-3 py-2 border rounded-md text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
-                />
-              </div>
-              <div className="flex-1 space-y-1">
-                <label className="text-sm font-medium">Second phone number</label>
-                <input
-                  name="phone_2"
-                  value={form.phone_2}
-                  onChange={handleChange}
-                  required
-                  placeholder="+220 ..."
-                  className="w-full px-3 py-2 border rounded-md text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
-                />
-              </div>
-            </div>
+      {/* Divider */}
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-background px-2 text-muted-foreground">or sign up with email</span>
+        </div>
+      </div>
 
-            <div className="space-y-1">
-              <label className="text-sm font-medium">Recovery email <span className="text-muted-foreground font-normal">(optional)</span></label>
-              <input
-                name="recovery_email_1"
-                type="email"
-                value={form.recovery_email_1}
-                onChange={handleChange}
-                placeholder="Used to recover this account and copy withdrawal emails"
-                className="w-full px-3 py-2 border rounded-md text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-sm font-medium">Second recovery email <span className="text-muted-foreground font-normal">(optional)</span></label>
-              <input
-                name="recovery_email_2"
-                type="email"
-                value={form.recovery_email_2}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-md text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
-              />
-            </div>
-          </>
-        ) : (
-          <div className="flex gap-2">
-            {['first_name', 'last_name'].map((field) => (
-              <div key={field} className="flex-1 space-y-1">
-                <label className="text-sm font-medium capitalize">{field.replace('_', ' ')}</label>
-                <input
-                  name={field}
-                  value={form[field]}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border rounded-md text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
-                />
-              </div>
-            ))}
-          </div>
-        )}
-
+      <form onSubmit={handleSubmit} className="space-y-4">
         {[
           { name: 'email', type: 'email', label: 'Email', required: true },
           { name: 'password', type: 'password', label: 'Password', required: true },
