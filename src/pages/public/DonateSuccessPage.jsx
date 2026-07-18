@@ -76,7 +76,7 @@ export function DonateSuccessPage() {
         <div className="bg-destructive/5 border border-destructive/20 rounded-xl p-5 space-y-2 text-sm text-left">
           <p className="font-semibold">What happened?</p>
           <p className="text-muted-foreground">
-            ModemPay reported this payment didn't go through. No funds were charged. You can try donating again from the campaign page.
+            Our payment provider reported this payment didn't go through. No funds were charged. You can try donating again from the campaign page.
           </p>
         </div>
       ) : (
@@ -85,7 +85,7 @@ export function DonateSuccessPage() {
           <ul className="space-y-1.5 text-muted-foreground text-left">
             <li className="flex items-start gap-2">
               <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-              {donationStatus === 'paid' ? 'Your payment has been confirmed by ModemPay' : 'Your payment is being processed by ModemPay'}
+              {donationStatus === 'paid' ? 'Your payment has been confirmed' : 'Your payment is being processed'}
             </li>
             <li className="flex items-start gap-2">
               <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />

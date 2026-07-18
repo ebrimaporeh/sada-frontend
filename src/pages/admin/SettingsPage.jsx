@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Percent, Save, CheckCircle2, AlertCircle, Image as ImageIcon, Upload, HandHeart, FileText, Palette } from 'lucide-react'
+import { Percent, Save, CheckCircle2, AlertCircle, Image as ImageIcon, Upload, HandHeart, FileText, Palette, CreditCard, Smartphone } from 'lucide-react'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
 import { MarkdownEditor } from '@/components/custom/MarkdownEditor'
@@ -9,9 +9,11 @@ import { useZakatSettings, useUpdateZakatSettings } from '@/hooks/useZakat'
 import { useLegalContent, useUpdateLegalContent } from '@/hooks/useLegalContent'
 import { formatGMD } from '@/utils/formatters'
 import { compressImage } from '@/utils/imageCompression'
+import { cn } from '@/utils/cn'
 
 const PAGE_TABS = [
   { key: 'branding', label: 'Branding', icon: Palette },
+  { key: 'payments', label: 'Payments', icon: CreditCard },
   { key: 'fees', label: 'Payout Fee', icon: Percent },
   { key: 'zakat', label: 'Zakat', icon: HandHeart },
   { key: 'legal', label: 'Legal & Help', icon: FileText },
@@ -88,6 +90,8 @@ export function SettingsPage() {
       </div>
 
       {activeTab === 'branding' && <SiteBrandingCard onNotify={showNotification} />}
+
+      {activeTab === 'payments' && <PaymentGatewaysCard onNotify={showNotification} />}
 
       {activeTab === 'fees' && (
         <div className="border rounded-xl bg-card p-5 space-y-4">
@@ -220,6 +224,162 @@ function LegalContentCard({ onNotify }) {
       >
         <Save className="w-4 h-4" />
         {updateLegalContent.isPending ? 'Saving…' : 'Save Changes'}
+      </button>
+    </div>
+  )
+}
+
+function Toggle({ checked, onChange, label, description, disabled }) {
+  return (
+    <label className={cn('flex items-start justify-between gap-4 cursor-pointer group', disabled && 'opacity-60 cursor-not-allowed')}>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium">{label}</p>
+        {description && <p className="text-xs text-muted-foreground mt-0.5">{description}</p>}
+      </div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        disabled={disabled}
+        onClick={() => onChange(!checked)}
+        className={cn(
+          'relative flex-shrink-0 w-10 h-6 rounded-full transition-colors focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed',
+          checked ? 'bg-primary' : 'bg-muted-foreground/30',
+        )}
+      >
+        <span
+          className={cn(
+            'absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow-sm transition-transform',
+            checked ? 'translate-x-4' : 'translate-x-0',
+          )}
+        />
+      </button>
+    </label>
+  )
+}
+
+function PaymentGatewaysCard({ onNotify }) {
+  const { data: platformSettings, isLoading } = usePlatformSettings()
+  const updateSettings = useUpdatePlatformSettings()
+  const [form, setForm] = useState(null)
+
+  useEffect(() => {
+    if (platformSettings && !form) {
+      setForm({
+        modempay_enabled: platformSettings.modempay_enabled,
+        stripe_enabled: platformSettings.stripe_enabled,
+        stripe_settlement_currency: platformSettings.stripe_settlement_currency || 'usd',
+        gmd_to_settlement_rate: String(platformSettings.gmd_to_settlement_rate ?? ''),
+      })
+    }
+  }, [platformSettings, form])
+
+  const handleSave = () => {
+    const rate = Number(form.gmd_to_settlement_rate)
+    if (!form.gmd_to_settlement_rate || Number.isNaN(rate) || rate <= 0) {
+      onNotify('error', 'Enter a positive GMD exchange rate.')
+      return
+    }
+    if (!form.stripe_settlement_currency.trim()) {
+      onNotify('error', 'Enter a settlement currency code (e.g. usd).')
+      return
+    }
+    updateSettings.mutate(
+      {
+        modempay_enabled: form.modempay_enabled,
+        stripe_enabled: form.stripe_enabled,
+        stripe_settlement_currency: form.stripe_settlement_currency.trim().toLowerCase(),
+        gmd_to_settlement_rate: form.gmd_to_settlement_rate,
+      },
+      {
+        onSuccess: () => onNotify('success', 'Payment gateway settings updated.'),
+        onError: (err) => onNotify('error', err?.response?.data?.message || 'Could not update payment gateways.'),
+      },
+    )
+  }
+
+  if (isLoading || !form) {
+    return (
+      <div className="border rounded-xl bg-card p-5 w-full">
+        <LoadingSpinner />
+      </div>
+    )
+  }
+
+  return (
+    <div className="border rounded-xl bg-card p-5 w-full space-y-5">
+      <div>
+        <h2 className="font-semibold flex items-center gap-2">
+          <CreditCard className="w-4 h-4" /> Payment Gateways
+        </h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          Turn payment gateways on or off for the whole platform. A gateway still needs its API
+          credentials configured on the server before it can be enabled here.
+        </p>
+      </div>
+
+      <div className="space-y-4 divide-y">
+        <Toggle
+          checked={form.modempay_enabled}
+          onChange={(v) => setForm((f) => ({ ...f, modempay_enabled: v }))}
+          label={
+            <span className="inline-flex items-center gap-1.5">
+              <Smartphone className="w-3.5 h-3.5" /> ModemPay
+            </span>
+          }
+          description="Mobile money donations and withdrawals via Wave and APS Wallet."
+        />
+        <div className="pt-4">
+          <Toggle
+            checked={form.stripe_enabled}
+            onChange={(v) => setForm((f) => ({ ...f, stripe_enabled: v }))}
+            label={
+              <span className="inline-flex items-center gap-1.5">
+                <CreditCard className="w-3.5 h-3.5" /> Stripe
+              </span>
+            }
+            description="Card donations only — Stripe cannot pay out to a Gambian mobile-money wallet."
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 border-t pt-4">
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium">Settlement currency</label>
+          <input
+            type="text"
+            maxLength={3}
+            value={form.stripe_settlement_currency}
+            onChange={(e) => setForm((f) => ({ ...f, stripe_settlement_currency: e.target.value }))}
+            placeholder="usd"
+            className="w-full px-3 py-2 border rounded-lg bg-background focus:outline-hidden focus:ring-2 focus:ring-ring text-sm uppercase"
+          />
+          <p className="text-xs text-muted-foreground">Stripe doesn't support GMD — card donations are charged in this currency instead.</p>
+        </div>
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium">GMD exchange rate</label>
+          <div className="relative">
+            <input
+              type="number" min="0.0001" step="0.0001"
+              value={form.gmd_to_settlement_rate}
+              onChange={(e) => setForm((f) => ({ ...f, gmd_to_settlement_rate: e.target.value }))}
+              className="w-full px-3 py-2 border rounded-lg bg-background focus:outline-hidden focus:ring-2 focus:ring-ring text-sm"
+            />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            D{form.gmd_to_settlement_rate || '?'} = 1 {(form.stripe_settlement_currency || 'usd').toUpperCase()}. Keep this current —
+            a stale rate over/undercharges every card donation.
+          </p>
+        </div>
+      </div>
+
+      <button
+        onClick={handleSave}
+        disabled={updateSettings.isPending}
+        className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold px-5 py-2.5 rounded-xl hover:bg-primary/90 transition-colors text-sm disabled:opacity-60"
+      >
+        <Save className="w-4 h-4" />
+        {updateSettings.isPending ? 'Saving…' : 'Save Changes'}
       </button>
     </div>
   )

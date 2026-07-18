@@ -1,14 +1,58 @@
-import { useState, useEffect, useRef } from 'react'
-import { Link, useSearch } from '@tanstack/react-router'
-import { Heart, ChevronLeft, CheckCircle2, AlertCircle, Lock, Smartphone } from 'lucide-react'
+import { useState, useEffect, useRef, useMemo } from 'react'
+import { Link, useSearch, useNavigate } from '@tanstack/react-router'
+import { loadStripe } from '@stripe/stripe-js'
+import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js'
+import { Heart, ChevronLeft, CheckCircle2, AlertCircle, Lock, Smartphone, CreditCard } from 'lucide-react'
 import { ProgressBar } from '@/components/custom/ProgressBar'
 import { ShareCampaign } from '@/components/custom/ShareCampaign'
 import { formatGMD, progressPercent, daysLeft } from '@/utils/formatters'
 import { useDonateToCampaign } from '@/hooks/useDonations'
-import { useDonationMethods } from '@/hooks/usePayments'
+import { useDonationMethods, useGateways } from '@/hooks/usePayments'
 import { useMe } from '@/hooks/useAuth'
 import { settings } from '@/settings'
 import { cn } from '@/utils/cn'
+
+// Stripe's CardElement renders in a cross-origin iframe, so it can't inherit
+// this page's CSS custom properties the way normal DOM elements do — the
+// `style` option needs literal resolved color values, computed here from
+// the same --foreground/--muted-foreground/--destructive tokens (stored as
+// bare "H S% L%" triplets, per this project's Tailwind v4 setup) everything
+// else on the page already uses via hsl(var(...)).
+function useCardElementOptions() {
+  const [colors, setColors] = useState({ foreground: '#111827', mutedForeground: '#6b7280', destructive: '#dc2626' })
+
+  useEffect(() => {
+    function resolve() {
+      const styles = getComputedStyle(document.documentElement)
+      const hsl = (name, fallback) => {
+        const value = styles.getPropertyValue(name).trim()
+        return value ? `hsl(${value})` : fallback
+      }
+      setColors({
+        foreground: hsl('--foreground', '#111827'),
+        mutedForeground: hsl('--muted-foreground', '#6b7280'),
+        destructive: hsl('--destructive', '#dc2626'),
+      })
+    }
+    resolve()
+    // Theme toggles stamp data-theme on <html> — recompute so the card
+    // field's text color still matches if a donor switches theme mid-flow.
+    const observer = new MutationObserver(resolve)
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+    return () => observer.disconnect()
+  }, [])
+
+  return useMemo(() => ({
+    style: {
+      base: {
+        fontSize: '14px',
+        color: colors.foreground,
+        '::placeholder': { color: colors.mutedForeground },
+      },
+      invalid: { color: colors.destructive },
+    },
+  }), [colors])
+}
 
 function CampaignSummaryCard({ campaign }) {
   const pct = progressPercent(campaign.raised, campaign.goal)
@@ -39,14 +83,49 @@ function CampaignSummaryCard({ campaign }) {
   )
 }
 
+function MethodBadge({ method, size = 'w-10 h-10' }) {
+  if (method?.logo) {
+    return (
+      <div className={cn(size, 'rounded-lg bg-white border flex items-center justify-center flex-shrink-0 overflow-hidden p-1.5')}>
+        <img src={method.logo} alt={method.name} className="w-full h-full object-contain" />
+      </div>
+    )
+  }
+  return (
+    <div className={cn(size, 'rounded-lg flex items-center justify-center text-white text-sm font-bold flex-shrink-0', method?.color)}>
+      {method?.id === 'card' ? <CreditCard className="w-5 h-5" /> : method?.short}
+    </div>
+  )
+}
+
 export function DonateCheckout({ campaign }) {
+  const { gateways } = useGateways()
+  const stripeGateway = gateways.find((g) => g.code === 'stripe')
+  const stripePromise = useMemo(
+    () => (stripeGateway?.publishable_key ? loadStripe(stripeGateway.publishable_key) : null),
+    [stripeGateway?.publishable_key],
+  )
+
+  return (
+    <Elements stripe={stripePromise}>
+      <DonateCheckoutInner campaign={campaign} />
+    </Elements>
+  )
+}
+
+function DonateCheckoutInner({ campaign }) {
   const { data: me } = useMe()
   const search = useSearch({ strict: false })
+  const navigate = useNavigate()
+  const stripe = useStripe()
+  const elements = useElements()
+  const cardElementOptions = useCardElementOptions()
   // Lets a referring flow (e.g. the Zakat calculator) prefill the amount by
   // linking to /donate/$slug?amount=1234.50 instead of the donor retyping it.
   const [amount, setAmount] = useState(search?.amount ? String(search.amount) : '')
   const [provider, setProvider] = useState('')
   const [phone, setPhone] = useState('')
+  const [cardComplete, setCardComplete] = useState(false)
   const [donorName, setDonorName] = useState('')
   const [anonymous, setAnonymous] = useState(false)
   const [message, setMessage] = useState('')
@@ -56,7 +135,6 @@ export function DonateCheckout({ campaign }) {
 
   const donateToCampaign = useDonateToCampaign()
   const { methods: PROVIDERS, isLoading: methodsLoading } = useDonationMethods()
-  const isAuthenticated = Boolean(me)
 
   // Default to whichever method loads first, once the backend's enabled
   // gateways are known — can't hardcode 'wave' since that gateway might be
@@ -69,6 +147,7 @@ export function DonateCheckout({ campaign }) {
 
   const selectedMethod = PROVIDERS.find((p) => p.id === provider)
   const requiresPhone = selectedMethod?.requiresPhone ?? true
+  const isCard = selectedMethod?.gateway === 'stripe'
 
   // Seed user data if authenticated
   const seeded = useRef(false)
@@ -103,11 +182,15 @@ export function DonateCheckout({ campaign }) {
       setError('Please enter a valid phone number')
       return
     }
+    if (isCard && !cardComplete) {
+      setError('Please enter complete card details')
+      return
+    }
     setError('')
     setStep('confirm')
   }
 
-  function submitDonation() {
+  async function submitDonation() {
     setProcessing(true)
     setError('')
     donateToCampaign.mutate(
@@ -123,17 +206,55 @@ export function DonateCheckout({ campaign }) {
         donor_name: anonymous ? '' : donorName.trim(),
       },
       {
-        onSuccess: (response) => {
+        onSuccess: async (response) => {
           const paymentLink = response?.data?.payment_link
-          if (!paymentLink) {
-            setError('Could not start payment. Please try again.')
-            setProcessing(false)
-            setStep('confirm')
+          const clientSecret = response?.data?.client_secret
+          const paymentReference = response?.data?.donation?.payment_reference
+
+          if (paymentLink) {
+            // The gateway's hosted checkout is a different origin, so this
+            // is a full page redirect, not an in-app route change.
+            window.location.href = paymentLink
             return
           }
-          // The gateway's hosted checkout is a different origin, so this is
-          // a full page redirect, not an in-app route change.
-          window.location.href = paymentLink
+
+          if (clientSecret && stripe && elements) {
+            const cardElement = elements.getElement(CardElement)
+            let result
+            try {
+              result = await stripe.confirmCardPayment(clientSecret, {
+                payment_method: {
+                  card: cardElement,
+                  billing_details: { name: anonymous ? undefined : donorName.trim() || undefined },
+                },
+              })
+            } catch {
+              setError('Card payment failed. Please try again.')
+              setProcessing(false)
+              setStep('confirm')
+              return
+            }
+            if (result.error) {
+              setError(result.error.message || 'Card payment failed. Please try again.')
+              setProcessing(false)
+              setStep('confirm')
+              return
+            }
+            // Confirmed inline — never left the page, so this is a client
+            // route change, not a redirect. The success page's own
+            // verify-on-mount call reconciles the real status with the
+            // backend (same flow ModemPay's redirect return already uses).
+            navigate({
+              to: '/donate/$slug/success',
+              params: { slug: campaign.slug },
+              search: { ref: paymentReference, amount: numAmount },
+            })
+            return
+          }
+
+          setError('Could not start payment. Please try again.')
+          setProcessing(false)
+          setStep('confirm')
         },
         onError: (err) => {
           setError(err?.response?.data?.message || 'Payment failed. Please try again.')
@@ -256,9 +377,7 @@ export function DonateCheckout({ campaign }) {
                           provider === p.id ? 'border-primary bg-primary/5' : 'hover:border-border/80 hover:bg-muted/30',
                         )}
                       >
-                        <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold flex-shrink-0', p.color)}>
-                          {p.short}
-                        </div>
+                        <MethodBadge method={p} />
                         <div className="flex-1">
                           <p className="text-sm font-semibold">{p.name}</p>
                           <p className="text-xs text-muted-foreground">{p.description}</p>
@@ -287,6 +406,24 @@ export function DonateCheckout({ campaign }) {
                     />
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">You'll receive a payment prompt on this number</p>
+                </div>
+              )}
+
+              {isCard && (
+                <div>
+                  <label className="text-sm font-medium block mb-1.5">
+                    <CreditCard className="w-4 h-4 inline mr-1" />
+                    Card details
+                  </label>
+                  <div className="border rounded-lg px-3 py-3 bg-background focus-within:ring-2 focus-within:ring-ring">
+                    <CardElement
+                      options={cardElementOptions}
+                      onChange={(e) => { setCardComplete(e.complete); if (e.error) setError(e.error.message); else setError('') }}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                    <Lock className="w-3 h-3" /> Your card details are handled directly by Stripe — this site never sees your card number.
+                  </p>
                 </div>
               )}
 
@@ -349,7 +486,9 @@ export function DonateCheckout({ campaign }) {
 
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex gap-2 text-xs text-amber-800">
                 <Smartphone className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                After clicking "Confirm Donation", you'll be taken to a secure payment page to complete your donation.
+                {isCard
+                  ? 'After clicking "Confirm Donation", your card will be charged directly on this page.'
+                  : 'After clicking "Confirm Donation", you\'ll be taken to a secure payment page to complete your donation.'}
               </div>
 
               {error && (
@@ -364,7 +503,7 @@ export function DonateCheckout({ campaign }) {
                 </button>
                 <button
                   onClick={submitDonation}
-                  disabled={processing || donateToCampaign.isPending}
+                  disabled={processing || donateToCampaign.isPending || (isCard && !stripe)}
                   className="flex-1 bg-donate text-donate-foreground font-bold py-2.5 rounded-xl hover:bg-donate/90 transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
                 >
                   {processing ? (

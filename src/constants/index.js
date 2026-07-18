@@ -1,3 +1,6 @@
+import waveLogo from '@/assets/wave-logo.png'
+import apsLogo from '@/assets/APS-logo.svg'
+
 export const ROLES = {
   ADMIN: 'admin',
   USER: 'user',
@@ -94,8 +97,8 @@ export const DONATION_STATUS = {
 // methods by which backend adapter processes them (wave/aps -> modempay,
 // card -> stripe); `requiresPhone` mirrors PaymentGateway.requires_phone.
 export const PAYMENT_METHODS = [
-  { id: 'wave', gateway: 'modempay', name: 'Wave', short: 'W', color: 'bg-cyan-500', description: 'Wave mobile money', requiresPhone: true },
-  { id: 'aps', gateway: 'modempay', name: 'APS Wallet', short: 'APS', color: 'bg-blue-800', description: 'APS mobile wallet', requiresPhone: true },
+  { id: 'wave', gateway: 'modempay', name: 'Wave', short: 'W', logo: waveLogo, color: 'bg-cyan-500', description: 'Wave mobile money', requiresPhone: true },
+  { id: 'aps', gateway: 'modempay', name: 'APS Wallet', short: 'APS', logo: apsLogo, color: 'bg-blue-800', description: 'APS mobile wallet', requiresPhone: true },
   { id: 'card', gateway: 'stripe', name: 'Card', short: '\u{1F4B3}', color: 'bg-violet-600', description: 'Debit or credit card', requiresPhone: false },
 ]
 
