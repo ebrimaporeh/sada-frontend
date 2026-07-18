@@ -1,6 +1,9 @@
 import { apiClient } from './client'
 
 export const paymentApi = {
+  getGateways: () =>
+    apiClient.get('/payments/gateways/').then((r) => r.data),
+
   requestPayout: (data) =>
     apiClient.post('/payments/payouts/', data).then((r) => r.data),
 

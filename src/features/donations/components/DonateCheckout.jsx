@@ -5,12 +5,10 @@ import { ProgressBar } from '@/components/custom/ProgressBar'
 import { ShareCampaign } from '@/components/custom/ShareCampaign'
 import { formatGMD, progressPercent, daysLeft } from '@/utils/formatters'
 import { useDonateToCampaign } from '@/hooks/useDonations'
+import { useDonationMethods } from '@/hooks/usePayments'
 import { useMe } from '@/hooks/useAuth'
 import { settings } from '@/settings'
-import { PAYMENT_METHODS } from '@/constants'
 import { cn } from '@/utils/cn'
-
-const PROVIDERS = PAYMENT_METHODS
 
 function CampaignSummaryCard({ campaign }) {
   const pct = progressPercent(campaign.raised, campaign.goal)
@@ -47,7 +45,7 @@ export function DonateCheckout({ campaign }) {
   // Lets a referring flow (e.g. the Zakat calculator) prefill the amount by
   // linking to /donate/$slug?amount=1234.50 instead of the donor retyping it.
   const [amount, setAmount] = useState(search?.amount ? String(search.amount) : '')
-  const [provider, setProvider] = useState('wave')
+  const [provider, setProvider] = useState('')
   const [phone, setPhone] = useState('')
   const [donorName, setDonorName] = useState('')
   const [anonymous, setAnonymous] = useState(false)
@@ -57,7 +55,20 @@ export function DonateCheckout({ campaign }) {
   const [error, setError] = useState('')
 
   const donateToCampaign = useDonateToCampaign()
+  const { methods: PROVIDERS, isLoading: methodsLoading } = useDonationMethods()
   const isAuthenticated = Boolean(me)
+
+  // Default to whichever method loads first, once the backend's enabled
+  // gateways are known — can't hardcode 'wave' since that gateway might be
+  // disabled, or Stripe might be the only one enabled.
+  useEffect(() => {
+    if (!provider && PROVIDERS.length > 0) {
+      setProvider(PROVIDERS[0].id)
+    }
+  }, [provider, PROVIDERS])
+
+  const selectedMethod = PROVIDERS.find((p) => p.id === provider)
+  const requiresPhone = selectedMethod?.requiresPhone ?? true
 
   // Seed user data if authenticated
   const seeded = useRef(false)
@@ -88,7 +99,7 @@ export function DonateCheckout({ campaign }) {
   }
 
   function goToConfirm() {
-    if (!phone.trim() || phone.trim().length < 7) {
+    if (requiresPhone && (!phone.trim() || phone.trim().length < 7)) {
       setError('Please enter a valid phone number')
       return
     }
@@ -104,8 +115,9 @@ export function DonateCheckout({ campaign }) {
         campaign_id: campaign.id,
         slug: campaign.slug,
         amount: numAmount,
+        gateway: selectedMethod?.gateway,
         provider,
-        phone: `+220${phone.trim()}`,
+        phone: requiresPhone ? `+220${phone.trim()}` : '',
         is_anonymous: anonymous,
         message: message.trim() || undefined,
         donor_name: anonymous ? '' : donorName.trim(),
@@ -119,8 +131,8 @@ export function DonateCheckout({ campaign }) {
             setStep('confirm')
             return
           }
-          // ModemPay's hosted checkout is a different origin, so this is a
-          // full page redirect, not an in-app route change.
+          // The gateway's hosted checkout is a different origin, so this is
+          // a full page redirect, not an in-app route change.
           window.location.href = paymentLink
         },
         onError: (err) => {
@@ -223,46 +235,60 @@ export function DonateCheckout({ campaign }) {
             <div className="space-y-5">
               <div>
                 <p className="text-sm font-medium mb-3">Select payment method</p>
-                <div className="space-y-2">
-                  {PROVIDERS.map((p) => (
-                    <button
-                      key={p.id}
-                      onClick={() => setProvider(p.id)}
-                      className={cn(
-                        'w-full flex items-center gap-3 p-3.5 rounded-xl border transition-colors text-left',
-                        provider === p.id ? 'border-primary bg-primary/5' : 'hover:border-border/80 hover:bg-muted/30',
-                      )}
-                    >
-                      <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold flex-shrink-0', p.color)}>
-                        {p.short}
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-semibold">{p.name}</p>
-                        <p className="text-xs text-muted-foreground">{p.description}</p>
-                      </div>
-                      {provider === p.id && <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />}
-                    </button>
-                  ))}
-                </div>
+                {methodsLoading ? (
+                  <div className="space-y-2">
+                    {[0, 1].map((i) => (
+                      <div key={i} className="h-[62px] rounded-xl border bg-muted/30 animate-pulse" />
+                    ))}
+                  </div>
+                ) : PROVIDERS.length === 0 ? (
+                  <p className="text-sm text-muted-foreground border rounded-xl p-3.5">
+                    No payment methods are available right now. Please try again shortly.
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {PROVIDERS.map((p) => (
+                      <button
+                        key={p.id}
+                        onClick={() => setProvider(p.id)}
+                        className={cn(
+                          'w-full flex items-center gap-3 p-3.5 rounded-xl border transition-colors text-left',
+                          provider === p.id ? 'border-primary bg-primary/5' : 'hover:border-border/80 hover:bg-muted/30',
+                        )}
+                      >
+                        <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold flex-shrink-0', p.color)}>
+                          {p.short}
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-semibold">{p.name}</p>
+                          <p className="text-xs text-muted-foreground">{p.description}</p>
+                        </div>
+                        {provider === p.id && <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              <div>
-                <label className="text-sm font-medium block mb-1.5">
-                  <Smartphone className="w-4 h-4 inline mr-1" />
-                  Your phone number
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">+220</span>
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => { setPhone(e.target.value); setError('') }}
-                    placeholder="7XXXXXXX"
-                    className="w-full pl-14 pr-4 py-2.5 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
-                  />
+              {requiresPhone && (
+                <div>
+                  <label className="text-sm font-medium block mb-1.5">
+                    <Smartphone className="w-4 h-4 inline mr-1" />
+                    Your phone number
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">+220</span>
+                    <input
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => { setPhone(e.target.value); setError('') }}
+                      placeholder="7XXXXXXX"
+                      className="w-full pl-14 pr-4 py-2.5 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">You'll receive a payment prompt on this number</p>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">You'll receive a payment prompt on this number</p>
-              </div>
+              )}
 
               {error && (
                 <p className="text-sm text-destructive flex items-center gap-1.5">
@@ -276,7 +302,8 @@ export function DonateCheckout({ campaign }) {
                 </button>
                 <button
                   onClick={goToConfirm}
-                  className="flex-1 bg-donate text-donate-foreground font-bold py-2.5 rounded-xl hover:bg-donate/90 transition-colors"
+                  disabled={!selectedMethod}
+                  className="flex-1 bg-donate text-donate-foreground font-bold py-2.5 rounded-xl hover:bg-donate/90 transition-colors disabled:opacity-50"
                 >
                   Continue
                 </button>
@@ -299,12 +326,14 @@ export function DonateCheckout({ campaign }) {
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground mb-1">Via</p>
-                    <p className="font-medium text-sm">{PROVIDERS.find((p) => p.id === provider)?.name}</p>
+                    <p className="font-medium text-sm">{selectedMethod?.name}</p>
                   </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1">Phone</p>
-                    <p className="font-medium text-sm">+220 {phone}</p>
-                  </div>
+                  {requiresPhone && (
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Phone</p>
+                      <p className="font-medium text-sm">+220 {phone}</p>
+                    </div>
+                  )}
                   <div>
                     <p className="text-xs text-muted-foreground mb-1">Donor</p>
                     <p className="font-medium text-sm">{anonymous ? 'Anonymous' : donorName || 'Not provided'}</p>
@@ -320,7 +349,7 @@ export function DonateCheckout({ campaign }) {
 
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex gap-2 text-xs text-amber-800">
                 <Smartphone className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                After clicking "Confirm Donation", you'll be taken to ModemPay's secure payment page to complete your donation.
+                After clicking "Confirm Donation", you'll be taken to a secure payment page to complete your donation.
               </div>
 
               {error && (
@@ -352,7 +381,7 @@ export function DonateCheckout({ campaign }) {
               </div>
 
               <p className="text-xs text-center text-muted-foreground flex items-center justify-center gap-1">
-                <Lock className="w-3 h-3" /> Secured by ModemPay
+                <Lock className="w-3 h-3" /> Payments are processed securely
               </p>
             </div>
           )}

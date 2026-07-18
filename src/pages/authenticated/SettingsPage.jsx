@@ -3,7 +3,7 @@ import { GoogleLogin } from '@react-oauth/google'
 import { CheckCircle2, AlertCircle, Eye, EyeOff, Bell, Shield, Trash2, Moon, Sun, Monitor, Smartphone, CreditCard } from 'lucide-react'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { useChangePassword, useSetPassword, useLinkGoogleAccount, useLogout, useMe, useUpdateMe } from '@/hooks/useAuth'
-import { PAYOUT_METHODS } from '@/constants'
+import { usePayoutMethods } from '@/hooks/usePayments'
 import { cn } from '@/utils/cn'
 
 function Section({ title, description, children, className }) {
@@ -53,6 +53,7 @@ export function SettingsPage() {
   const logout = useLogout()
   const { data: me } = useMe()
   const updateMe = useUpdateMe()
+  const { methods: PAYOUT_METHODS } = usePayoutMethods()
 
   // Payment settings — seed once when me first loads; never reset on background refetches
   const paymentSeeded = useRef(false)

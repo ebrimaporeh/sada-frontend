@@ -86,19 +86,24 @@ export const DONATION_STATUS = {
   REFUNDED: 'refunded',
 }
 
-// ModemPay is the payment gateway, not itself a provider — these are the
-// underlying networks it processes payments through. Card is not supported
-// by ModemPay (confirmed 2026-07-14) — mobile money only.
-// Donations can go through either network; ModemPay's checkout page decides
-// what's actually offered to the donor.
+// Presentation metadata for every payment method this frontend knows how to
+// render — which of these are actually usable comes from the backend
+// (GET /payments/gateways/, see useGateways()), since that's driven by
+// PAYMENT_GATEWAYS settings and can change (enable/disable Stripe, add a
+// new country's gateway) without a frontend deploy. `gateway` groups
+// methods by which backend adapter processes them (wave/aps -> modempay,
+// card -> stripe); `requiresPhone` mirrors PaymentGateway.requires_phone.
 export const PAYMENT_METHODS = [
-  { id: 'wave', name: 'Wave', short: 'W', color: 'bg-cyan-500', description: 'Wave mobile money' },
-  { id: 'aps', name: 'APS Wallet', short: 'APS', color: 'bg-blue-800', description: 'APS mobile wallet' },
-  // { id: 'modempay_bank', name: 'ModemPay Bank', short: 'MPB', color: 'bg-indigo-600', description: 'Bank transfer via ModemPay' },
+  { id: 'wave', gateway: 'modempay', name: 'Wave', short: 'W', color: 'bg-cyan-500', description: 'Wave mobile money', requiresPhone: true },
+  { id: 'aps', gateway: 'modempay', name: 'APS Wallet', short: 'APS', color: 'bg-blue-800', description: 'APS mobile wallet', requiresPhone: true },
+  { id: 'card', gateway: 'stripe', name: 'Card', short: '\u{1F4B3}', color: 'bg-violet-600', description: 'Debit or credit card', requiresPhone: false },
 ]
 
 // Withdrawals only support wave right now — ModemPay's payout/transfer API
-// doesn't list aps as a valid network (only their checkout/donation side does).
+// doesn't list aps as a valid network (only their checkout/donation side
+// does), and Stripe has no payout path to a Gambian mobile-money wallet at
+// all. Still filtered against the backend's payout_methods in useGateways()
+// consumers, so this is a presentation fallback, not the source of truth.
 export const PAYOUT_METHODS = PAYMENT_METHODS.filter((p) => p.id === 'wave')
 
 export const GAMBIA_REGIONS = [

@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link } from '@tanstack/react-router'
 import { Banknote, Smartphone, CheckCircle2, AlertCircle, Lock, ChevronDown, ChevronUp, Settings, Loader2 } from 'lucide-react'
-import { useRequestPayout, usePlatformSettings, usePayoutFeePreview } from '@/hooks/usePayments'
+import { useRequestPayout, usePlatformSettings, usePayoutFeePreview, usePayoutMethods } from '@/hooks/usePayments'
 import { useMe } from '@/hooks/useAuth'
-import { PAYMENT_METHODS, PAYOUT_METHODS } from '@/constants'
+import { PAYMENT_METHODS } from '@/constants'
 import { formatGMD, formatDateTime } from '@/utils/formatters'
 import { cn } from '@/utils/cn'
 
@@ -12,9 +12,12 @@ export function WithdrawTab({ campaign, payouts, availableBalance, totalPaidOut 
   const requestPayout = useRequestPayout()
   const { data: platformSettings } = usePlatformSettings()
   const feePercent = Number(platformSettings?.platform_fee_percent ?? 1)
+  // Which networks payouts can actually go to right now, per the backend —
+  // wave-only today, but this stops assuming that instead of hardcoding it.
+  const { methods: PAYOUT_METHODS } = usePayoutMethods()
 
   const [amount, setAmount] = useState('')
-  const [provider, setProvider] = useState('wave')
+  const [provider, setProvider] = useState('')
   const [phone, setPhone] = useState('')
   const [useDefault, setUseDefault] = useState(false)
   const [showAlternate, setShowAlternate] = useState(true)
@@ -36,6 +39,14 @@ export function WithdrawTab({ campaign, payouts, availableBalance, totalPaidOut 
       }
     }
   }, [me])
+
+  // Fall back to the first backend-enabled payout method if the user has no
+  // saved default — can't hardcode 'wave' since that's a settings decision.
+  useEffect(() => {
+    if (!provider && PAYOUT_METHODS.length > 0) {
+      setProvider(PAYOUT_METHODS[0].id)
+    }
+  }, [provider, PAYOUT_METHODS])
 
   const defaultProvider = me?.default_payment_provider || ''
   const defaultPhone = (me?.default_payment_phone || '').replace(/^\+220/, '')

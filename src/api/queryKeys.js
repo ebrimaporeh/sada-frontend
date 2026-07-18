@@ -46,6 +46,7 @@ export const queryKeys = {
     adminList: (params) => ['donations', 'admin', params],
   },
   payments: {
+    gateways: () => ['payments', 'gateways'],
     payouts: (slug) => ['payments', 'payouts', slug],
     settings: () => ['payments', 'settings'],
     feePreview: (amount, provider) => ['payments', 'fee-preview', amount, provider],
