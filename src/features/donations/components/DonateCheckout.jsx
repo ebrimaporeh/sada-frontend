@@ -117,51 +117,86 @@ function MethodBadge({ method, size = 'w-10 h-10' }) {
   )
 }
 
-// Self-contained: creates its own Elements context (Payment Element needs to
-// know the amount/currency up front to decide which methods to show — card,
-// Google Pay/Apple Pay wallets, and PayPal if enabled on the Stripe
-// account — via "deferred intent" mode, before any real PaymentIntent
-// exists) and owns the whole pay action, so it never has to survive a step
-// change in the parent wizard (Stripe's mounted Elements can't be preserved
-// across an unmount, so this stays mounted from method-selection to submit).
+// Self-contained: creates the real donation + PaymentIntent as soon as
+// "Card" is selected (not deferred/guessed client-side — Stripe's deferred
+// Elements mode still speculatively offered Link/other methods even with
+// paymentMethodTypes restricted, since nothing enforces that guess against
+// a real intent). Mounting Elements with this PaymentIntent's actual
+// clientSecret means Stripe.js can only show what that specific intent
+// really allows — payment_method_types: ['card'], confirmed against the
+// live API — not what the account might otherwise offer.
 function CardPaymentStep({ campaign, amount, donorName, anonymous, message, stripeGateway, onBack, onSuccess }) {
   const appearance = useStripeAppearance()
   const stripePromise = useMemo(
     () => (stripeGateway?.publishable_key ? loadStripe(stripeGateway.publishable_key) : null),
     [stripeGateway?.publishable_key],
   )
-  const currency = stripeGateway?.settlement_currency || 'usd'
-  const rate = Number(stripeGateway?.gmd_to_settlement_rate) || 70
-  // A rough estimate only, purely so Stripe knows which methods are even
-  // eligible to display (some have amount minimums) — the real charge is
-  // computed server-side from the admin-configured rate when the donation
-  // is actually created, not trusted from anything computed here.
-  const estimatedMinorAmount = Math.max(50, Math.round((amount / rate) * 100))
+  const donateToCampaign = useDonateToCampaign()
+  const [clientSecret, setClientSecret] = useState(null)
+  const [paymentReference, setPaymentReference] = useState(null)
+  const [createError, setCreateError] = useState('')
+  const started = useRef(false)
 
-  const elementsOptions = useMemo(() => ({
-    mode: 'payment',
-    amount: estimatedMinorAmount,
-    currency,
-    appearance,
-    // Matches the real PaymentIntent's payment_method_types (card only) —
-    // deferred mode would otherwise speculatively offer whatever else the
-    // Stripe account has enabled (Link, wallets, ...) before that intent
-    // exists to actually confirm it against.
-    paymentMethodTypes: ['card'],
-  }), [estimatedMinorAmount, currency, appearance])
+  useEffect(() => {
+    if (started.current) return
+    started.current = true
+    donateToCampaign.mutate(
+      {
+        campaign_id: campaign.id,
+        slug: campaign.slug,
+        amount,
+        gateway: 'stripe',
+        provider: 'card',
+        phone: '',
+        is_anonymous: anonymous,
+        message: message || undefined,
+        donor_name: anonymous ? '' : donorName,
+      },
+      {
+        onSuccess: (response) => {
+          const secret = response?.data?.client_secret
+          const reference = response?.data?.donation?.payment_reference
+          if (!secret) {
+            setCreateError('Could not start payment. Please try again.')
+            return
+          }
+          setClientSecret(secret)
+          setPaymentReference(reference)
+        },
+        onError: (err) => {
+          setCreateError(err?.response?.data?.message || 'Could not start payment. Please try again.')
+        },
+      },
+    )
+    // Fires once, on selecting Card — not on every amount/name/message edit.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-  if (!stripePromise || !appearance) {
+  if (createError) {
+    return (
+      <div className="space-y-3">
+        <p className="text-sm text-destructive flex items-center gap-1.5">
+          <AlertCircle className="w-4 h-4" /> {createError}
+        </p>
+        <button type="button" onClick={onBack} className="w-full py-2.5 border rounded-xl text-sm font-medium hover:bg-muted transition-colors">
+          Back
+        </button>
+      </div>
+    )
+  }
+
+  if (!stripePromise || !appearance || !clientSecret) {
     return <div className="h-40 rounded-xl border bg-muted/30 animate-pulse" />
   }
 
   return (
-    <Elements stripe={stripePromise} options={elementsOptions}>
+    <Elements stripe={stripePromise} options={{ clientSecret, appearance }}>
       <CardPaymentForm
         campaign={campaign}
         amount={amount}
         donorName={donorName}
         anonymous={anonymous}
-        message={message}
+        paymentReference={paymentReference}
         onBack={onBack}
         onSuccess={onSuccess}
       />
@@ -169,10 +204,9 @@ function CardPaymentStep({ campaign, amount, donorName, anonymous, message, stri
   )
 }
 
-function CardPaymentForm({ campaign, amount, donorName, anonymous, message, onBack, onSuccess }) {
+function CardPaymentForm({ campaign, amount, donorName, anonymous, paymentReference, onBack, onSuccess }) {
   const stripe = useStripe()
   const elements = useElements()
-  const donateToCampaign = useDonateToCampaign()
   const [ready, setReady] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -189,64 +223,35 @@ function CardPaymentForm({ campaign, amount, donorName, anonymous, message, onBa
       return
     }
 
-    donateToCampaign.mutate(
-      {
-        campaign_id: campaign.id,
-        slug: campaign.slug,
-        amount,
-        gateway: 'stripe',
-        provider: 'card',
-        phone: '',
-        is_anonymous: anonymous,
-        message: message || undefined,
-        donor_name: anonymous ? '' : donorName,
-      },
-      {
-        onSuccess: async (response) => {
-          const clientSecret = response?.data?.client_secret
-          const reference = response?.data?.donation?.payment_reference
-          if (!clientSecret) {
-            setError('Could not start payment. Please try again.')
-            setSubmitting(false)
-            return
-          }
-          // Card confirms inline — this never actually redirects — but
-          // Stripe still requires a return_url to be provided.
-          const returnUrl = `${window.location.origin}/donate/${campaign.slug}/success?ref=${reference}&amount=${amount}`
-          const { error: confirmError } = await stripe.confirmPayment({
-            elements,
-            clientSecret,
-            confirmParams: {
-              return_url: returnUrl,
-              // The name field is hidden from the Payment Element itself
-              // (collected once already, in the amount step) — still worth
-              // attaching to the payment for the receipt/dispute record.
-              payment_method_data: {
-                billing_details: { name: anonymous ? undefined : donorName || undefined },
-              },
-            },
-            redirect: 'if_required',
-          })
-          if (confirmError) {
-            setError(confirmError.message || 'Payment failed. Please try again.')
-            setSubmitting(false)
-            return
-          }
-          onSuccess(reference)
-        },
-        onError: (err) => {
-          setError(err?.response?.data?.message || 'Payment failed. Please try again.')
-          setSubmitting(false)
+    // Card confirms inline — this never actually redirects — but Stripe
+    // still requires a return_url to be provided.
+    const returnUrl = `${window.location.origin}/donate/${campaign.slug}/success?ref=${paymentReference}&amount=${amount}`
+    const { error: confirmError } = await stripe.confirmPayment({
+      elements,
+      confirmParams: {
+        return_url: returnUrl,
+        // The name field is hidden from the Payment Element itself
+        // (collected once already, in the amount step) — still worth
+        // attaching to the payment for the receipt/dispute record.
+        payment_method_data: {
+          billing_details: { name: anonymous ? undefined : donorName || undefined },
         },
       },
-    )
+      redirect: 'if_required',
+    })
+    if (confirmError) {
+      setError(confirmError.message || 'Payment failed. Please try again.')
+      setSubmitting(false)
+      return
+    }
+    onSuccess(paymentReference)
   }
 
   return (
     <div className="space-y-4">
       <div>
         <label className="text-sm font-medium block mb-1.5">
-          <CreditCard className="w-4 h-4 inline mr-1" /> Payment details
+          <CreditCard className="w-4 h-4 inline mr-1" /> Card details
         </label>
         <div className="border rounded-lg p-3.5 bg-background">
           <PaymentElement options={PAYMENT_ELEMENT_OPTIONS} onReady={() => setReady(true)} />
