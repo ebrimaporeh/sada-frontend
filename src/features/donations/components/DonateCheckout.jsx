@@ -1,77 +1,14 @@
-import { useState, useEffect, useRef, useMemo } from 'react'
-import { Link, useSearch, useNavigate } from '@tanstack/react-router'
-import { loadStripe } from '@stripe/stripe-js'
-import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
+import { useState, useEffect, useRef } from 'react'
+import { Link, useSearch } from '@tanstack/react-router'
 import { Heart, ChevronLeft, CheckCircle2, AlertCircle, Lock, Smartphone, CreditCard } from 'lucide-react'
 import { ProgressBar } from '@/components/custom/ProgressBar'
 import { ShareCampaign } from '@/components/custom/ShareCampaign'
 import { formatGMD, progressPercent, daysLeft } from '@/utils/formatters'
 import { useDonateToCampaign } from '@/hooks/useDonations'
-import { useDonationMethods, useGateways } from '@/hooks/usePayments'
+import { useDonationMethods } from '@/hooks/usePayments'
 import { useMe } from '@/hooks/useAuth'
 import { settings } from '@/settings'
 import { cn } from '@/utils/cn'
-
-// Keeps the widget to just card number/expiry/CVC — name is already
-// collected once in the amount step, and email/phone/country are what
-// trigger Stripe's "Link" save-my-info signup prompt, which this donation
-// flow doesn't want donors walked through. postalCode stays 'auto' since
-// some card issuers require it for fraud (AVS) checks.
-const PAYMENT_ELEMENT_OPTIONS = {
-  fields: {
-    billingDetails: {
-      name: 'never',
-      email: 'never',
-      phone: 'never',
-      address: { country: 'never', postalCode: 'auto' },
-    },
-  },
-}
-
-// Stripe's Payment Element renders in a cross-origin iframe, so it can't
-// inherit this page's CSS custom properties the way normal DOM elements do —
-// the appearance API needs literal resolved color values, computed here from
-// the same --foreground/--muted-foreground/--destructive tokens (stored as
-// bare "H S% L%" triplets, per this project's Tailwind v4 setup) everything
-// else on the page already uses via hsl(var(...)).
-function useStripeAppearance() {
-  const [vars, setVars] = useState(null)
-
-  useEffect(() => {
-    function resolve() {
-      const styles = getComputedStyle(document.documentElement)
-      const hsl = (name, fallback) => {
-        const value = styles.getPropertyValue(name).trim()
-        return value ? `hsl(${value})` : fallback
-      }
-      setVars({
-        colorText: hsl('--foreground', '#111827'),
-        colorTextPlaceholder: hsl('--muted-foreground', '#6b7280'),
-        colorDanger: hsl('--destructive', '#dc2626'),
-      })
-    }
-    resolve()
-    // Theme toggles stamp data-theme on <html> — recompute so the field's
-    // colors still match if a donor switches theme mid-flow.
-    const observer = new MutationObserver(resolve)
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
-    return () => observer.disconnect()
-  }, [])
-
-  return useMemo(() => {
-    if (!vars) return null
-    return {
-      theme: 'stripe',
-      variables: {
-        colorText: vars.colorText,
-        colorTextPlaceholder: vars.colorTextPlaceholder,
-        colorDanger: vars.colorDanger,
-        borderRadius: '8px',
-        fontSizeBase: '14px',
-      },
-    }
-  }, [vars])
-}
 
 function CampaignSummaryCard({ campaign }) {
   const pct = progressPercent(campaign.raised, campaign.goal)
@@ -117,191 +54,9 @@ function MethodBadge({ method, size = 'w-10 h-10' }) {
   )
 }
 
-// Self-contained: creates the real donation + PaymentIntent as soon as
-// "Card" is selected (not deferred/guessed client-side — Stripe's deferred
-// Elements mode still speculatively offered Link/other methods even with
-// paymentMethodTypes restricted, since nothing enforces that guess against
-// a real intent). Mounting Elements with this PaymentIntent's actual
-// clientSecret means Stripe.js can only show what that specific intent
-// really allows — payment_method_types: ['card'], confirmed against the
-// live API — not what the account might otherwise offer.
-function CardPaymentStep({ campaign, amount, donorName, anonymous, message, stripeGateway, onBack, onSuccess }) {
-  const appearance = useStripeAppearance()
-  const stripePromise = useMemo(
-    () => (stripeGateway?.publishable_key ? loadStripe(stripeGateway.publishable_key) : null),
-    [stripeGateway?.publishable_key],
-  )
-  const donateToCampaign = useDonateToCampaign()
-  const [clientSecret, setClientSecret] = useState(null)
-  const [paymentReference, setPaymentReference] = useState(null)
-  const [createError, setCreateError] = useState('')
-  const started = useRef(false)
-
-  useEffect(() => {
-    if (started.current) return
-    started.current = true
-    donateToCampaign.mutate(
-      {
-        campaign_id: campaign.id,
-        slug: campaign.slug,
-        amount,
-        gateway: 'stripe',
-        provider: 'card',
-        phone: '',
-        is_anonymous: anonymous,
-        message: message || undefined,
-        donor_name: anonymous ? '' : donorName,
-      },
-      {
-        onSuccess: (response) => {
-          const secret = response?.data?.client_secret
-          const reference = response?.data?.donation?.payment_reference
-          if (!secret) {
-            setCreateError('Could not start payment. Please try again.')
-            return
-          }
-          setClientSecret(secret)
-          setPaymentReference(reference)
-        },
-        onError: (err) => {
-          setCreateError(err?.response?.data?.message || 'Could not start payment. Please try again.')
-        },
-      },
-    )
-    // Fires once, on selecting Card — not on every amount/name/message edit.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  if (createError) {
-    return (
-      <div className="space-y-3">
-        <p className="text-sm text-destructive flex items-center gap-1.5">
-          <AlertCircle className="w-4 h-4" /> {createError}
-        </p>
-        <button type="button" onClick={onBack} className="w-full py-2.5 border rounded-xl text-sm font-medium hover:bg-muted transition-colors">
-          Back
-        </button>
-      </div>
-    )
-  }
-
-  if (!stripePromise || !appearance || !clientSecret) {
-    return <div className="h-40 rounded-xl border bg-muted/30 animate-pulse" />
-  }
-
-  return (
-    <Elements stripe={stripePromise} options={{ clientSecret, appearance }}>
-      <CardPaymentForm
-        campaign={campaign}
-        amount={amount}
-        donorName={donorName}
-        anonymous={anonymous}
-        paymentReference={paymentReference}
-        onBack={onBack}
-        onSuccess={onSuccess}
-      />
-    </Elements>
-  )
-}
-
-function CardPaymentForm({ campaign, amount, donorName, anonymous, paymentReference, onBack, onSuccess }) {
-  const stripe = useStripe()
-  const elements = useElements()
-  const [ready, setReady] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState('')
-
-  async function handlePay() {
-    if (!stripe || !elements) return
-    setSubmitting(true)
-    setError('')
-
-    const { error: submitError } = await elements.submit()
-    if (submitError) {
-      setError(submitError.message || 'Please check your payment details.')
-      setSubmitting(false)
-      return
-    }
-
-    // Card confirms inline — this never actually redirects — but Stripe
-    // still requires a return_url to be provided.
-    const returnUrl = `${window.location.origin}/donate/${campaign.slug}/success?ref=${paymentReference}&amount=${amount}`
-    const { error: confirmError } = await stripe.confirmPayment({
-      elements,
-      confirmParams: {
-        return_url: returnUrl,
-        // The name field is hidden from the Payment Element itself
-        // (collected once already, in the amount step) — still worth
-        // attaching to the payment for the receipt/dispute record.
-        payment_method_data: {
-          billing_details: { name: anonymous ? undefined : donorName || undefined },
-        },
-      },
-      redirect: 'if_required',
-    })
-    if (confirmError) {
-      setError(confirmError.message || 'Payment failed. Please try again.')
-      setSubmitting(false)
-      return
-    }
-    onSuccess(paymentReference)
-  }
-
-  return (
-    <div className="space-y-4">
-      <div>
-        <label className="text-sm font-medium block mb-1.5">
-          <CreditCard className="w-4 h-4 inline mr-1" /> Card details
-        </label>
-        <div className="border rounded-lg p-3.5 bg-background">
-          <PaymentElement options={PAYMENT_ELEMENT_OPTIONS} onReady={() => setReady(true)} />
-        </div>
-        <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-          <Lock className="w-3 h-3" /> Handled directly by Stripe — this site never sees your card number.
-        </p>
-      </div>
-
-      {error && (
-        <p className="text-sm text-destructive flex items-center gap-1.5">
-          <AlertCircle className="w-4 h-4" /> {error}
-        </p>
-      )}
-
-      <div className="flex gap-3">
-        <button type="button" onClick={onBack} className="flex-1 py-2.5 border rounded-xl text-sm font-medium hover:bg-muted transition-colors">
-          Back
-        </button>
-        <button
-          type="button"
-          onClick={handlePay}
-          disabled={!stripe || !ready || submitting}
-          className="flex-1 bg-donate text-donate-foreground font-bold py-2.5 rounded-xl hover:bg-donate/90 transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
-        >
-          {submitting ? (
-            <>
-              <div className="w-4 h-4 border-2 border-donate-foreground/30 border-t-donate-foreground rounded-full animate-spin" />
-              Processing…
-            </>
-          ) : (
-            <>
-              <Lock className="w-4 h-4" /> Donate {formatGMD(amount)}
-            </>
-          )}
-        </button>
-      </div>
-      <p className="text-xs text-center text-muted-foreground flex items-center justify-center gap-1">
-        <Lock className="w-3 h-3" /> Payments are processed securely
-      </p>
-    </div>
-  )
-}
-
 export function DonateCheckout({ campaign }) {
   const { data: me } = useMe()
   const search = useSearch({ strict: false })
-  const navigate = useNavigate()
-  const { gateways } = useGateways()
-  const stripeGateway = gateways.find((g) => g.code === 'stripe')
   // Lets a referring flow (e.g. the Zakat calculator) prefill the amount by
   // linking to /donate/$slug?amount=1234.50 instead of the donor retyping it.
   const [amount, setAmount] = useState(search?.amount ? String(search.amount) : '')
@@ -328,7 +83,6 @@ export function DonateCheckout({ campaign }) {
 
   const selectedMethod = PROVIDERS.find((p) => p.id === provider)
   const requiresPhone = selectedMethod?.requiresPhone ?? true
-  const isCard = selectedMethod?.gateway === 'stripe'
 
   // Seed user data if authenticated
   const seeded = useRef(false)
@@ -367,17 +121,6 @@ export function DonateCheckout({ campaign }) {
     setStep('confirm')
   }
 
-  function handleCardSuccess(reference) {
-    // Confirmed inline (or already redirected-and-returned for PayPal-style
-    // methods) — either way, land on the same success page ModemPay's
-    // redirect return already uses, which reconciles the real status itself.
-    navigate({
-      to: '/donate/$slug/success',
-      params: { slug: campaign.slug },
-      search: { ref: reference, amount: numAmount },
-    })
-  }
-
   function submitDonation() {
     setProcessing(true)
     setError('')
@@ -388,7 +131,7 @@ export function DonateCheckout({ campaign }) {
         amount: numAmount,
         gateway: selectedMethod?.gateway,
         provider,
-        phone: `+220${phone.trim()}`,
+        phone: requiresPhone ? `+220${phone.trim()}` : '',
         is_anonymous: anonymous,
         message: message.trim() || undefined,
         donor_name: anonymous ? '' : donorName.trim(),
@@ -539,63 +282,48 @@ export function DonateCheckout({ campaign }) {
                 )}
               </div>
 
-              {isCard ? (
-                <CardPaymentStep
-                  campaign={campaign}
-                  amount={numAmount}
-                  donorName={donorName}
-                  anonymous={anonymous}
-                  message={message}
-                  stripeGateway={stripeGateway}
-                  onBack={() => setStep('amount')}
-                  onSuccess={handleCardSuccess}
-                />
-              ) : (
-                <>
-                  {requiresPhone && (
-                    <div>
-                      <label className="text-sm font-medium block mb-1.5">
-                        <Smartphone className="w-4 h-4 inline mr-1" />
-                        Your phone number
-                      </label>
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">+220</span>
-                        <input
-                          type="tel"
-                          value={phone}
-                          onChange={(e) => { setPhone(e.target.value); setError('') }}
-                          placeholder="7XXXXXXX"
-                          className="w-full pl-14 pr-4 py-2.5 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
-                        />
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">You'll receive a payment prompt on this number</p>
-                    </div>
-                  )}
-
-                  {error && (
-                    <p className="text-sm text-destructive flex items-center gap-1.5">
-                      <AlertCircle className="w-4 h-4" /> {error}
-                    </p>
-                  )}
-
-                  <div className="flex gap-3">
-                    <button onClick={() => setStep('amount')} className="flex-1 py-2.5 border rounded-xl text-sm font-medium hover:bg-muted transition-colors">
-                      Back
-                    </button>
-                    <button
-                      onClick={goToConfirm}
-                      disabled={!selectedMethod}
-                      className="flex-1 bg-donate text-donate-foreground font-bold py-2.5 rounded-xl hover:bg-donate/90 transition-colors disabled:opacity-50"
-                    >
-                      Continue
-                    </button>
+              {requiresPhone && (
+                <div>
+                  <label className="text-sm font-medium block mb-1.5">
+                    <Smartphone className="w-4 h-4 inline mr-1" />
+                    Your phone number
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">+220</span>
+                    <input
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => { setPhone(e.target.value); setError('') }}
+                      placeholder="7XXXXXXX"
+                      className="w-full pl-14 pr-4 py-2.5 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
+                    />
                   </div>
-                </>
+                  <p className="text-xs text-muted-foreground mt-1">You'll receive a payment prompt on this number</p>
+                </div>
               )}
+
+              {error && (
+                <p className="text-sm text-destructive flex items-center gap-1.5">
+                  <AlertCircle className="w-4 h-4" /> {error}
+                </p>
+              )}
+
+              <div className="flex gap-3">
+                <button onClick={() => setStep('amount')} className="flex-1 py-2.5 border rounded-xl text-sm font-medium hover:bg-muted transition-colors">
+                  Back
+                </button>
+                <button
+                  onClick={goToConfirm}
+                  disabled={!selectedMethod}
+                  className="flex-1 bg-donate text-donate-foreground font-bold py-2.5 rounded-xl hover:bg-donate/90 transition-colors disabled:opacity-50"
+                >
+                  Continue
+                </button>
+              </div>
             </div>
           )}
 
-          {/* Step: Confirm (wave/aps only — card confirms inline within the payment step) */}
+          {/* Step: Confirm */}
           {step === 'confirm' && (
             <div className="space-y-5">
               <div className="border rounded-xl divide-y bg-card">
@@ -612,10 +340,12 @@ export function DonateCheckout({ campaign }) {
                     <p className="text-xs text-muted-foreground mb-1">Via</p>
                     <p className="font-medium text-sm">{selectedMethod?.name}</p>
                   </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1">Phone</p>
-                    <p className="font-medium text-sm">+220 {phone}</p>
-                  </div>
+                  {requiresPhone && (
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Phone</p>
+                      <p className="font-medium text-sm">+220 {phone}</p>
+                    </div>
+                  )}
                   <div>
                     <p className="text-xs text-muted-foreground mb-1">Donor</p>
                     <p className="font-medium text-sm">{anonymous ? 'Anonymous' : donorName || 'Not provided'}</p>
