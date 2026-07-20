@@ -2,8 +2,12 @@ import { useState, useRef } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { Eye, Code, Bold, Italic, Heading2, List, Link2 } from 'lucide-react'
 import { cn } from '@/utils/cn'
+import { renderLegalVariables } from '@/utils/legalVariables'
 
-export function MarkdownEditor({ value, onChange, placeholder = 'Write your content here...' }) {
+// `variables`, when passed, is [{key, label, value}] — feeds both the
+// "Insert variable" picker below and the live preview's substitution, so
+// what an admin sees in Preview matches what donors will actually see.
+export function MarkdownEditor({ value, onChange, placeholder = 'Write your content here...', variables }) {
   const [mode, setMode] = useState('edit')
   const textareaRef = useRef()
 
@@ -17,6 +21,22 @@ export function MarkdownEditor({ value, onChange, placeholder = 'Write your cont
     const newValue = value.substring(0, start) + before + selectedText + after + value.substring(end)
 
     onChange({ target: { value: newValue } })
+  }
+
+  const insertText = (text) => {
+    const textarea = textareaRef.current
+    if (!textarea) return
+
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const newValue = value.substring(0, start) + text + value.substring(end)
+
+    onChange({ target: { value: newValue } })
+    requestAnimationFrame(() => {
+      textarea.focus()
+      const cursor = start + text.length
+      textarea.setSelectionRange(cursor, cursor)
+    })
   }
 
   const formatOptions = [
@@ -72,6 +92,24 @@ export function MarkdownEditor({ value, onChange, placeholder = 'Write your cont
                 <Icon className="w-4 h-4" />
               </button>
             ))}
+            {variables && variables.length > 0 && (
+              <select
+                value=""
+                onChange={(e) => {
+                  if (e.target.value) insertText(e.target.value)
+                  e.target.value = ''
+                }}
+                title="Insert a variable that stays up to date with its live value"
+                className="text-xs border rounded-lg pl-2 pr-1 py-1.5 bg-background text-muted-foreground hover:text-foreground ml-1"
+              >
+                <option value="">Insert variable…</option>
+                {variables.map((v) => (
+                  <option key={v.key} value={`{{${v.key}}}`}>
+                    {v.label}{v.value ? ` — ${v.value}` : ''}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
         )}
       </div>
@@ -87,7 +125,9 @@ export function MarkdownEditor({ value, onChange, placeholder = 'Write your cont
         />
       ) : (
         <div className="border rounded-xl p-4 min-h-[300px] bg-background">
-          <MarkdownContent content={value} />
+          <MarkdownContent
+            content={variables ? renderLegalVariables(value, Object.fromEntries(variables.map((v) => [v.key, v.value]))) : value}
+          />
         </div>
       )}
     </div>

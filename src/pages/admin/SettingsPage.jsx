@@ -6,7 +6,7 @@ import { MarkdownEditor } from '@/components/custom/MarkdownEditor'
 import { usePlatformSettings, useUpdatePlatformSettings } from '@/hooks/usePayments'
 import { useSiteSettings, useUpdateSiteSettings } from '@/hooks/useSiteSettings'
 import { useZakatSettings, useUpdateZakatSettings } from '@/hooks/useZakat'
-import { useLegalContent, useUpdateLegalContent } from '@/hooks/useLegalContent'
+import { useLegalContent, useUpdateLegalContent, useLegalVariables } from '@/hooks/useLegalContent'
 import { formatGMD } from '@/utils/formatters'
 import { compressImage } from '@/utils/imageCompression'
 import { cn } from '@/utils/cn'
@@ -155,6 +155,7 @@ const LEGAL_TABS = [
 
 function LegalContentCard({ onNotify }) {
   const { content, isLoading } = useLegalContent()
+  const { variables } = useLegalVariables()
   const updateLegalContent = useUpdateLegalContent()
   const [form, setForm] = useState(null)
   const [activeTab, setActiveTab] = useState(LEGAL_TABS[0].key)
@@ -193,6 +194,8 @@ function LegalContentCard({ onNotify }) {
         </h2>
         <p className="text-sm text-muted-foreground mt-1">
           Edit the content shown on the public Help, Trust &amp; Safety, Privacy, and Terms pages. Markdown supported.
+          Use the "Insert variable" menu to write values like the site name or platform fee as tags — they stay
+          correct automatically if that setting ever changes, instead of needing every page updated by hand.
         </p>
       </div>
 
@@ -215,6 +218,7 @@ function LegalContentCard({ onNotify }) {
         value={form[activeTab]}
         onChange={(e) => setForm((f) => ({ ...f, [activeTab]: e.target.value }))}
         placeholder="Write content here…"
+        variables={variables}
       />
 
       <button

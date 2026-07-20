@@ -1,11 +1,13 @@
 import { Link } from '@tanstack/react-router'
-import { useLegalContent } from '@/hooks/useLegalContent'
+import { useLegalContent, useLegalVariables } from '@/hooks/useLegalContent'
 import { MarkdownContent } from '@/components/custom/MarkdownEditor'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
+import { renderLegalVariables } from '@/utils/legalVariables'
 import { ROUTES } from '@/constants'
 
 export function HelpPage() {
   const { content, isLoading } = useLegalContent()
+  const { values } = useLegalVariables()
 
   return (
     <div>
@@ -26,7 +28,7 @@ export function HelpPage() {
           <LoadingSpinner />
         ) : (
           <div className="bg-card border rounded-2xl p-6 sm:p-8">
-            <MarkdownContent content={content?.help_content || ''} />
+            <MarkdownContent content={renderLegalVariables(content?.help_content || '', values)} />
           </div>
         )}
 

@@ -18,6 +18,7 @@ export function useSiteSettings() {
   return {
     siteName,
     siteDescription: query.data?.site_description || settings.siteDescription,
+    contactEmail: query.data?.contact_email || '',
     logo: query.data?.logo || null,
     logoWithBackground: query.data?.logo_with_background || null,
     isLoading: query.isLoading,
