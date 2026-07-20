@@ -73,7 +73,7 @@ export function useAdminUpdateDonation() {
   return useMutation({
     mutationFn: ({ id, ...data }) => donationApi.adminUpdateDonation(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.donations.all() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.donations.adminAll() })
     },
   })
 }
@@ -83,7 +83,7 @@ export function useAdminRefundDonation() {
   return useMutation({
     mutationFn: ({ id, reason }) => donationApi.adminRefundDonation(id, reason),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.donations.all() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.donations.adminAll() })
       queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.all() })
     },
   })

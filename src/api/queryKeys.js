@@ -44,6 +44,10 @@ export const queryKeys = {
     campaign: (slug) => ['donations', 'campaign', slug],
     publicCampaign: (slug) => ['donations', 'campaign', slug, 'public'],
     adminList: (params) => ['donations', 'admin', params],
+    // Prefix of adminList()'s key -- invalidate this (not adminList() itself,
+    // which is params-specific) to refresh every admin donations list query
+    // regardless of its current page/filter params.
+    adminAll: () => ['donations', 'admin'],
   },
   payments: {
     gateways: () => ['payments', 'gateways'],
