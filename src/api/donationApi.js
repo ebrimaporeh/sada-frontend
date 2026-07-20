@@ -24,4 +24,7 @@ export const donationApi = {
 
   adminUpdateDonation: (id, data) =>
     apiClient.patch(`/donations/admin/${id}/update/`, data).then((r) => r.data),
+
+  adminRefundDonation: (id, reason) =>
+    apiClient.post(`/donations/admin/${id}/refund/`, { reason }).then((r) => r.data),
 }

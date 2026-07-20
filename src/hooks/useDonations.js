@@ -77,3 +77,14 @@ export function useAdminUpdateDonation() {
     },
   })
 }
+
+export function useAdminRefundDonation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, reason }) => donationApi.adminRefundDonation(id, reason),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.donations.all() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.all() })
+    },
+  })
+}
