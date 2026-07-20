@@ -78,6 +78,23 @@ export function useChangePassword() {
   return useMutation({ mutationFn: authApi.changePassword })
 }
 
+export function useDeleteAccount() {
+  const queryClient = useQueryClient()
+  const navigate = useNavigate()
+
+  return useMutation({
+    mutationFn: (password) => userApi.deleteMe(password),
+    // Only clear the session on success -- a wrong-password rejection
+    // should leave the user logged in to see the error and try again.
+    onSuccess: () => {
+      localStorage.removeItem('access_token')
+      localStorage.removeItem('refresh_token')
+      queryClient.clear()
+      navigate({ to: '/' })
+    },
+  })
+}
+
 export function useSetPassword() {
   const queryClient = useQueryClient()
   return useMutation({

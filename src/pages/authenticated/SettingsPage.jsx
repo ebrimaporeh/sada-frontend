@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { GoogleLogin } from '@react-oauth/google'
-import { CheckCircle2, AlertCircle, Eye, EyeOff, Bell, Shield, Trash2, Moon, Sun, Monitor, Smartphone, CreditCard } from 'lucide-react'
+import { CheckCircle2, AlertCircle, Eye, EyeOff, Bell, Shield, Trash2, Loader2, Moon, Sun, Monitor, Smartphone, CreditCard } from 'lucide-react'
 import { PageHeader } from '@/components/custom/PageHeader'
-import { useChangePassword, useSetPassword, useLinkGoogleAccount, useLogout, useMe, useUpdateMe } from '@/hooks/useAuth'
+import { useChangePassword, useSetPassword, useLinkGoogleAccount, useLogout, useDeleteAccount, useMe, useUpdateMe } from '@/hooks/useAuth'
 import { usePayoutMethods } from '@/hooks/usePayments'
 import { cn } from '@/utils/cn'
 
@@ -51,9 +51,22 @@ export function SettingsPage() {
   const setPassword = useSetPassword()
   const linkGoogleAccount = useLinkGoogleAccount()
   const logout = useLogout()
+  const deleteAccount = useDeleteAccount()
   const { data: me } = useMe()
   const updateMe = useUpdateMe()
   const { methods: PAYOUT_METHODS } = usePayoutMethods()
+
+  // Delete account
+  const [isDeleteMode, setIsDeleteMode] = useState(false)
+  const [deletePassword, setDeletePassword] = useState('')
+  const [deleteError, setDeleteError] = useState('')
+
+  function handleDeleteAccount() {
+    setDeleteError('')
+    deleteAccount.mutate(deletePassword, {
+      onError: (err) => setDeleteError(err?.response?.data?.message || 'Failed to delete account. Please try again.'),
+    })
+  }
 
   // Payment settings — seed once when me first loads; never reset on background refetches
   const paymentSeeded = useRef(false)
@@ -511,19 +524,69 @@ export function SettingsPage() {
       {/* Danger zone */}
       <Section title="Danger Zone">
         <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border border-destructive/30 rounded-xl bg-destructive/5">
-            <div>
-              <p className="text-sm font-semibold text-destructive">Delete Account</p>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Permanently deletes your account and all campaigns. This cannot be undone.
-              </p>
+          <div className="p-4 border border-destructive/30 rounded-xl bg-destructive/5 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-destructive">Delete Account</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Removes your personal information and signs you out for good. Your campaigns and
+                  donation history stay intact for other donors and for financial record-keeping, but
+                  are no longer linked to your name. This cannot be undone.
+                </p>
+              </div>
+              {!isDeleteMode && (
+                <button
+                  type="button"
+                  onClick={() => { setIsDeleteMode(true); setDeletePassword(''); setDeleteError('') }}
+                  className="flex-shrink-0 inline-flex items-center gap-2 text-sm font-medium text-destructive border border-destructive/40 px-4 py-2 rounded-lg hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" /> Delete Account
+                </button>
+              )}
             </div>
-            <button
-              type="button"
-              className="flex-shrink-0 inline-flex items-center gap-2 text-sm font-medium text-destructive border border-destructive/40 px-4 py-2 rounded-lg hover:bg-destructive hover:text-destructive-foreground transition-colors"
-            >
-              <Trash2 className="w-4 h-4" /> Delete Account
-            </button>
+
+            {isDeleteMode && (
+              <div className="border-t border-destructive/20 pt-4 space-y-3">
+                {hasPassword && (
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium">Enter your password to confirm</label>
+                    <input
+                      type="password"
+                      value={deletePassword}
+                      onChange={(e) => setDeletePassword(e.target.value)}
+                      autoComplete="current-password"
+                      className="w-full px-3 py-2.5 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-destructive"
+                    />
+                  </div>
+                )}
+
+                {deleteError && (
+                  <p className="text-sm text-destructive flex items-center gap-1.5">
+                    <AlertCircle className="w-4 h-4" /> {deleteError}
+                  </p>
+                )}
+
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsDeleteMode(false)}
+                    disabled={deleteAccount.isPending}
+                    className="flex-1 px-4 py-2 rounded-lg border hover:bg-accent transition-colors text-sm font-medium disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDeleteAccount}
+                    disabled={deleteAccount.isPending || (hasPassword && !deletePassword)}
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors text-sm font-medium disabled:opacity-50"
+                  >
+                    {deleteAccount.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+                    {deleteAccount.isPending ? 'Deleting…' : 'Permanently Delete My Account'}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </Section>

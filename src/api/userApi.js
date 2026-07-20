@@ -3,6 +3,9 @@ import { apiClient } from './client'
 export const userApi = {
   getMe: () => apiClient.get('/users/me/').then((r) => r.data),
   updateMe: (data) => apiClient.patch('/users/me/', data).then((r) => r.data),
+  // Axios needs `{ data: ... }` explicitly for a DELETE body -- passing the
+  // payload directly would be read as request config, not sent at all.
+  deleteMe: (password) => apiClient.delete('/users/me/', { data: { password } }).then((r) => r.data),
   uploadAvatar: (file) => {
     const form = new FormData()
     form.append('avatar', file)
