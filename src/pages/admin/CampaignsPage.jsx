@@ -9,6 +9,7 @@ import { formatGMD, formatDate, progressPercent } from '@/utils/formatters'
 import { useAdminCampaigns, useAdminCampaignAction } from '@/hooks/useCampaigns'
 import { useCampaignsStats } from '@/hooks/useAdmin'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
+import { useStatsVisibility } from '@/hooks/useStatsVisibility'
 import { StatSkeleton } from '@/components/custom/StatSkeleton'
 import { CAMPAIGN_STATUS } from '@/constants'
 import { cn } from '@/utils/cn'
@@ -32,7 +33,7 @@ export function CampaignsPage() {
   const [statusFilter, setStatusFilter] = useState('all')
   const [actioningId, setActioningId] = useState(null)
   const [page, setPage] = useState(1)
-  const [showStats, setShowStats] = useState(true)
+  const [showStats, setShowStats] = useStatsVisibility('campaigns')
   const [selectedCampaign, setSelectedCampaign] = useState(null)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const limit = 10

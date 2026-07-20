@@ -4,6 +4,7 @@ import { cn } from '@/utils/cn'
 import { useAdminReports, useReportsStats, useAdminUpdateReport } from '@/hooks/useAdmin'
 import { useAdminChangeCampaignStatus } from '@/hooks/useCampaigns'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
+import { useStatsVisibility } from '@/hooks/useStatsVisibility'
 import { StatSkeleton } from '@/components/custom/StatSkeleton'
 import { ReportSheet } from '@/components/custom/ReportSheet'
 import { AdminPagination } from '@/components/custom/AdminPagination'
@@ -35,7 +36,7 @@ export function ReportsPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [isChangingCampaignStatus, setIsChangingCampaignStatus] = useState(false)
   const [page, setPage] = useState(1)
-  const [showStats, setShowStats] = useState(true)
+  const [showStats, setShowStats] = useStatsVisibility('reports')
   const limit = 10
 
   const debouncedSearch = useDebouncedValue(search)

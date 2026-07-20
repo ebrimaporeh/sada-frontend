@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import { formatGMD } from '@/utils/formatters'
 import { useFinanceSummary } from '@/hooks/useAdmin'
+import { useStatsVisibility } from '@/hooks/useStatsVisibility'
 import { DatePicker } from '@/components/custom/DatePicker'
 
 const PERIODS = [
@@ -31,7 +32,7 @@ const PERIODS = [
 ]
 
 export function FinancesPage() {
-  const [showStats, setShowStats] = useState(true)
+  const [showStats, setShowStats] = useStatsVisibility('finances')
   const [page, setPage] = useState(1)
   const limit = 5
 

@@ -7,6 +7,7 @@ import { formatGMD, formatDateTime } from '@/utils/formatters'
 import { useAdminDonations } from '@/hooks/useDonations'
 import { useDonationsStats } from '@/hooks/useAdmin'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
+import { useStatsVisibility } from '@/hooks/useStatsVisibility'
 import { StatSkeleton } from '@/components/custom/StatSkeleton'
 import { DONATION_STATUS } from '@/constants'
 import { cn } from '@/utils/cn'
@@ -22,7 +23,7 @@ export function DonationsPage() {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [page, setPage] = useState(1)
-  const [showStats, setShowStats] = useState(true)
+  const [showStats, setShowStats] = useStatsVisibility('donations')
   const [selectedDonation, setSelectedDonation] = useState(null)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const limit = 10
