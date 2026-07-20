@@ -11,6 +11,7 @@ const INITIAL_FORM = {
   password: '',
   password_confirm: '',
   account_type: ACCOUNT_TYPES.INDIVIDUAL,
+  terms_accepted: false,
 }
 
 export function RegisterForm() {
@@ -73,16 +74,45 @@ export function RegisterForm() {
         </p>
       )}
 
+      {/* Terms acceptance -- gates both sign-up paths below */}
+      <label className="flex items-start gap-2.5 text-sm cursor-pointer">
+        <input
+          type="checkbox"
+          checked={form.terms_accepted}
+          onChange={(e) => setForm((f) => ({ ...f, terms_accepted: e.target.checked }))}
+          className="mt-0.5 w-4 h-4 rounded border-input accent-primary flex-shrink-0"
+        />
+        <span className="text-muted-foreground">
+          I agree to the{' '}
+          <Link to={ROUTES.TERMS} target="_blank" className="text-primary hover:underline font-medium">
+            Terms of Service
+          </Link>{' '}
+          and{' '}
+          <Link to={ROUTES.PRIVACY} target="_blank" className="text-primary hover:underline font-medium">
+            Privacy Policy
+          </Link>
+        </span>
+      </label>
+
       {/* Google OAuth */}
       <div className="flex justify-center">
-        <GoogleLogin
-          onSuccess={(credentialResponse) => {
-            googleOAuth.mutate({ idToken: credentialResponse.credential, accountType: form.account_type })
-          }}
-          onError={() => {
-            console.log('Google signup failed')
-          }}
-        />
+        {form.terms_accepted ? (
+          <GoogleLogin
+            onSuccess={(credentialResponse) => {
+              googleOAuth.mutate({ idToken: credentialResponse.credential, accountType: form.account_type })
+            }}
+            onError={() => {
+              console.log('Google signup failed')
+            }}
+          />
+        ) : (
+          <div
+            title="Agree to the Terms of Service and Privacy Policy above to continue"
+            className="w-full max-w-[240px] h-10 rounded-md border bg-muted text-muted-foreground text-sm flex items-center justify-center gap-2 cursor-not-allowed select-none"
+          >
+            Sign up with Google
+          </div>
+        )}
       </div>
 
       {/* Divider */}
@@ -116,7 +146,7 @@ export function RegisterForm() {
 
         <button
           type="submit"
-          disabled={register.isPending}
+          disabled={register.isPending || !form.terms_accepted}
           className="w-full py-2 px-4 bg-primary text-primary-foreground rounded-md text-sm font-medium disabled:opacity-50"
         >
           {register.isPending ? 'Creating account...' : 'Create account'}
