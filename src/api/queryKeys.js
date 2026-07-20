@@ -52,6 +52,7 @@ export const queryKeys = {
   payments: {
     gateways: () => ['payments', 'gateways'],
     payouts: (slug) => ['payments', 'payouts', slug],
+    adminCampaignPayouts: (campaignId) => ['payments', 'admin', 'campaign-payouts', campaignId],
     settings: () => ['payments', 'settings'],
     feePreview: (amount, provider) => ['payments', 'fee-preview', amount, provider],
   },

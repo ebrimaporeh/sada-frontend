@@ -46,6 +46,15 @@ export function useCampaignPayouts(slug) {
   })
 }
 
+export function useAdminCampaignPayouts(campaignId) {
+  return useQuery({
+    queryKey: queryKeys.payments.adminCampaignPayouts(campaignId),
+    queryFn: () => paymentApi.getAdminCampaignPayouts(campaignId),
+    select: (res) => res?.data?.payouts ?? [],
+    enabled: Boolean(campaignId),
+  })
+}
+
 export function useRequestPayout() {
   const queryClient = useQueryClient()
   return useMutation({
