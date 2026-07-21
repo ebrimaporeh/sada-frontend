@@ -97,6 +97,12 @@ export function LoginForm() {
         </div>
       </div>
 
+      {googleOAuth.isError && (
+        <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+          {googleOAuth.error?.response?.data?.message || 'Google sign-in failed.'}
+        </div>
+      )}
+
       {/* Google OAuth */}
       <div className="flex justify-center">
         <GoogleLogin
