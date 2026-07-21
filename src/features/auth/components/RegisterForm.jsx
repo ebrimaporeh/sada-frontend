@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { GoogleLogin } from '@react-oauth/google'
-import { User, Building2 } from 'lucide-react'
+import { User, Building2, Eye, EyeOff } from 'lucide-react'
 import { useRegister, useGoogleOAuth } from '@/hooks/useAuth'
 import { ROUTES, ACCOUNT_TYPES } from '@/constants'
 import { cn } from '@/utils/cn'
@@ -16,9 +16,13 @@ const INITIAL_FORM = {
 
 export function RegisterForm() {
   const [form, setForm] = useState(INITIAL_FORM)
+  const [visiblePasswords, setVisiblePasswords] = useState({ password: false, password_confirm: false })
   const register = useRegister()
   const googleOAuth = useGoogleOAuth()
   const isOrg = form.account_type === ACCOUNT_TYPES.ORGANIZATION
+
+  const togglePasswordVisibility = (field) =>
+    setVisiblePasswords((v) => ({ ...v, [field]: !v[field] }))
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
 
@@ -113,21 +117,41 @@ export function RegisterForm() {
 
         {[
           { name: 'email', type: 'email', label: 'Email', required: true },
-          { name: 'password', type: 'password', label: 'Password', required: true },
-          { name: 'password_confirm', type: 'password', label: 'Confirm password', required: true },
-        ].map(({ name, type, label, required }) => (
-          <div key={name} className="space-y-1">
-            <label className="text-sm font-medium">{label}</label>
-            <input
-              name={name}
-              type={type}
-              value={form[name]}
-              onChange={handleChange}
-              required={required}
-              className="w-full px-3 py-2 border rounded-md text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
-            />
-          </div>
-        ))}
+          { name: 'password', type: 'password', label: 'Password', required: true, autoComplete: 'new-password' },
+          { name: 'password_confirm', type: 'password', label: 'Confirm password', required: true, autoComplete: 'new-password' },
+        ].map(({ name, type, label, required, autoComplete }) => {
+          const isPasswordField = type === 'password'
+          const isVisible = visiblePasswords[name]
+          return (
+            <div key={name} className="space-y-1">
+              <label className="text-sm font-medium">{label}</label>
+              <div className="relative">
+                <input
+                  name={name}
+                  type={isPasswordField && isVisible ? 'text' : type}
+                  value={form[name]}
+                  onChange={handleChange}
+                  required={required}
+                  autoComplete={autoComplete}
+                  className={cn(
+                    'w-full px-3 py-2 border rounded-md text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring',
+                    isPasswordField && 'pr-10',
+                  )}
+                />
+                {isPasswordField && (
+                  <button
+                    type="button"
+                    onClick={() => togglePasswordVisibility(name)}
+                    tabIndex={-1}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {isVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                )}
+              </div>
+            </div>
+          )
+        })}
 
         {/* Terms acceptance -- gates the submit button right below it */}
         <label className="flex items-start gap-2.5 text-sm cursor-pointer">

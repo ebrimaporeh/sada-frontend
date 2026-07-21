@@ -1,8 +1,14 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { GoogleLogin } from '@react-oauth/google'
+import { Eye, EyeOff } from 'lucide-react'
 import { useLogin, useGoogleOAuth, useResendVerification } from '@/hooks/useAuth'
 import { ROUTES } from '@/constants'
+
+// Standard resend-cooldown window (Discord/Slack-style magic-link resends
+// commonly sit in the 30-60s range) -- long enough that the first email has
+// realistically had time to arrive before another one can be requested.
+const RESEND_COOLDOWN_SECONDS = 30
 
 const TEST_ACCOUNTS = [
   {
@@ -26,11 +32,19 @@ const TEST_ACCOUNTS = [
 export function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [activeDemo, setActiveDemo] = useState(null)
   const [resendSent, setResendSent] = useState(false)
+  const [resendCooldown, setResendCooldown] = useState(0)
   const login = useLogin()
   const googleOAuth = useGoogleOAuth()
   const resendVerification = useResendVerification()
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return
+    const timer = setInterval(() => setResendCooldown((s) => Math.max(0, s - 1)), 1000)
+    return () => clearInterval(timer)
+  }, [resendCooldown])
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -42,7 +56,9 @@ export function LoginForm() {
   const isUnverifiedEmailError = /verify your email/i.test(loginErrorMessage)
 
   const handleResend = () => {
-    resendVerification.mutate(email, { onSuccess: () => setResendSent(true) })
+    resendVerification.mutate(email, {
+      onSuccess: () => { setResendSent(true); setResendCooldown(RESEND_COOLDOWN_SECONDS) },
+    })
   }
 
   const handleDemoLogin = (account) => {
@@ -131,18 +147,23 @@ export function LoginForm() {
           <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive space-y-2">
             <p>{loginErrorMessage || 'Login failed. Please try again.'}</p>
             {isUnverifiedEmailError && (
-              resendSent ? (
-                <p className="text-xs text-destructive/80">A new verification link is on its way, if that email is registered.</p>
-              ) : (
+              <div className="space-y-1">
+                {resendSent && (
+                  <p className="text-xs text-destructive/80">A new verification link is on its way, if that email is registered.</p>
+                )}
                 <button
                   type="button"
                   onClick={handleResend}
-                  disabled={resendVerification.isPending}
-                  className="text-xs font-medium underline underline-offset-2 disabled:opacity-50"
+                  disabled={resendVerification.isPending || resendCooldown > 0}
+                  className="text-xs font-medium underline underline-offset-2 disabled:opacity-50 disabled:no-underline"
                 >
-                  {resendVerification.isPending ? 'Sending…' : 'Resend verification email'}
+                  {resendVerification.isPending
+                    ? 'Sending…'
+                    : resendCooldown > 0
+                      ? `Resend available in ${resendCooldown}s`
+                      : 'Resend verification email'}
                 </button>
-              )
+              </div>
             )}
           </div>
         )}
@@ -161,13 +182,24 @@ export function LoginForm() {
 
         <div className="space-y-1">
           <label className="text-sm font-medium">Password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => { setPassword(e.target.value); setActiveDemo(null) }}
-            required
-            className="w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-ring"
-          />
+          <div className="relative">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={(e) => { setPassword(e.target.value); setActiveDemo(null) }}
+              required
+              autoComplete="current-password"
+              className="w-full rounded-md border bg-background px-3 py-2 pr-10 text-sm focus:outline-hidden focus:ring-2 focus:ring-ring"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              tabIndex={-1}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
         </div>
 
         <div className="text-right">
