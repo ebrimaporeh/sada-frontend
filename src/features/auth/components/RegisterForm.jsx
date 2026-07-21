@@ -36,11 +36,9 @@ export function RegisterForm() {
         <p className="text-muted-foreground">Start your journey today</p>
       </div>
 
-      {(register.isError || googleOAuth.isError) && (
+      {googleOAuth.isError && (
         <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm">
-          {register.error?.response?.data?.message
-            || googleOAuth.error?.response?.data?.message
-            || 'Registration failed.'}
+          {googleOAuth.error?.response?.data?.message || 'Google sign-up failed.'}
         </div>
       )}
 
@@ -74,46 +72,27 @@ export function RegisterForm() {
         </p>
       )}
 
-      {/* Terms acceptance -- gates both sign-up paths below */}
-      <label className="flex items-start gap-2.5 text-sm cursor-pointer">
-        <input
-          type="checkbox"
-          checked={form.terms_accepted}
-          onChange={(e) => setForm((f) => ({ ...f, terms_accepted: e.target.checked }))}
-          className="mt-0.5 w-4 h-4 rounded border-input accent-primary flex-shrink-0"
-        />
-        <span className="text-muted-foreground">
-          I agree to the{' '}
-          <Link to={ROUTES.TERMS} target="_blank" className="text-primary hover:underline font-medium">
-            Terms of Service
-          </Link>{' '}
-          and{' '}
-          <Link to={ROUTES.PRIVACY} target="_blank" className="text-primary hover:underline font-medium">
-            Privacy Policy
-          </Link>
-        </span>
-      </label>
-
       {/* Google OAuth */}
       <div className="flex justify-center">
-        {form.terms_accepted ? (
-          <GoogleLogin
-            onSuccess={(credentialResponse) => {
-              googleOAuth.mutate({ idToken: credentialResponse.credential, accountType: form.account_type })
-            }}
-            onError={() => {
-              console.log('Google signup failed')
-            }}
-          />
-        ) : (
-          <div
-            title="Agree to the Terms of Service and Privacy Policy above to continue"
-            className="w-full max-w-[240px] h-10 rounded-md border bg-muted text-muted-foreground text-sm flex items-center justify-center gap-2 cursor-not-allowed select-none"
-          >
-            Sign up with Google
-          </div>
-        )}
+        <GoogleLogin
+          onSuccess={(credentialResponse) => {
+            googleOAuth.mutate({ idToken: credentialResponse.credential, accountType: form.account_type })
+          }}
+          onError={() => {
+            console.log('Google signup failed')
+          }}
+        />
       </div>
+      <p className="text-xs text-center text-muted-foreground -mt-2">
+        By continuing with Google, you agree to our{' '}
+        <Link to={ROUTES.TERMS} target="_blank" className="text-primary hover:underline font-medium">
+          Terms of Service
+        </Link>{' '}
+        and{' '}
+        <Link to={ROUTES.PRIVACY} target="_blank" className="text-primary hover:underline font-medium">
+          Privacy Policy
+        </Link>.
+      </p>
 
       {/* Divider */}
       <div className="relative">
@@ -126,6 +105,12 @@ export function RegisterForm() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
+        {register.isError && (
+          <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm">
+            {register.error?.response?.data?.message || 'Registration failed.'}
+          </div>
+        )}
+
         {[
           { name: 'email', type: 'email', label: 'Email', required: true },
           { name: 'password', type: 'password', label: 'Password', required: true },
@@ -143,6 +128,26 @@ export function RegisterForm() {
             />
           </div>
         ))}
+
+        {/* Terms acceptance -- gates the submit button right below it */}
+        <label className="flex items-start gap-2.5 text-sm cursor-pointer">
+          <input
+            type="checkbox"
+            checked={form.terms_accepted}
+            onChange={(e) => setForm((f) => ({ ...f, terms_accepted: e.target.checked }))}
+            className="mt-0.5 w-4 h-4 rounded border-input accent-primary flex-shrink-0"
+          />
+          <span className="text-muted-foreground">
+            I agree to the{' '}
+            <Link to={ROUTES.TERMS} target="_blank" className="text-primary hover:underline font-medium">
+              Terms of Service
+            </Link>{' '}
+            and{' '}
+            <Link to={ROUTES.PRIVACY} target="_blank" className="text-primary hover:underline font-medium">
+              Privacy Policy
+            </Link>
+          </span>
+        </label>
 
         <button
           type="submit"
