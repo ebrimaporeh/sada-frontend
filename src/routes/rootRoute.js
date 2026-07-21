@@ -27,6 +27,8 @@ import { HelpPage } from '@/pages/public/HelpPage'
 import { TrustSafetyPage } from '@/pages/public/TrustSafetyPage'
 import { PrivacyPage } from '@/pages/public/PrivacyPage'
 import { TermsPage } from '@/pages/public/TermsPage'
+import { VisionIndexPage } from '@/pages/public/VisionIndexPage'
+import { VisionTopicPage } from '@/pages/public/VisionTopicPage'
 
 // Pages — authenticated
 import { DashboardPage } from '@/pages/authenticated/DashboardPage'
@@ -51,6 +53,7 @@ import { FinancesPage } from '@/pages/admin/FinancesPage'
 import { CategoriesPage } from '@/pages/admin/CategoriesPage'
 import { SettingsPage as AdminSettingsPage } from '@/pages/admin/SettingsPage'
 import { AdminProfilePage } from '@/pages/admin/AdminProfilePage'
+import { AdminVisionPage } from '@/pages/admin/AdminVisionPage'
 
 import { ROUTES } from '@/constants'
 
@@ -204,6 +207,18 @@ const termsRoute = createRoute({
   component: TermsPage,
 })
 
+const visionIndexRoute = createRoute({
+  getParentRoute: () => publicLayout,
+  path: ROUTES.VISION,
+  component: VisionIndexPage,
+})
+
+const visionTopicRoute = createRoute({
+  getParentRoute: () => publicLayout,
+  path: '/vision/$slug',
+  component: VisionTopicPage,
+})
+
 // ─── Authenticated Layout ─────────────────────────────────────────────────────
 
 const authLayout = createRoute({
@@ -347,6 +362,13 @@ const adminSettingsRoute = createRoute({
   beforeLoad: requireResource(Resource.SETTINGS),
 })
 
+const adminVisionRoute = createRoute({
+  getParentRoute: () => adminLayout,
+  path: ROUTES.ADMIN_VISION,
+  component: AdminVisionPage,
+  beforeLoad: requireResource(Resource.SETTINGS),
+})
+
 const adminProfileRoute = createRoute({
   getParentRoute: () => adminLayout,
   path: ROUTES.ADMIN_PROFILE,
@@ -382,6 +404,8 @@ const routeTree = rootRoute.addChildren([
     trustSafetyRoute,
     privacyRoute,
     termsRoute,
+    visionIndexRoute,
+    visionTopicRoute,
   ]),
   authLayout.addChildren([
     dashboardRoute,
@@ -406,6 +430,7 @@ const routeTree = rootRoute.addChildren([
     adminCategoriesRoute,
     adminFinancesRoute,
     adminSettingsRoute,
+    adminVisionRoute,
     adminProfileRoute,
   ]),
 ])

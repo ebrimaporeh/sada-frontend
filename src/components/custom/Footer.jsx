@@ -11,6 +11,7 @@ const PLATFORM_LINKS = [
   ['Zakat Calculator', ROUTES.ZAKAT],
   ['How It Works', '/#how-it-works'],
   ['About Us', ROUTES.ABOUT],
+  ['Platform Vision', ROUTES.VISION],
 ]
 
 const SUPPORT_LINKS = [

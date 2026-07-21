@@ -147,6 +147,17 @@ const MARKDOWN_COMPONENTS = {
   li: (props) => <li className="leading-relaxed" {...props} />,
   strong: (props) => <strong className="font-semibold text-foreground" {...props} />,
   a: (props) => <a target="_blank" rel="noopener noreferrer" className="text-primary hover:underline" {...props} />,
+  code: ({ className, ...props }) => (
+    // A fenced ```block``` gets a `language-x` className from remark;
+    // inline `code` doesn't -- that's the only reliable way to tell them
+    // apart here, since both render through this same component.
+    className
+      ? <code className={cn('block whitespace-pre', className)} {...props} />
+      : <code className="px-1.5 py-0.5 rounded bg-muted text-foreground/90 text-[0.85em] font-mono" {...props} />
+  ),
+  pre: (props) => (
+    <pre className="mb-3 p-4 rounded-xl bg-muted overflow-x-auto text-sm font-mono leading-relaxed" {...props} />
+  ),
 }
 
 // Renders markdown to actual React elements (not dangerouslySetInnerHTML) —

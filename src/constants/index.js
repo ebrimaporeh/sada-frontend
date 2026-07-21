@@ -60,12 +60,14 @@ export const ROUTES = {
   ADMIN_PROFILE: '/admin/profile',
   ADMIN_VERIFICATIONS: '/admin/verifications',
   ADMIN_VERIFICATION: '/admin/verification',
+  ADMIN_VISION: '/admin/vision',
 
   // Zakat calculator
   ZAKAT: '/zakat',
 
   // Support pages
   ABOUT: '/about',
+  VISION: '/vision',
   HELP: '/help',
   TRUST_SAFETY: '/trust-safety',
   PRIVACY: '/privacy',

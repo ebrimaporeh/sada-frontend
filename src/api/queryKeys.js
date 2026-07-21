@@ -75,4 +75,11 @@ export const queryKeys = {
     settings: () => ['zakat', 'settings'],
     recommendedCampaigns: (limit) => ['zakat', 'recommended-campaigns', limit],
   },
+  vision: {
+    all: () => ['vision'],
+    list: () => ['vision', 'list'],
+    detail: (slug) => ['vision', 'detail', slug],
+    adminAll: () => ['vision', 'admin'],
+    adminDetail: (slug) => ['vision', 'admin', slug],
+  },
 }
