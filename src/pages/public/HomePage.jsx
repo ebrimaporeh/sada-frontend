@@ -3,7 +3,7 @@ import { StatsSection } from '@/features/home/components/StatsSection'
 import { FeaturedCampaigns } from '@/features/home/components/FeaturedCampaigns'
 import { CategoriesSection } from '@/features/home/components/CategoriesSection'
 import { HowItWorks } from '@/features/home/components/HowItWorks'
-import { MobileMoneySection } from '@/features/home/components/MobileMoneySection'
+import { PaymentMethodsSection } from '@/features/home/components/PaymentMethodsSection'
 
 export function HomePage() {
   return (
@@ -13,7 +13,7 @@ export function HomePage() {
       <FeaturedCampaigns />
       <CategoriesSection />
       <HowItWorks />
-      <MobileMoneySection />
+      <PaymentMethodsSection />
     </>
   )
 }
