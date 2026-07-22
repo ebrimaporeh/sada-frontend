@@ -1,7 +1,7 @@
 import { Outlet, Link, Navigate } from '@tanstack/react-router'
 import { useMe, useLogout } from '@/hooks/useAuth'
 import { ROUTES } from '@/constants'
-import { User, Users, UserCog, Megaphone, Heart, LayoutDashboard, Home, LogOut, AlertCircle, BarChart3, Layers, Settings, ShieldCheck, Compass, Menu, X } from 'lucide-react'
+import { User, Users, UserCog, Megaphone, Heart, LayoutDashboard, Home, LogOut, AlertCircle, BarChart3, Layers, Settings, ShieldCheck, Compass, Menu, X, Loader2 } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import { useEffect, useState } from 'react'
 import { Resource, hasResourceAccess, isAdminAreaRole } from '@/utils/permissions'
@@ -213,10 +213,11 @@ export function AdminLayout() {
           </div>
           <button
             onClick={() => logout.mutate()}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/5 transition-colors flex-shrink-0"
+            disabled={logout.isPending}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/5 transition-colors flex-shrink-0 disabled:opacity-50"
           >
-            <LogOut className="w-4 h-4" />
-            <span className="hidden sm:inline">Logout</span>
+            {logout.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogOut className="w-4 h-4" />}
+            <span className="hidden sm:inline">{logout.isPending ? 'Logging out…' : 'Logout'}</span>
           </button>
         </header>
         <main className="flex-1 p-4 sm:p-6 overflow-auto">

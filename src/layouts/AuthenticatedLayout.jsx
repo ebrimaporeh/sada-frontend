@@ -6,7 +6,7 @@ import { cn } from '@/utils/cn'
 import { isAdminAreaRole } from '@/utils/permissions'
 import {
   LayoutDashboard, PlusCircle, User, Settings,
-  LogOut, Menu, X, Megaphone, Bell, Home, ShieldCheck,
+  LogOut, Menu, X, Megaphone, Bell, Home, ShieldCheck, Loader2,
 } from 'lucide-react'
 import { NotificationBell } from '@/components/custom/NotificationBell'
 import { Logo } from '@/components/custom/Logo'
@@ -118,10 +118,11 @@ export function AuthenticatedLayout() {
             <NotificationBell />
             <button
               onClick={() => logout.mutate()}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/5 transition-colors"
+              disabled={logout.isPending}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/5 transition-colors disabled:opacity-50"
             >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">Logout</span>
+              {logout.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogOut className="w-4 h-4" />}
+              <span className="hidden sm:inline">{logout.isPending ? 'Logging out…' : 'Logout'}</span>
             </button>
           </div>
         </header>
