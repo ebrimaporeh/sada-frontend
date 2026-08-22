@@ -40,7 +40,7 @@ export function Footer() {
           <div>
             <h3 className="text-xl sm:text-2xl font-bold">Ready to make a difference?</h3>
             <p className="text-sm text-background/60 mt-1">
-              Start a campaign in minutes — no fees taken off donations you receive.
+              Start a campaign in minutes — a small platform fee applies only when you withdraw funds.
             </p>
           </div>
           <Link

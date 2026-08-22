@@ -155,7 +155,7 @@ export function HowItWorks() {
           </Link>
           <p className="text-xs text-muted-foreground mt-4">
             {stats ? `Trusted by ${compactNumber(stats.fundraisers_count)} fundraisers. ` : ''}
-            No donor-side fees. 100% of what's donated reaches your cause.
+            No donor-side fees — a small platform fee applies only when you withdraw funds.
           </p>
         </div>
       </div>

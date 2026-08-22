@@ -575,11 +575,12 @@ function ZakatSettingsCard({ onNotify }) {
 }
 
 function SiteBrandingCard({ onNotify }) {
-  const { siteName, siteDescription, logo, logoWithBackground, isLoading } = useSiteSettings()
+  const { siteName, siteDescription, contactEmail, logo, logoWithBackground, isLoading } = useSiteSettings()
   const updateSiteSettings = useUpdateSiteSettings()
 
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
+  const [email, setEmail] = useState('')
   const logoFile = useRef(null)
   const logoWithBgFile = useRef(null)
   const [logoPreview, setLogoPreview] = useState(null)
@@ -590,16 +591,17 @@ function SiteBrandingCard({ onNotify }) {
     if (!isLoading && !hydrated) {
       setName(siteName)
       setDescription(siteDescription)
+      setEmail(contactEmail)
       setHydrated(true)
     }
-  }, [isLoading, hydrated, siteName, siteDescription])
+  }, [isLoading, hydrated, siteName, siteDescription, contactEmail])
 
   const handleSave = () => {
     if (!name.trim()) {
       onNotify('error', 'Site name cannot be blank.')
       return
     }
-    const payload = { site_name: name.trim(), site_description: description }
+    const payload = { site_name: name.trim(), site_description: description, contact_email: email.trim() }
     if (logoFile.current) payload.logo = logoFile.current
     if (logoWithBgFile.current) payload.logo_with_background = logoWithBgFile.current
 
@@ -649,6 +651,21 @@ function SiteBrandingCard({ onNotify }) {
                 rows={2}
                 className="w-full px-3 py-2.5 border rounded-lg bg-background focus:outline-hidden focus:ring-2 focus:ring-ring resize-none"
               />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Support email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="support@yourdomain.com"
+                className="w-full px-3 py-2.5 border rounded-lg bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
+              />
+              <p className="text-xs text-muted-foreground">
+                Used as the {'{{contact_email}}'} variable in Legal &amp; Help content, and as the destination for
+                internal admin notifications. Leave blank to use the server's default.
+              </p>
             </div>
           </div>
 
