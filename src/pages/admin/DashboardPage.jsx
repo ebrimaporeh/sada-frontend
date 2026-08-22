@@ -1,11 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import {
   BarChart,
   Bar,
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   PieChart,
   Pie,
   Cell,
@@ -23,11 +23,9 @@ import {
   DollarSign,
   AlertCircle,
   CheckCircle,
-  Activity,
-  Calendar,
 } from 'lucide-react'
 import { ROUTES } from '@/constants'
-import { formatGMD, formatDate } from '@/utils/formatters'
+import { formatGMD } from '@/utils/formatters'
 import { analyticsApi } from '@/api/adminApi'
 import { DatePicker } from '@/components/custom/DatePicker'
 
@@ -79,81 +77,66 @@ function ListRowSkeleton() {
 
 function DateRangeSelector({ selectedRange, customRange, onRangeChange, onApplyCustom }) {
   const isCustomActive = Boolean(customRange)
-  const [expanded, setExpanded] = useState(false)
   const [draftStart, setDraftStart] = useState(customRange?.start || '')
   const [draftEnd, setDraftEnd] = useState(customRange?.end || '')
 
-  function handleApply() {
-    if (draftStart && draftEnd) {
-      onApplyCustom(draftStart, draftEnd)
-      setExpanded(false)
+  // Picking a preset clears the applied custom range on the parent -- clear
+  // the visible draft inputs to match, so they don't keep showing stale
+  // dates that no longer reflect what's actually being queried.
+  useEffect(() => {
+    if (!customRange) {
+      setDraftStart('')
+      setDraftEnd('')
     }
+  }, [customRange])
+
+  function handleApply() {
+    if (draftStart && draftEnd) onApplyCustom(draftStart, draftEnd)
   }
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2 flex-wrap">
-        <div className="flex gap-2">
-          {DATE_RANGES.map((range) => (
-            <button
-              key={range.value}
-              onClick={() => {
-                onRangeChange(range)
-                setExpanded(false)
-              }}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                !isCustomActive && selectedRange?.value === range.value
-                  ? 'bg-primary text-primary-foreground'
-                  : 'border hover:bg-accent'
-              }`}
-            >
-              {range.label}
-            </button>
-          ))}
-        </div>
-        <button
-          onClick={() => setExpanded((e) => !e)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-            isCustomActive || expanded
-              ? 'bg-primary text-primary-foreground'
-              : 'border hover:bg-accent'
-          }`}
-        >
-          <Calendar className="w-4 h-4" />
-          {isCustomActive ? `${formatDate(customRange.start)} – ${formatDate(customRange.end)}` : 'Custom'}
-        </button>
+    <div className="flex items-center gap-3 flex-wrap">
+      <div className="flex gap-2 flex-wrap">
+        {DATE_RANGES.map((range) => (
+          <button
+            key={range.value}
+            onClick={() => onRangeChange(range)}
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              !isCustomActive && selectedRange?.value === range.value
+                ? 'bg-primary text-primary-foreground'
+                : 'border hover:bg-accent'
+            }`}
+          >
+            {range.label}
+          </button>
+        ))}
       </div>
 
-      {expanded && (
-        <div className="flex flex-wrap items-end gap-3 p-3 border rounded-lg bg-muted/30">
-          <div className="space-y-1.5 min-w-[160px]">
-            <label className="text-xs font-medium text-muted-foreground">From</label>
-            <DatePicker
-              value={draftStart}
-              onChange={(e) => setDraftStart(e.target.value)}
-              max={draftEnd || new Date()}
-              placeholder="Start date"
-            />
-          </div>
-          <div className="space-y-1.5 min-w-[160px]">
-            <label className="text-xs font-medium text-muted-foreground">To</label>
-            <DatePicker
-              value={draftEnd}
-              onChange={(e) => setDraftEnd(e.target.value)}
-              min={draftStart || undefined}
-              max={new Date()}
-              placeholder="End date"
-            />
-          </div>
-          <button
-            onClick={handleApply}
-            disabled={!draftStart || !draftEnd}
-            className="px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Apply
-          </button>
-        </div>
-      )}
+      <div className="flex items-center gap-2 flex-wrap">
+        <DatePicker
+          value={draftStart}
+          onChange={(e) => setDraftStart(e.target.value)}
+          max={draftEnd || new Date()}
+          placeholder="From"
+          className="w-36"
+        />
+        <span className="text-muted-foreground text-sm">to</span>
+        <DatePicker
+          value={draftEnd}
+          onChange={(e) => setDraftEnd(e.target.value)}
+          min={draftStart || undefined}
+          max={new Date()}
+          placeholder="To"
+          className="w-36"
+        />
+        <button
+          onClick={handleApply}
+          disabled={!draftStart || !draftEnd}
+          className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Apply
+        </button>
+      </div>
     </div>
   )
 }
@@ -253,12 +236,15 @@ export function AdminDashboardPage() {
     },
   ]
 
-  // Beautiful green color palette
-  const chartColors = ['#10b981', '#34d399', '#6ee7b7', '#a7f3d0', '#d1fae5']
-  const donationLineColor = '#10b981' // Emerald green
-  const donationGradientColor = '#34d399' // Light emerald
-  const barGradientLight = '#34d399' // Light green
-  const barGradientDark = '#059669' // Dark green
+  // The actual brand gradient (--primary-gradient in index.css) -- same
+  // colors as the primary buttons, applied to every chart on this page
+  // including the pie slices below (each slice gets its own yellow-to-green
+  // sweep since gradientUnits defaults to each shape's own bounding box).
+  const brandGradientFrom = '#ebd617'
+  const brandGradientTo = '#7ac815'
+  const donationLineColor = brandGradientTo
+  const barGradientLight = brandGradientFrom
+  const barGradientDark = brandGradientTo
 
   return (
     <div className="space-y-8">
@@ -308,14 +294,18 @@ export function AdminDashboardPage() {
         <div className="border rounded-xl p-5 bg-card min-w-0 overflow-x-auto">
           <h3 className="text-lg font-bold mb-4">Donations Over Time</h3>
           {donationsLoading ? (
-            <ChartSkeleton height={300} />
+            <ChartSkeleton height={320} />
           ) : donationsByDay.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={donationsByDay} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
+            <ResponsiveContainer width="100%" height={320}>
+              <AreaChart data={donationsByDay} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
                 <defs>
                   <linearGradient id="colorAmount" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={donationLineColor} stopOpacity={0.3} />
+                    <stop offset="5%" stopColor={donationLineColor} stopOpacity={0.4} />
                     <stop offset="95%" stopColor={donationLineColor} stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="donationStrokeGradient" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor={brandGradientFrom} />
+                    <stop offset="100%" stopColor={brandGradientTo} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
@@ -327,14 +317,14 @@ export function AdminDashboardPage() {
                     backgroundColor: '#f0fdf4',
                     border: `2px solid ${donationLineColor}`,
                     borderRadius: '12px',
-                    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.15)'
+                    boxShadow: '0 4px 12px rgba(122, 200, 21, 0.15)'
                   }}
                   labelStyle={{ color: '#000' }}
                 />
-                <Line
+                <Area
                   type="natural"
                   dataKey="amount"
-                  stroke={donationLineColor}
+                  stroke="url(#donationStrokeGradient)"
                   strokeWidth={3}
                   dot={{ fill: donationLineColor, r: 5, strokeWidth: 0 }}
                   activeDot={{ r: 7, strokeWidth: 0 }}
@@ -343,10 +333,10 @@ export function AdminDashboardPage() {
                   isAnimationActive={true}
                   name="Amount (D)"
                 />
-              </LineChart>
+              </AreaChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+            <div className="h-[320px] flex items-center justify-center text-muted-foreground">
               No donation data available for this period
             </div>
           )}
@@ -358,37 +348,45 @@ export function AdminDashboardPage() {
           {statusLoading ? (
             <ChartSkeleton height={300} />
           ) : campaignStatus.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={campaignStatus}
-                  dataKey="count"
-                  nameKey="status"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={85}
-                  innerRadius={40}
-                  paddingAngle={2}
-                  label={({ status, count }) => `${status}: ${count}`}
-                  labelLine={true}
-                  animationBegin={0}
-                  animationDuration={800}
-                >
-                  {campaignStatus.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={chartColors[index % chartColors.length]} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  formatter={(value) => [`${value} campaigns`, 'Count']}
-                  contentStyle={{
-                    backgroundColor: '#f0fdf4',
-                    border: `2px solid ${donationLineColor}`,
-                    borderRadius: '12px',
-                    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.15)'
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
+            <div className="w-full max-w-xs mx-auto">
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <defs>
+                    <linearGradient id="pieSliceGradient" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stopColor={brandGradientFrom} />
+                      <stop offset="100%" stopColor={brandGradientTo} />
+                    </linearGradient>
+                  </defs>
+                  <Pie
+                    data={campaignStatus}
+                    dataKey="count"
+                    nameKey="status"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={70}
+                    innerRadius={35}
+                    paddingAngle={2}
+                    label={({ status, count }) => `${status}: ${count}`}
+                    labelLine={true}
+                    animationBegin={0}
+                    animationDuration={800}
+                  >
+                    {campaignStatus.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill="url(#pieSliceGradient)" stroke="#fff" strokeWidth={2} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(value) => [`${value} campaigns`, 'Count']}
+                    contentStyle={{
+                      backgroundColor: '#f0fdf4',
+                      border: `2px solid ${donationLineColor}`,
+                      borderRadius: '12px',
+                      boxShadow: '0 4px 12px rgba(122, 200, 21, 0.15)'
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
           ) : (
             <div className="h-[300px] flex items-center justify-center text-muted-foreground">
               No campaign data available for this period
@@ -403,10 +401,10 @@ export function AdminDashboardPage() {
         <div className="border rounded-xl p-5 bg-card min-w-0 overflow-x-auto">
           <h3 className="text-lg font-bold mb-4">Top Donors</h3>
           {topDonorsLoading ? (
-            <ChartSkeleton height={250} />
+            <ChartSkeleton height={360} />
           ) : topDonors.length > 0 ? (
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={topDonors} margin={{ top: 20, right: 30, left: 0, bottom: 60 }}>
+            <ResponsiveContainer width="100%" height={360}>
+              <BarChart data={topDonors} margin={{ top: 20, right: 30, left: 0, bottom: 40 }} barCategoryGap="20%">
                 <defs>
                   <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor={barGradientLight} stopOpacity={0.9} />
@@ -418,11 +416,11 @@ export function AdminDashboardPage() {
                   dataKey="donor"
                   angle={-45}
                   textAnchor="end"
-                  height={80}
+                  height={60}
                   stroke="#9ca3af"
                   style={{ fontSize: '12px' }}
                 />
-                <YAxis stroke="#9ca3af" style={{ fontSize: '12px' }} />
+                <YAxis stroke="#9ca3af" style={{ fontSize: '12px' }} domain={[0, (max) => Math.ceil(max * 1.1)]} />
                 <Tooltip
                   formatter={(value) => formatGMD(value)}
                   contentStyle={{
@@ -433,11 +431,11 @@ export function AdminDashboardPage() {
                   }}
                   labelStyle={{ color: '#000' }}
                 />
-                <Bar dataKey="amount" fill="url(#barGradient)" radius={[8, 8, 0, 0]} animationDuration={600} />
+                <Bar dataKey="amount" fill="url(#barGradient)" radius={[8, 8, 0, 0]} maxBarSize={64} animationDuration={600} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-[250px] flex items-center justify-center text-muted-foreground">
+            <div className="h-[360px] flex items-center justify-center text-muted-foreground">
               No donor data available for this period
             </div>
           )}

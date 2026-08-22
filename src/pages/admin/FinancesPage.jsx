@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import {
-  BarChart,
-  Bar,
+  AreaChart,
+  Area,
   PieChart,
   Pie,
   Cell,
@@ -28,7 +28,6 @@ const PERIODS = [
   { value: 'week', label: 'Last 7 Days' },
   { value: 'month', label: 'Last 30 Days' },
   { value: 'year', label: 'This Year' },
-  { value: 'custom', label: 'Custom Range' },
 ]
 
 export function FinancesPage() {
@@ -39,12 +38,13 @@ export function FinancesPage() {
   const [period, setPeriod] = useState('week')
   const [customStart, setCustomStart] = useState('')
   const [customEnd, setCustomEnd] = useState('')
-  const [appliedRange, setAppliedRange] = useState({ start: '', end: '' })
+  const [appliedRange, setAppliedRange] = useState(null)
+  const isCustomActive = Boolean(appliedRange)
 
   const { data: summaryData, isLoading } = useFinanceSummary(
-    period,
-    period === 'custom' ? appliedRange.start : undefined,
-    period === 'custom' ? appliedRange.end : undefined,
+    isCustomActive ? 'custom' : period,
+    isCustomActive ? appliedRange.start : undefined,
+    isCustomActive ? appliedRange.end : undefined,
     10
   )
 
@@ -60,11 +60,15 @@ export function FinancesPage() {
   const totalPages = Math.ceil(topCampaigns.length / limit)
   const paginatedCampaigns = topCampaigns.slice((page - 1) * limit, page * limit)
 
+  // Distinct, semantic colors -- unlike the single-series money charts
+  // above, each slice here means something different (failed vs. paid isn't
+  // just a different category, it's a different outcome), so they keep
+  // their own light, purpose-matched colors instead of the brand gradient.
   const transactionData = [
-    { name: 'Paid', value: transactions.paid, color: '#10b981' },
-    { name: 'Failed', value: transactions.failed, color: '#ef4444' },
-    { name: 'Pending', value: transactions.pending, color: '#f59e0b' },
-    { name: 'Refunded', value: transactions.refunded, color: '#6b7280' },
+    { name: 'Paid', value: transactions.paid, color: '#86efac' },
+    { name: 'Failed', value: transactions.failed, color: '#fca5a5' },
+    { name: 'Pending', value: transactions.pending, color: '#fcd34d' },
+    { name: 'Refunded', value: transactions.refunded, color: '#d1d5db' },
   ].filter((d) => d.value > 0)
 
   const financialStats = [
@@ -104,11 +108,17 @@ export function FinancesPage() {
     },
   ]
 
-  const barGradientLight = '#34d399'
-  const barGradientDark = '#059669'
+  // The site's actual brand gradient (--primary-gradient in index.css) --
+  // same colors as the primary buttons, not an arbitrary emerald.
+  const brandGradientFrom = '#ebd617'
+  const brandGradientTo = '#7ac815'
+  const barGradientDark = brandGradientTo
 
   const handleSelectPeriod = (value) => {
     setPeriod(value)
+    setAppliedRange(null)
+    setCustomStart('')
+    setCustomEnd('')
     setPage(1)
   }
 
@@ -140,55 +150,47 @@ export function FinancesPage() {
       </div>
 
       {/* Period Selector */}
-      <div className="flex flex-wrap items-center gap-2">
-        {PERIODS.map(({ value, label }) => (
-          <button
-            key={value}
-            onClick={() => handleSelectPeriod(value)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
-              period === value ? 'bg-green-600 text-white border-green-600' : 'hover:bg-accent'
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex flex-wrap gap-2">
+          {PERIODS.map(({ value, label }) => (
+            <button
+              key={value}
+              onClick={() => handleSelectPeriod(value)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                !isCustomActive && period === value ? 'bg-primary text-primary-foreground border-primary' : 'hover:bg-accent'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
 
-      {period === 'custom' && (
-        <div className="flex flex-wrap items-end gap-3 border rounded-xl p-4 bg-card">
-          <div className="border rounded-lg p-3 space-y-1.5 w-48">
-            <label className="text-xs font-medium text-muted-foreground">From</label>
-            <DatePicker
-              value={customStart}
-              onChange={(e) => setCustomStart(e.target.value)}
-              max={customEnd || new Date()}
-              placeholder="Start date"
-            />
-          </div>
-          <div className="border rounded-lg p-3 space-y-1.5 w-48">
-            <label className="text-xs font-medium text-muted-foreground">To</label>
-            <DatePicker
-              value={customEnd}
-              onChange={(e) => setCustomEnd(e.target.value)}
-              min={customStart || undefined}
-              max={new Date()}
-              placeholder="End date"
-            />
-          </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <DatePicker
+            value={customStart}
+            onChange={(e) => setCustomStart(e.target.value)}
+            max={customEnd || new Date()}
+            placeholder="From"
+            className="w-36"
+          />
+          <span className="text-muted-foreground text-sm">to</span>
+          <DatePicker
+            value={customEnd}
+            onChange={(e) => setCustomEnd(e.target.value)}
+            min={customStart || undefined}
+            max={new Date()}
+            placeholder="To"
+            className="w-36"
+          />
           <button
             onClick={handleApplyCustomRange}
             disabled={!customStart || !customEnd}
-            className="px-4 py-2 rounded-lg text-sm font-medium bg-green-600 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-green-700 transition-colors"
+            className="px-4 py-2 rounded-lg text-sm font-medium bg-primary text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90 transition-colors"
           >
             Apply
           </button>
-          {appliedRange.start && appliedRange.end && (
-            <p className="text-xs text-muted-foreground">
-              Showing {appliedRange.start} to {appliedRange.end}
-            </p>
-          )}
         </div>
-      )}
+      </div>
 
       {/* Stats Grid */}
       {showStats && (
@@ -215,11 +217,15 @@ export function FinancesPage() {
           <h3 className="text-lg font-bold mb-4">Donations Trend</h3>
           {donationsTrend.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={donationsTrend} margin={{ top: 20, right: 30, left: 0, bottom: 10 }}>
+              <AreaChart data={donationsTrend} margin={{ top: 20, right: 30, left: 0, bottom: 10 }}>
                 <defs>
                   <linearGradient id="trendGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={barGradientLight} stopOpacity={0.9} />
-                    <stop offset="100%" stopColor={barGradientDark} stopOpacity={0.9} />
+                    <stop offset="5%" stopColor={barGradientDark} stopOpacity={0.4} />
+                    <stop offset="95%" stopColor={barGradientDark} stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="trendStrokeGradient" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor={brandGradientFrom} />
+                    <stop offset="100%" stopColor={brandGradientTo} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
@@ -231,12 +237,23 @@ export function FinancesPage() {
                     backgroundColor: '#f0fdf4',
                     border: `2px solid ${barGradientDark}`,
                     borderRadius: '12px',
-                    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.15)',
+                    boxShadow: '0 4px 12px rgba(122, 200, 21, 0.15)',
                   }}
                   labelStyle={{ color: '#000' }}
                 />
-                <Bar dataKey="amount" fill="url(#trendGradient)" radius={[8, 8, 0, 0]} animationDuration={600} />
-              </BarChart>
+                <Area
+                  type="natural"
+                  dataKey="amount"
+                  stroke="url(#trendStrokeGradient)"
+                  strokeWidth={3}
+                  dot={{ fill: barGradientDark, r: 4, strokeWidth: 0 }}
+                  activeDot={{ r: 6, strokeWidth: 0 }}
+                  fillOpacity={1}
+                  fill="url(#trendGradient)"
+                  animationDuration={600}
+                  name="Amount (D)"
+                />
+              </AreaChart>
             </ResponsiveContainer>
           ) : (
             <div className="h-[300px] flex items-center justify-center text-muted-foreground">
@@ -250,35 +267,37 @@ export function FinancesPage() {
           <h3 className="text-lg font-bold mb-4">Transaction Status</h3>
           {transactions.total > 0 ? (
             <div className="flex flex-col items-center justify-center h-[300px]">
-              <ResponsiveContainer width="100%" height={250}>
-                <PieChart>
-                  <Pie
-                    data={transactionData}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={85}
-                    innerRadius={40}
-                    paddingAngle={2}
-                    label={({ name, value }) => `${name}: ${value}`}
-                    labelLine={true}
-                  >
-                    {transactionData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(value) => [`${value} transactions`, 'Count']}
-                    contentStyle={{
-                      backgroundColor: '#f0fdf4',
-                      border: '2px solid #10b981',
-                      borderRadius: '12px',
-                      boxShadow: '0 4px 12px rgba(16, 185, 129, 0.15)',
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
+              <div className="w-full max-w-xs mx-auto">
+                <ResponsiveContainer width="100%" height={250}>
+                  <PieChart>
+                    <Pie
+                      data={transactionData}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={70}
+                      innerRadius={35}
+                      paddingAngle={2}
+                      label={({ name, value }) => `${name}: ${value}`}
+                      labelLine={true}
+                    >
+                      {transactionData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} stroke="#fff" strokeWidth={2} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(value) => [`${value} transactions`, 'Count']}
+                      contentStyle={{
+                        backgroundColor: '#f9fafb',
+                        border: '2px solid #d1d5db',
+                        borderRadius: '12px',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
               <p className="text-sm text-muted-foreground mt-2">
                 Success Rate: <span className="font-bold text-green-600">{transactions.success_rate}%</span>
               </p>
@@ -337,14 +356,16 @@ export function FinancesPage() {
                 <tbody className="divide-y">
                   {paginatedCampaigns.map((campaign) => (
                     <tr key={campaign.id} className="hover:bg-muted/30 transition-colors">
-                      <td className="py-3 font-medium max-w-[200px] line-clamp-1">{campaign.title}</td>
+                      <td className="py-3 font-medium max-w-[200px]">
+                        <span className="block truncate" title={campaign.title}>{campaign.title}</span>
+                      </td>
                       <td className="py-3 font-semibold text-green-600">{formatGMD(campaign.raised)}</td>
                       <td className="py-3 text-muted-foreground">{formatGMD(campaign.goal)}</td>
                       <td className="py-3">
                         <div className="flex items-center gap-2">
                           <div className="w-20 bg-muted rounded-full h-2">
                             <div
-                              className="bg-green-600 rounded-full h-2 transition-all"
+                              className="bg-primary rounded-full h-2 transition-all"
                               style={{ width: `${Math.min(campaign.percentage, 100)}%` }}
                             />
                           </div>
@@ -391,7 +412,7 @@ export function FinancesPage() {
                         key={p}
                         onClick={() => setPage(p)}
                         className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
-                          p === page ? 'bg-green-600 text-white' : 'border hover:bg-accent'
+                          p === page ? 'bg-primary text-primary-foreground' : 'border hover:bg-accent'
                         }`}
                       >
                         {p}
