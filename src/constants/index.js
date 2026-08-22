@@ -54,6 +54,7 @@ export const ROUTES = {
 
   // Admin routes
   ADMIN_USERS: '/admin/users',
+  ADMIN_USER_DETAIL: '/admin/users/$id',
   ADMIN_STAFF: '/admin/staff',
   ADMIN_CAMPAIGNS: '/admin/campaigns',
   ADMIN_DONATIONS: '/admin/donations',
@@ -61,6 +62,7 @@ export const ROUTES = {
   ADMIN_VERIFICATIONS: '/admin/verifications',
   ADMIN_VERIFICATION: '/admin/verification',
   ADMIN_VISION: '/admin/vision',
+  ADMIN_AUDIT: '/admin/audit',
 
   // Zakat calculator
   ZAKAT: '/zakat',

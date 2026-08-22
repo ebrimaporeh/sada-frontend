@@ -42,7 +42,8 @@ export const queryKeys = {
   donations: {
     mine: () => ['donations', 'mine'],
     campaign: (slug) => ['donations', 'campaign', slug],
-    publicCampaign: (slug) => ['donations', 'campaign', slug, 'public'],
+    campaignPaginated: (slug, params) => ['donations', 'campaign', slug, 'paginated', params],
+    publicCampaign: (slug, params) => ['donations', 'campaign', slug, 'public', params],
     adminList: (params) => ['donations', 'admin', params],
     // Prefix of adminList()'s key -- invalidate this (not adminList() itself,
     // which is params-specific) to refresh every admin donations list query
@@ -53,6 +54,7 @@ export const queryKeys = {
     gateways: () => ['payments', 'gateways'],
     payouts: (slug) => ['payments', 'payouts', slug],
     adminCampaignPayouts: (campaignId) => ['payments', 'admin', 'campaign-payouts', campaignId],
+    adminOwnerPayouts: (ownerId) => ['payments', 'admin', 'owner-payouts', ownerId],
     settings: () => ['payments', 'settings'],
     feePreview: (amount, provider) => ['payments', 'fee-preview', amount, provider],
   },
@@ -81,5 +83,10 @@ export const queryKeys = {
     detail: (slug) => ['vision', 'detail', slug],
     adminAll: () => ['vision', 'admin'],
     adminDetail: (slug) => ['vision', 'admin', slug],
+  },
+  audit: {
+    list: (params) => ['audit', 'list', params],
+    actions: () => ['audit', 'actions'],
+    actors: () => ['audit', 'actors'],
   },
 }

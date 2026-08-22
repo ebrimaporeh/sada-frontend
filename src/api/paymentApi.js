@@ -13,6 +13,9 @@ export const paymentApi = {
   getAdminCampaignPayouts: (campaignId) =>
     apiClient.get(`/payments/admin/campaign/${campaignId}/payouts/`).then((r) => r.data),
 
+  getAdminOwnerPayouts: (ownerId) =>
+    apiClient.get(`/payments/admin/campaigner/${ownerId}/payouts/`).then((r) => r.data),
+
   previewPayoutFee: (params) =>
     apiClient.get('/payments/payouts/fee-preview/', { params }).then((r) => r.data),
 

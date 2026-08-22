@@ -199,6 +199,15 @@ export function useAdminOrganizationVerifications(params = {}, { enabled = true 
   })
 }
 
+export function useUserOrganizationVerification(userId, { enabled = true } = {}) {
+  return useQuery({
+    queryKey: queryKeys.organizationVerification.adminList({ user_id: userId }),
+    queryFn: () => userApi.getOrganizationVerifications({ user_id: userId, page_size: 1 }),
+    select: (res) => res?.results?.[0] ?? null,
+    enabled: enabled && Boolean(userId),
+  })
+}
+
 export function useReviewOrganizationVerification() {
   const queryClient = useQueryClient()
   return useMutation({

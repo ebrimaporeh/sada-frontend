@@ -22,6 +22,7 @@ export const Resource = {
   VERIFICATIONS: 'verifications',
   DONATIONS: 'donations',
   FINANCES: 'finances',
+  AUDIT: 'audit',
 }
 
 export const RESOURCE_LABELS = {
@@ -36,6 +37,7 @@ export const RESOURCE_LABELS = {
   [Resource.VERIFICATIONS]: 'Verifications',
   [Resource.DONATIONS]: 'Donations',
   [Resource.FINANCES]: 'Finances',
+  [Resource.AUDIT]: 'Audit log',
 }
 
 export const ROLE_LABELS = {

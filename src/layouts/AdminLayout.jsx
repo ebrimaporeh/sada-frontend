@@ -1,7 +1,7 @@
 import { Outlet, Link, Navigate } from '@tanstack/react-router'
 import { useMe, useLogout } from '@/hooks/useAuth'
 import { ROUTES } from '@/constants'
-import { User, Users, UserCog, Megaphone, Heart, LayoutDashboard, Home, LogOut, AlertCircle, BarChart3, Layers, Settings, ShieldCheck, Compass, Menu, X, Loader2 } from 'lucide-react'
+import { User, Users, UserCog, Megaphone, Heart, LayoutDashboard, Home, LogOut, AlertCircle, BarChart3, Layers, Settings, ShieldCheck, Compass, Menu, X, Loader2, ClipboardList } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import { useEffect, useState } from 'react'
 import { Resource, hasResourceAccess, isAdminAreaRole } from '@/utils/permissions'
@@ -40,7 +40,7 @@ function SidebarNav({ onNavigate, role }) {
   return (
     <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
       {can(Resource.DASHBOARD) && (
-        <Link to="/admin" className={cn(navLinkClass)} onClick={onNavigate}>
+        <Link to="/admin" activeOptions={{ exact: true }} className={cn(navLinkClass)} onClick={onNavigate}>
           <LayoutDashboard className="w-4 h-4" /> Dashboard
         </Link>
       )}
@@ -104,6 +104,11 @@ function SidebarNav({ onNavigate, role }) {
       {can(Resource.SETTINGS) && (
         <Link to={ROUTES.ADMIN_VISION} className={cn(navLinkClass)} onClick={onNavigate}>
           <Compass className="w-4 h-4" /> Platform Vision
+        </Link>
+      )}
+      {can(Resource.AUDIT) && (
+        <Link to={ROUTES.ADMIN_AUDIT} className={cn(navLinkClass)} onClick={onNavigate}>
+          <ClipboardList className="w-4 h-4" /> Activity Log
         </Link>
       )}
       <Link to={ROUTES.ADMIN_PROFILE} className={cn(navLinkClass)} onClick={onNavigate}>

@@ -1,4 +1,4 @@
-import { createRouter, createRootRoute, createRoute, redirect } from '@tanstack/react-router'
+import { createRouter, createRootRoute, createRoute, redirect, Outlet } from '@tanstack/react-router'
 import { queryClient } from '@/api/client'
 import { queryKeys } from '@/api/queryKeys'
 import { userApi } from '@/api/userApi'
@@ -6,6 +6,7 @@ import { PublicLayout } from '@/layouts/PublicLayout'
 import { AuthenticatedLayout } from '@/layouts/AuthenticatedLayout'
 import { AdminLayout } from '@/layouts/AdminLayout'
 import { Resource, hasResourceAccess, isAdminAreaRole, ROLE_LANDING_ROUTE } from '@/utils/permissions'
+import { SiteFavicon } from '@/components/custom/SiteFavicon'
 
 // Pages — public
 import { HomePage } from '@/pages/public/HomePage'
@@ -43,6 +44,7 @@ import { VerificationPage } from '@/pages/authenticated/VerificationPage'
 // Pages — admin
 import { AdminDashboardPage } from '@/pages/admin/DashboardPage'
 import { UsersPage } from '@/pages/admin/UsersPage'
+import { AdminCampaignerDetailPage } from '@/pages/admin/AdminCampaignerDetailPage'
 import { StaffPage } from '@/pages/admin/StaffPage'
 import { CampaignsPage as AdminCampaignsPage } from '@/pages/admin/CampaignsPage'
 import { AdminCampaignDetailPage } from '@/pages/admin/AdminCampaignDetailPage'
@@ -54,10 +56,18 @@ import { CategoriesPage } from '@/pages/admin/CategoriesPage'
 import { SettingsPage as AdminSettingsPage } from '@/pages/admin/SettingsPage'
 import { AdminProfilePage } from '@/pages/admin/AdminProfilePage'
 import { AdminVisionPage } from '@/pages/admin/AdminVisionPage'
+import { AuditPage } from '@/pages/admin/AuditPage'
 
 import { ROUTES } from '@/constants'
 
-const rootRoute = createRootRoute()
+const rootRoute = createRootRoute({
+  component: () => (
+    <>
+      <SiteFavicon />
+      <Outlet />
+    </>
+  ),
+})
 
 // ─── Auth Guards ──────────────────────────────────────────────────────────────
 
@@ -292,6 +302,13 @@ const adminUsersRoute = createRoute({
   beforeLoad: requireResource(Resource.USERS),
 })
 
+const adminUserDetailRoute = createRoute({
+  getParentRoute: () => adminLayout,
+  path: ROUTES.ADMIN_USER_DETAIL,
+  component: AdminCampaignerDetailPage,
+  beforeLoad: requireResource(Resource.USERS),
+})
+
 const adminStaffRoute = createRoute({
   getParentRoute: () => adminLayout,
   path: ROUTES.ADMIN_STAFF,
@@ -369,6 +386,13 @@ const adminVisionRoute = createRoute({
   beforeLoad: requireResource(Resource.SETTINGS),
 })
 
+const adminAuditRoute = createRoute({
+  getParentRoute: () => adminLayout,
+  path: ROUTES.ADMIN_AUDIT,
+  component: AuditPage,
+  beforeLoad: requireResource(Resource.AUDIT),
+})
+
 const adminProfileRoute = createRoute({
   getParentRoute: () => adminLayout,
   path: ROUTES.ADMIN_PROFILE,
@@ -420,6 +444,7 @@ const routeTree = rootRoute.addChildren([
   adminLayout.addChildren([
     adminDashboardRoute,
     adminUsersRoute,
+    adminUserDetailRoute,
     adminStaffRoute,
     adminCampaignsRoute,
     adminCampaignDetailRoute,
@@ -431,6 +456,7 @@ const routeTree = rootRoute.addChildren([
     adminFinancesRoute,
     adminSettingsRoute,
     adminVisionRoute,
+    adminAuditRoute,
     adminProfileRoute,
   ]),
 ])

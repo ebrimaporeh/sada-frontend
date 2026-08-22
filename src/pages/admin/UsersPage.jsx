@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
-import { ShieldCheck, ShieldOff, User, Building2 } from 'lucide-react'
+import { useNavigate } from '@tanstack/react-router'
+import { Search, ShieldCheck, ShieldOff, User, Building2 } from 'lucide-react'
 import { useUsers } from '@/hooks/useUsers'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
 import { EmptyState } from '@/components/custom/EmptyState'
-import { UserSheet } from '@/components/custom/UserSheet'
 import { AdminPagination } from '@/components/custom/AdminPagination'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { ORGANIZATION_TYPES, ACCOUNT_TYPES } from '@/constants'
 import { formatDate } from '@/utils/formatters'
 import { cn } from '@/utils/cn'
@@ -13,21 +14,22 @@ import { cn } from '@/utils/cn'
 const ORG_TYPE_LABELS = Object.fromEntries(ORGANIZATION_TYPES.map((t) => [t.value, t.label]))
 
 export function UsersPage() {
+  const navigate = useNavigate()
   const [type, setType] = useState('individual') // individual | organization
+  const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
-  const [selectedUser, setSelectedUser] = useState(null)
-  const [isSheetOpen, setIsSheetOpen] = useState(false)
   const limit = 10
+
+  const debouncedSearch = useDebouncedValue(search)
 
   useEffect(() => {
     setPage(1)
-  }, [type])
+  }, [type, debouncedSearch])
 
-  const { data, isLoading } = useUsers({ account_type: type, page, page_size: limit })
+  const { data, isLoading } = useUsers({ account_type: type, page, page_size: limit, search: debouncedSearch || undefined })
 
   const handleSelectUser = (user) => {
-    setSelectedUser(user)
-    setIsSheetOpen(true)
+    navigate({ to: '/admin/users/$id', params: { id: user.id } })
   }
 
   const users = data?.results || []
@@ -45,7 +47,7 @@ export function UsersPage() {
         />
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <button
           onClick={() => setType('individual')}
           className={cn(
@@ -64,6 +66,16 @@ export function UsersPage() {
         >
           <Building2 className="w-4 h-4" /> Organizations
         </button>
+        <div className="relative flex-1 min-w-52">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder={`Search ${isOrg ? 'organizations' : 'campaigners'}...`}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
+          />
+        </div>
       </div>
 
       {/* Users Table */}
@@ -75,7 +87,10 @@ export function UsersPage() {
             <table className="w-full text-sm">
               <thead className="border-b bg-muted">
                 <tr>
-                  {[isOrg ? 'Organization' : 'Name', 'Email', isOrg ? 'Type' : 'Role', 'Status', 'Verification', 'Joined'].map((h) => (
+                  {(isOrg
+                    ? ['Organization', 'Email', 'Type', 'Status', 'Verification', 'Joined']
+                    : ['Name', 'Email', 'Status', 'Verification', 'Joined']
+                  ).map((h) => (
                     <th key={h} className="px-4 py-3 text-left font-medium">{h}</th>
                   ))}
                 </tr>
@@ -83,7 +98,7 @@ export function UsersPage() {
               <tbody className="divide-y">
                 {isLoading ? (
                   <tr>
-                    <td colSpan="6" className="px-4 py-8 text-center">
+                    <td colSpan={isOrg ? 6 : 5} className="px-4 py-8 text-center">
                       <LoadingSpinner />
                     </td>
                   </tr>
@@ -96,9 +111,11 @@ export function UsersPage() {
                     >
                       <td className="px-4 py-3">{user.full_name || '—'}</td>
                       <td className="px-4 py-3">{user.email}</td>
-                      <td className="px-4 py-3 capitalize">
-                        {isOrg ? (ORG_TYPE_LABELS[user.organization?.organization_type] || '—') : user.role}
-                      </td>
+                      {isOrg && (
+                        <td className="px-4 py-3 capitalize">
+                          {ORG_TYPE_LABELS[user.organization?.organization_type] || '—'}
+                        </td>
+                      )}
                       <td className="px-4 py-3">
                         <span
                           className={cn(
@@ -134,13 +151,6 @@ export function UsersPage() {
       {users.length > 0 && (
         <AdminPagination page={page} totalPages={totalPages} onPageChange={setPage} totalCount={data?.count} limit={limit} />
       )}
-
-      {/* User Detail Sheet */}
-      <UserSheet
-        isOpen={isSheetOpen}
-        onClose={() => setIsSheetOpen(false)}
-        user={selectedUser}
-      />
     </div>
   )
 }

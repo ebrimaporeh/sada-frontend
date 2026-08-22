@@ -55,6 +55,15 @@ export function useAdminCampaignPayouts(campaignId) {
   })
 }
 
+export function useAdminOwnerPayouts(ownerId) {
+  return useQuery({
+    queryKey: queryKeys.payments.adminOwnerPayouts(ownerId),
+    queryFn: () => paymentApi.getAdminOwnerPayouts(ownerId),
+    select: (res) => res?.data?.payouts ?? [],
+    enabled: Boolean(ownerId),
+  })
+}
+
 export function useRequestPayout() {
   const queryClient = useQueryClient()
   return useMutation({
