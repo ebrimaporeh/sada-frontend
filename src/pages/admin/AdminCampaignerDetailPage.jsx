@@ -31,7 +31,7 @@ export function AdminCampaignerDetailPage() {
 
   const { data: user, isLoading } = useUser(id)
 
-  const visibleTabs = TABS.filter((tab) => hasResourceAccess(me?.role, TAB_RESOURCE[tab.id]))
+  const visibleTabs = TABS.filter((tab) => hasResourceAccess(me?.resources, TAB_RESOURCE[tab.id]))
 
   if (isLoading) return <LoadingSpinner className="py-32" />
 

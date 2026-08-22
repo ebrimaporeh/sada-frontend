@@ -1,14 +1,15 @@
 import { useState } from 'react'
-import { UserPlus, ShieldCheck, Check, ChevronDown, ChevronUp } from 'lucide-react'
+import { UserPlus, ShieldCheck, Save, Loader2, AlertCircle } from 'lucide-react'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
 import { EmptyState } from '@/components/custom/EmptyState'
 import { StaffSheet } from '@/components/custom/StaffSheet'
 import { AddStaffSheet } from '@/components/custom/AddStaffSheet'
 import { useStaff } from '@/hooks/useUsers'
+import { useRolePermissions, useUpdateRolePermissions } from '@/hooks/usePermissions'
 import { formatDate } from '@/utils/formatters'
 import { ROLES } from '@/constants'
-import { Resource, RESOURCE_LABELS, ROLE_LABELS, hasResourceAccess } from '@/utils/permissions'
+import { ROLE_LABELS } from '@/utils/permissions'
 import { cn } from '@/utils/cn'
 
 const ROLE_BADGE = {
@@ -17,51 +18,116 @@ const ROLE_BADGE = {
   [ROLES.FINANCE_OFFICER]: 'bg-amber-100 text-amber-700',
 }
 
-const MATRIX_ROLES = [ROLES.ADMIN, ROLES.MODERATOR, ROLES.FINANCE_OFFICER]
-const MATRIX_RESOURCES = Object.values(Resource)
+function RoleCard({ role, label, currentResources, allResources }) {
+  const updateRolePermissions = useUpdateRolePermissions()
+  const [draft, setDraft] = useState(null) // null until touched -- then a Set
+  const [notice, setNotice] = useState(null)
 
-function PermissionsMatrix() {
-  const [expanded, setExpanded] = useState(false)
+  const selected = draft ?? new Set(currentResources)
+  const original = new Set(currentResources)
+  const isDirty = draft !== null && (
+    draft.size !== original.size || [...draft].some((r) => !original.has(r))
+  )
+
+  function toggle(key) {
+    const next = new Set(selected)
+    next.has(key) ? next.delete(key) : next.add(key)
+    setDraft(next)
+    setNotice(null)
+  }
+
+  function handleSave() {
+    updateRolePermissions.mutate(
+      { role, resources: Array.from(selected) },
+      {
+        onSuccess: () => {
+          setDraft(null)
+          setNotice({ type: 'success', message: 'Permissions updated.' })
+          setTimeout(() => setNotice(null), 3000)
+        },
+        onError: (err) => {
+          setNotice({ type: 'error', message: err?.response?.data?.message || 'Failed to update permissions.' })
+        },
+      },
+    )
+  }
 
   return (
-    <div className="border rounded-xl bg-card overflow-hidden">
-      <button
-        onClick={() => setExpanded((v) => !v)}
-        className="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold hover:bg-accent transition-colors"
-      >
-        <span className="flex items-center gap-2">
-          <ShieldCheck className="w-4 h-4" /> Permissions Matrix — who can access what
-        </span>
-        {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-      </button>
-      {expanded && (
-        <div className="overflow-x-auto border-t">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50">
-              <tr>
-                <th className="px-4 py-2 text-left font-medium text-xs text-muted-foreground uppercase">Resource</th>
-                {MATRIX_ROLES.map((role) => (
-                  <th key={role} className="px-4 py-2 text-center font-medium text-xs text-muted-foreground uppercase">
-                    {ROLE_LABELS[role]}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {MATRIX_RESOURCES.map((resource) => (
-                <tr key={resource}>
-                  <td className="px-4 py-2 text-xs font-medium">{RESOURCE_LABELS[resource] || resource}</td>
-                  {MATRIX_ROLES.map((role) => (
-                    <td key={role} className="px-4 py-2 text-center">
-                      {hasResourceAccess(role, resource) && <Check className="w-4 h-4 text-green-600 inline" />}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+    <div className="border rounded-xl bg-card p-5 space-y-4">
+      <div className="flex items-center justify-between gap-2">
+        <h3 className="font-semibold flex items-center gap-2">
+          <ShieldCheck className="w-4 h-4" /> {label}
+        </h3>
+        {isDirty && (
+          <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-600">
+            <AlertCircle className="w-3.5 h-3.5" /> Unsaved changes
+          </span>
+        )}
+      </div>
+
+      <div className="space-y-2.5">
+        {allResources.map(({ key, label: resourceLabel }) => (
+          <label key={key} className="flex items-center gap-2.5 text-sm cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={selected.has(key)}
+              onChange={() => toggle(key)}
+              className="w-4 h-4 rounded border-input accent-primary flex-shrink-0"
+            />
+            {resourceLabel}
+          </label>
+        ))}
+      </div>
+
+      {notice && (
+        <p className={cn('text-xs font-medium', notice.type === 'success' ? 'text-green-600' : 'text-destructive')}>
+          {notice.message}
+        </p>
       )}
+
+      <button
+        onClick={handleSave}
+        disabled={!isDirty || updateRolePermissions.isPending}
+        className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium disabled:opacity-50"
+      >
+        {updateRolePermissions.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+        {updateRolePermissions.isPending ? 'Saving…' : 'Save Changes'}
+      </button>
+    </div>
+  )
+}
+
+function RolePermissionsEditor() {
+  const { data, isLoading } = useRolePermissions()
+
+  if (isLoading) {
+    return (
+      <div className="border rounded-xl bg-card p-8 flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    )
+  }
+
+  const resources = data?.resources ?? []
+  const roles = data?.roles ?? []
+
+  return (
+    <div className="space-y-3">
+      <div>
+        <h2 className="font-semibold flex items-center gap-2">
+          <ShieldCheck className="w-4 h-4" /> Role Permissions
+        </h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          Toggle which resources Moderators and Finance Officers can access. Changes apply immediately to
+          every staff member with that role — no deploy required. Admin always has full access.
+        </p>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-4">
+        {roles.map(({ role, label, resources: currentResources }) => (
+          <RoleCard key={role} role={role} label={label} currentResources={currentResources} allResources={resources} />
+        ))}
+      </div>
     </div>
   )
 }
@@ -95,7 +161,7 @@ export function StaffPage() {
         }
       />
 
-      <PermissionsMatrix />
+      <RolePermissionsEditor />
 
       {isLoading ? (
         <div className="flex items-center justify-center py-16">

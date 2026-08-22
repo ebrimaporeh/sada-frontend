@@ -27,7 +27,7 @@ const STATUS_COLORS = {
 
 export function CampaignsPage() {
   const { data: me } = useMe()
-  const canModerate = hasResourceAccess(me?.role, Resource.CAMPAIGNS_MODERATE)
+  const canModerate = hasResourceAccess(me?.resources, Resource.CAMPAIGNS_MODERATE)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [actioningId, setActioningId] = useState(null)

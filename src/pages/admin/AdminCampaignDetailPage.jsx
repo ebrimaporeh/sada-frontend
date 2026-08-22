@@ -37,8 +37,8 @@ export function AdminCampaignDetailPage() {
     enabled: Boolean(id),
   })
 
-  const visibleTabs = TABS.filter((tab) => hasResourceAccess(me?.role, TAB_RESOURCE[tab.id]))
-  const canModerate = hasResourceAccess(me?.role, Resource.CAMPAIGNS_MODERATE)
+  const visibleTabs = TABS.filter((tab) => hasResourceAccess(me?.resources, TAB_RESOURCE[tab.id]))
+  const canModerate = hasResourceAccess(me?.resources, Resource.CAMPAIGNS_MODERATE)
 
   if (isLoading) return <LoadingSpinner className="py-32" />
 

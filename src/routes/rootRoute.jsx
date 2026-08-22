@@ -5,7 +5,7 @@ import { userApi } from '@/api/userApi'
 import { PublicLayout } from '@/layouts/PublicLayout'
 import { AuthenticatedLayout } from '@/layouts/AuthenticatedLayout'
 import { AdminLayout } from '@/layouts/AdminLayout'
-import { Resource, hasResourceAccess, isAdminAreaRole, ROLE_LANDING_ROUTE } from '@/utils/permissions'
+import { Resource, hasResourceAccess, isAdminAreaRole, landingRouteForResources } from '@/utils/permissions'
 import { SiteFavicon } from '@/components/custom/SiteFavicon'
 
 // Pages — public
@@ -89,12 +89,13 @@ async function requireAdmin() {
 
 // Per-route fine-grained check, layered under requireAdmin (which already
 // guarantees auth + an admin-area role by the time a child route's
-// beforeLoad runs) — see src/utils/permissions.js for the actual map.
+// beforeLoad runs). `user.resources` is live, admin-editable state (see
+// src/utils/permissions.js), not a static per-role map.
 function requireResource(resource) {
   return () => {
     const user = queryClient.getQueryData(queryKeys.auth.me())
-    if (!hasResourceAccess(user?.role, resource)) {
-      throw redirect({ to: ROLE_LANDING_ROUTE[user?.role] || ROUTES.DASHBOARD })
+    if (!hasResourceAccess(user?.resources, resource)) {
+      throw redirect({ to: landingRouteForResources(user?.resources) })
     }
   }
 }

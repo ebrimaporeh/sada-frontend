@@ -28,11 +28,12 @@ function NavBadge({ count }) {
 }
 
 // Every link is gated on the exact same resource its route already enforces
-// server-side and via requireResource() in rootRoute.js — this only ever
-// hides links a role couldn't use anyway, it isn't itself a security
-// boundary. See src/utils/permissions.js for the role → resource map.
-function SidebarNav({ onNavigate, role }) {
-  const can = (resource) => hasResourceAccess(role, resource)
+// server-side and via requireResource() in rootRoute.jsx — this only ever
+// hides links the user couldn't use anyway, it isn't itself a security
+// boundary. `resources` is the current user's own live resource list (see
+// src/utils/permissions.js), not a static role → resource map.
+function SidebarNav({ onNavigate, resources }) {
+  const can = (resource) => hasResourceAccess(resources, resource)
   const showManagement = can(Resource.USERS) || can(Resource.STAFF) || can(Resource.CAMPAIGNS_VIEW) || can(Resource.DONATIONS) || can(Resource.CATEGORIES)
   const showModeration = can(Resource.REPORTS) || can(Resource.VERIFICATIONS)
   const { pendingReports, pendingVerifications } = useAdminBadgeCounts({ enabled: showModeration })
@@ -179,7 +180,7 @@ export function AdminLayout() {
       {/* Desktop sidebar */}
       <aside className="hidden md:flex w-60 border-r flex-col bg-card sticky top-0 h-screen flex-shrink-0">
         <SidebarBrand />
-        <SidebarNav role={user.role} />
+        <SidebarNav resources={user.resources} />
         <SidebarFooter />
       </aside>
 
@@ -209,7 +210,7 @@ export function AdminLayout() {
             <X className="w-5 h-5" />
           </button>
         </div>
-        <SidebarNav role={user.role} onNavigate={() => setMobileNavOpen(false)} />
+        <SidebarNav resources={user.resources} onNavigate={() => setMobileNavOpen(false)} />
         <SidebarFooter onNavigate={() => setMobileNavOpen(false)} />
       </aside>
 

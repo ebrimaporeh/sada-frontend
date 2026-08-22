@@ -4,9 +4,10 @@ import { Sheet } from './Sheet'
 import { ConfirmModal } from './ConfirmModal'
 import { formatDate } from '@/utils/formatters'
 import { useUpdateUser, useChangeStaffRole } from '@/hooks/useUsers'
+import { useRolePermissions } from '@/hooks/usePermissions'
 import { useMe } from '@/hooks/useAuth'
 import { ROLES } from '@/constants'
-import { Resource, RESOURCE_LABELS, ROLE_LABELS, getResourcesForRole } from '@/utils/permissions'
+import { RESOURCE_LABELS, ROLE_LABELS } from '@/utils/permissions'
 import { cn } from '@/utils/cn'
 
 const ROLE_OPTIONS = [
@@ -19,6 +20,7 @@ export function StaffSheet({ isOpen, onClose, staff }) {
   const { data: me } = useMe()
   const updateUser = useUpdateUser()
   const changeRole = useChangeStaffRole()
+  const { data: rolePermissions } = useRolePermissions()
 
   const [isActive, setIsActive] = useState(true)
   const [targetRole, setTargetRole] = useState(ROLES.USER)
@@ -42,7 +44,9 @@ export function StaffSheet({ isOpen, onClose, staff }) {
   const roleChanged = targetRole !== staff.role
   const activeChanged = isActive !== (staff.is_active ?? true)
   const dirty = roleChanged || activeChanged
-  const previewResources = getResourcesForRole(targetRole)
+  // Live, admin-editable resources for the selected role -- see the Staff
+  // page's role-permissions editor, which is what this data reflects.
+  const previewResources = rolePermissions?.roles.find((r) => r.role === targetRole)?.resources ?? []
   const targetRoleLabel = ROLE_OPTIONS.find((r) => r.value === targetRole)?.label || ROLE_LABELS[targetRole] || targetRole
 
   function applyActiveChange(onDone) {

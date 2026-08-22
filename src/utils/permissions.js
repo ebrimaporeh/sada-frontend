@@ -1,13 +1,15 @@
-// Frontend mirror of sada-backend/permissions/roles.py — same resource names,
-// same role → resource map. There is no shared schema between the two repos
-// (see the root .claude/CLAUDE.md), so if you change access on one side,
-// change it here too.
+// Frontend mirror of sada-backend/permissions/roles.py's Resource keys and
+// labels — those don't change at runtime, so they're still safe to keep as
+// a static list here (see the root .claude/CLAUDE.md: no shared schema,
+// keep both sides in sync by hand).
 //
-// To add a role: add it to ROLES in constants/index.js, then give it a
-// resource set in ROLE_RESOURCES below.
-// To gate a new admin page: pick (or add) a Resource, then use
-// hasResourceAccess(role, resource) in that route's beforeLoad and in the
-// sidebar nav filter.
+// WHO has which resource is no longer static, though — MANAGED_ROLES'
+// (moderator, finance officer) access is admin-editable at runtime via
+// Django Groups (Settings -> Staff), so there's no ROLE_RESOURCES map here
+// to mirror anymore. Instead, every /users/me/ response carries the
+// current user's own `resources` array (UserSerializer.resources,
+// computed server-side from their live group permissions) — that array is
+// what hasResourceAccess() below actually checks.
 import { ROLES, ROUTES } from '@/constants'
 
 export const Resource = {
@@ -15,8 +17,8 @@ export const Resource = {
   STAFF: 'staff',
   DASHBOARD: 'dashboard',
   SETTINGS: 'settings',
-  CAMPAIGNS_VIEW: 'campaigns.view',
-  CAMPAIGNS_MODERATE: 'campaigns.moderate',
+  CAMPAIGNS_VIEW: 'campaigns_view',
+  CAMPAIGNS_MODERATE: 'campaigns_moderate',
   CATEGORIES: 'categories',
   REPORTS: 'reports',
   VERIFICATIONS: 'verifications',
@@ -47,35 +49,49 @@ export const ROLE_LABELS = {
   [ROLES.USER]: 'User',
 }
 
-const ALL_RESOURCES = new Set(Object.values(Resource))
+// Roles whose resource access is admin-editable at runtime (Settings ->
+// Staff). Mirrors permissions.roles.MANAGED_ROLES on the backend — ADMIN
+// is deliberately excluded there (always gets everything), so it's
+// excluded here too.
+export const MANAGED_ROLES = [ROLES.MODERATOR, ROLES.FINANCE_OFFICER]
 
-export const ROLE_RESOURCES = {
-  [ROLES.ADMIN]: ALL_RESOURCES,
-  [ROLES.MODERATOR]: new Set([
-    Resource.CAMPAIGNS_VIEW, Resource.CAMPAIGNS_MODERATE,
-    Resource.CATEGORIES, Resource.REPORTS, Resource.VERIFICATIONS,
-  ]),
-  [ROLES.FINANCE_OFFICER]: new Set([
-    Resource.CAMPAIGNS_VIEW, Resource.DONATIONS, Resource.FINANCES,
-  ]),
-}
-
-// First reachable admin page per role — where to land them instead of the
-// (admin-only) dashboard.
-export const ROLE_LANDING_ROUTE = {
-  [ROLES.ADMIN]: '/admin',
-  [ROLES.MODERATOR]: ROUTES.ADMIN_CAMPAIGNS,
-  [ROLES.FINANCE_OFFICER]: ROUTES.ADMIN_CAMPAIGNS,
-}
+// Priority order for picking a landing page from whatever resources a user
+// actually has -- mirrors permissions.roles.LANDING_RESOURCE_PRIORITY.
+// Resource-driven rather than role-keyed since a role's resources (and
+// therefore where it can land) can now change at runtime.
+const LANDING_ROUTES_BY_RESOURCE = [
+  [Resource.DASHBOARD, '/admin'],
+  [Resource.CAMPAIGNS_VIEW, ROUTES.ADMIN_CAMPAIGNS],
+  [Resource.DONATIONS, ROUTES.ADMIN_DONATIONS],
+  [Resource.USERS, ROUTES.ADMIN_USERS],
+  [Resource.REPORTS, '/admin/reports'],
+  [Resource.VERIFICATIONS, ROUTES.ADMIN_VERIFICATIONS],
+  [Resource.FINANCES, '/admin/finances'],
+  [Resource.AUDIT, ROUTES.ADMIN_AUDIT],
+  [Resource.CATEGORIES, '/admin/categories'],
+  [Resource.SETTINGS, '/admin/settings'],
+  [Resource.STAFF, ROUTES.ADMIN_STAFF],
+]
 
 export function isAdminAreaRole(role) {
   return role === ROLES.ADMIN || role === ROLES.MODERATOR || role === ROLES.FINANCE_OFFICER
 }
 
-export function hasResourceAccess(role, resource) {
-  return ROLE_RESOURCES[role]?.has(resource) ?? false
+// `resources` is the current user's own resource list (`me.resources`),
+// not a role — the caller no longer needs to know which role maps to
+// which resources, since that mapping can change at runtime and only the
+// backend (the actual Group/Permission source of truth) can answer it.
+export function hasResourceAccess(resources, resource) {
+  return Array.isArray(resources) && resources.includes(resource)
 }
 
-export function getResourcesForRole(role) {
-  return Array.from(ROLE_RESOURCES[role] ?? [])
+// Where to land a user with this resource list instead of the (admin-only)
+// dashboard, or as the redirect target when a route's own resource check
+// fails. Walks resources in priority order rather than trusting a stale
+// per-role map, so it can't send someone to a page they no longer have.
+export function landingRouteForResources(resources) {
+  for (const [resource, route] of LANDING_ROUTES_BY_RESOURCE) {
+    if (hasResourceAccess(resources, resource)) return route
+  }
+  return ROUTES.DASHBOARD
 }

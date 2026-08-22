@@ -89,4 +89,7 @@ export const queryKeys = {
     actions: () => ['audit', 'actions'],
     actors: () => ['audit', 'actors'],
   },
+  permissions: {
+    roles: () => ['permissions', 'roles'],
+  },
 }
