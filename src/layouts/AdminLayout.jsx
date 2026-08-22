@@ -125,8 +125,18 @@ function SidebarBrand() {
 }
 
 function SidebarFooter({ onNavigate }) {
+  const logout = useLogout()
+
   return (
     <div className="p-3 border-t space-y-0.5">
+      <button
+        onClick={() => logout.mutate()}
+        disabled={logout.isPending}
+        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/5 transition-colors disabled:opacity-50"
+      >
+        {logout.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogOut className="w-4 h-4" />}
+        {logout.isPending ? 'Logging out…' : 'Logout'}
+      </button>
       <Link
         to={ROUTES.HOME}
         onClick={onNavigate}
@@ -140,7 +150,6 @@ function SidebarFooter({ onNavigate }) {
 
 export function AdminLayout() {
   const { data: user, isLoading } = useMe()
-  const logout = useLogout()
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
 
   useEffect(() => {
@@ -200,26 +209,16 @@ export function AdminLayout() {
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="border-b bg-card px-4 sm:px-6 py-4 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0">
-            <button
-              onClick={() => setMobileNavOpen(true)}
-              className="md:hidden p-2 -ml-2 rounded-lg hover:bg-accent transition-colors flex-shrink-0"
-              aria-label="Open menu"
-            >
-              <Menu className="w-5 h-5" />
-            </button>
-            <h1 className="text-lg font-bold truncate">Admin Dashboard</h1>
-          </div>
-          <button
-            onClick={() => logout.mutate()}
-            disabled={logout.isPending}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/5 transition-colors flex-shrink-0 disabled:opacity-50"
-          >
-            {logout.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogOut className="w-4 h-4" />}
-            <span className="hidden sm:inline">{logout.isPending ? 'Logging out…' : 'Logout'}</span>
-          </button>
-        </header>
+        {/* Mobile-only menu trigger — the sidebar (desktop aside / mobile
+            drawer, both above) is otherwise unreachable once the header is
+            gone, since it's the only nav affordance on small screens. */}
+        <button
+          onClick={() => setMobileNavOpen(true)}
+          className="md:hidden p-2 m-2 rounded-lg hover:bg-accent transition-colors self-start flex-shrink-0"
+          aria-label="Open menu"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
         <main className="flex-1 p-4 sm:p-6 overflow-auto">
           <Outlet />
         </main>
