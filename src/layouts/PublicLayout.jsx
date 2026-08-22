@@ -91,12 +91,12 @@ export function PublicLayout() {
                 <Link
                   key={label}
                   to={to}
-                  className="flex flex-col items-center gap-0.5 -mt-5"
+                  aria-label={label}
+                  className="flex flex-col items-center self-center"
                 >
-                  <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-primary/30">
-                    <Icon className="w-6 h-6 text-primary-foreground" />
+                  <div className="w-11 h-11 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-primary/30">
+                    <Icon className="w-5 h-5 text-primary-foreground" />
                   </div>
-                  <span className="text-[10px] font-medium text-primary mt-0.5">{label}</span>
                 </Link>
               )
             }
