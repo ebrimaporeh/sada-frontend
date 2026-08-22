@@ -3,7 +3,6 @@ import { Link } from '@tanstack/react-router'
 import { CheckCircle2, XCircle, Eye, Search, Loader2, SearchX, EyeOff } from 'lucide-react'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { ProgressBar } from '@/components/custom/ProgressBar'
-import { CampaignSheet } from '@/components/custom/CampaignSheet'
 import { AdminPagination } from '@/components/custom/AdminPagination'
 import { formatGMD, formatDate, progressPercent } from '@/utils/formatters'
 import { useAdminCampaigns, useAdminCampaignAction } from '@/hooks/useCampaigns'
@@ -34,14 +33,7 @@ export function CampaignsPage() {
   const [actioningId, setActioningId] = useState(null)
   const [page, setPage] = useState(1)
   const [showStats, setShowStats] = useStatsVisibility('campaigns')
-  const [selectedCampaign, setSelectedCampaign] = useState(null)
-  const [isSheetOpen, setIsSheetOpen] = useState(false)
   const limit = 10
-
-  const handleSelectCampaign = (campaign) => {
-    setSelectedCampaign(campaign)
-    setIsSheetOpen(true)
-  }
 
   const debouncedSearch = useDebouncedValue(search)
 
@@ -171,11 +163,7 @@ export function CampaignsPage() {
                   const isActioning = actioningId === c.id
                   const categoryName = c.category_name ?? c.category ?? '—'
                   return (
-                    <tr
-                      key={c.id}
-                      onClick={() => handleSelectCampaign(c)}
-                      className="hover:bg-muted/30 transition-colors cursor-pointer"
-                    >
+                    <tr key={c.id} className="hover:bg-muted/30 transition-colors">
                       <td className="px-4 py-3 max-w-[200px]">
                         <p className="font-medium line-clamp-1">{c.title}</p>
                         <p className="text-xs text-muted-foreground">{c.beneficiary}</p>
@@ -195,8 +183,8 @@ export function CampaignsPage() {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1">
                           <Link
-                            to="/campaigns/$slug"
-                            params={{ slug: c.slug }}
+                            to="/admin/campaigns/$id"
+                            params={{ id: c.id }}
                             className="p-1.5 rounded hover:bg-accent transition-colors"
                             title="View"
                           >
@@ -222,16 +210,6 @@ export function CampaignsPage() {
                               </button>
                             </>
                           )}
-                          {canModerate && c.status === CAMPAIGN_STATUS.ACTIVE && (
-                            <button
-                              onClick={() => handleAction(c, 'suspend')}
-                              disabled={isActioning}
-                              className="p-1.5 rounded hover:bg-orange-50 transition-colors disabled:opacity-50 text-xs font-medium text-orange-600"
-                              title="Suspend"
-                            >
-                              Suspend
-                            </button>
-                          )}
                         </div>
                       </td>
                     </tr>
@@ -253,13 +231,6 @@ export function CampaignsPage() {
       {campaigns.length > 0 && (
         <AdminPagination page={page} totalPages={totalPages} onPageChange={setPage} totalCount={totalCount} limit={limit} />
       )}
-
-      {/* Campaign Detail Sheet */}
-      <CampaignSheet
-        isOpen={isSheetOpen}
-        onClose={() => setIsSheetOpen(false)}
-        campaign={selectedCampaign}
-      />
     </div>
   )
 }
