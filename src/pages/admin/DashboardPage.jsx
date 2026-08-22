@@ -77,88 +77,83 @@ function ListRowSkeleton() {
   )
 }
 
-function DateRangeSelector({ selectedRange, customRange, onRangeChange, onCustomDate }) {
+function DateRangeSelector({ selectedRange, customRange, onRangeChange, onApplyCustom }) {
   const isCustomActive = Boolean(customRange)
+  const [expanded, setExpanded] = useState(false)
+  const [draftStart, setDraftStart] = useState(customRange?.start || '')
+  const [draftEnd, setDraftEnd] = useState(customRange?.end || '')
 
-  return (
-    <div className="flex items-center gap-2 flex-wrap">
-      <div className="flex gap-2">
-        {DATE_RANGES.map((range) => (
-          <button
-            key={range.value}
-            onClick={() => onRangeChange(range)}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              !isCustomActive && selectedRange?.value === range.value
-                ? 'bg-primary text-primary-foreground'
-                : 'border hover:bg-accent'
-            }`}
-          >
-            {range.label}
-          </button>
-        ))}
-      </div>
-      <button
-        onClick={onCustomDate}
-        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-          isCustomActive
-            ? 'bg-primary text-primary-foreground'
-            : 'border hover:bg-accent'
-        }`}
-      >
-        <Calendar className="w-4 h-4" />
-        {isCustomActive ? `${formatDate(customRange.start)} – ${formatDate(customRange.end)}` : 'Custom'}
-      </button>
-    </div>
-  )
-}
-
-function CustomDateModal({ isOpen, onClose, onApply }) {
-  const [startDate, setStartDate] = useState('')
-  const [endDate, setEndDate] = useState('')
-
-  const handleApply = () => {
-    if (startDate && endDate) {
-      onApply(startDate, endDate)
-      onClose()
+  function handleApply() {
+    if (draftStart && draftEnd) {
+      onApplyCustom(draftStart, draftEnd)
+      setExpanded(false)
     }
   }
 
-  if (!isOpen) return null
-
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-background border rounded-xl p-6 w-full max-w-sm">
-        <h3 className="text-lg font-bold mb-4">Select Date Range</h3>
-        <div className="space-y-3">
-          <div className="border rounded-lg p-3 space-y-1.5">
+    <div className="space-y-3">
+      <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex gap-2">
+          {DATE_RANGES.map((range) => (
+            <button
+              key={range.value}
+              onClick={() => {
+                onRangeChange(range)
+                setExpanded(false)
+              }}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                !isCustomActive && selectedRange?.value === range.value
+                  ? 'bg-primary text-primary-foreground'
+                  : 'border hover:bg-accent'
+              }`}
+            >
+              {range.label}
+            </button>
+          ))}
+        </div>
+        <button
+          onClick={() => setExpanded((e) => !e)}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+            isCustomActive || expanded
+              ? 'bg-primary text-primary-foreground'
+              : 'border hover:bg-accent'
+          }`}
+        >
+          <Calendar className="w-4 h-4" />
+          {isCustomActive ? `${formatDate(customRange.start)} – ${formatDate(customRange.end)}` : 'Custom'}
+        </button>
+      </div>
+
+      {expanded && (
+        <div className="flex flex-wrap items-end gap-3 p-3 border rounded-lg bg-muted/30">
+          <div className="space-y-1.5 min-w-[160px]">
             <label className="text-xs font-medium text-muted-foreground">From</label>
             <DatePicker
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              max={endDate || new Date()}
+              value={draftStart}
+              onChange={(e) => setDraftStart(e.target.value)}
+              max={draftEnd || new Date()}
               placeholder="Start date"
             />
           </div>
-          <div className="border rounded-lg p-3 space-y-1.5">
+          <div className="space-y-1.5 min-w-[160px]">
             <label className="text-xs font-medium text-muted-foreground">To</label>
             <DatePicker
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              min={startDate || undefined}
+              value={draftEnd}
+              onChange={(e) => setDraftEnd(e.target.value)}
+              min={draftStart || undefined}
               max={new Date()}
               placeholder="End date"
             />
           </div>
-        </div>
-        <div className="flex gap-2 mt-4">
-          <button onClick={onClose} className="flex-1 px-3 py-2 rounded-lg border hover:bg-accent">
-            Cancel
-          </button>
-          <button onClick={handleApply} disabled={!startDate || !endDate} className="flex-1 px-3 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed">
+          <button
+            onClick={handleApply}
+            disabled={!draftStart || !draftEnd}
+            className="px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             Apply
           </button>
         </div>
-      </div>
+      )}
     </div>
   )
 }
@@ -166,7 +161,6 @@ function CustomDateModal({ isOpen, onClose, onApply }) {
 export function AdminDashboardPage() {
   const [selectedRange, setSelectedRange] = useState(DATE_RANGES[0])
   const [customDates, setCustomDates] = useState(null)
-  const [showCustomModal, setShowCustomModal] = useState(false)
 
   const getDateRange = () => {
     let endDate = new Date()
@@ -285,7 +279,7 @@ export function AdminDashboardPage() {
             setSelectedRange(range)
             setCustomDates(null)
           }}
-          onCustomDate={() => setShowCustomModal(true)}
+          onApplyCustom={(start, end) => setCustomDates({ start, end })}
         />
       </div>
 
@@ -520,15 +514,6 @@ export function AdminDashboardPage() {
           </div>
         </div>
       </div>
-
-      {/* Custom Date Modal */}
-      <CustomDateModal
-        isOpen={showCustomModal}
-        onClose={() => setShowCustomModal(false)}
-        onApply={(start, end) => {
-          setCustomDates({ start, end })
-        }}
-      />
     </div>
   )
 }
