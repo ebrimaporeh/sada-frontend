@@ -10,7 +10,7 @@ const pillars = [
   {
     icon: Smartphone,
     title: 'Built for how Gambians actually pay',
-    body: "No bank account required. Donate or withdraw straight through Wave or APS Wallet — the mobile money networks people here already use every day.",
+    body: "No bank account required. Donate with Wave, APS Wallet, or a card, and withdraw straight to Wave or APS Wallet — every payment is processed securely by Stripe and ModemPay.",
   },
   {
     icon: ShieldCheck,

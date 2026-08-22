@@ -21,7 +21,7 @@ const SUPPORT_LINKS = [
   ['Terms of Service', ROUTES.TERMS],
 ]
 
-const PAYMENT_PARTNERS = ['Wave',  'APS']
+const PAYMENT_PARTNERS = ['Wave', 'APS', 'Card (Stripe)']
 
 export function Footer() {
   const { siteName } = useSiteSettings()
@@ -107,6 +107,7 @@ export function Footer() {
           <p className="text-sm text-background/60 leading-relaxed">
             Secured and powered by
             <br />
+            <span className="font-semibold text-background/80">Stripe</span> &amp;{' '}
             <span className="font-semibold text-background/80">ModemPay</span>
           </p>
         </div>

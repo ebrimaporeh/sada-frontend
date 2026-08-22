@@ -87,6 +87,10 @@ export function PaymentMethodsSection() {
                 </div>
               ))}
             </div>
+
+            <p className="mt-8 text-xs text-muted-foreground flex items-center gap-1.5">
+              <Shield className="w-3.5 h-3.5" /> Every payment is processed securely by Stripe &amp; ModemPay.
+            </p>
           </div>
 
           {/* Right: active payment methods */}

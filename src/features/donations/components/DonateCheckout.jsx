@@ -12,10 +12,26 @@ import { cn } from '@/utils/cn'
 
 function CampaignSummaryCard({ campaign }) {
   const pct = progressPercent(campaign.raised, campaign.goal)
+  const coverUrl = campaign.cover_image_url
+    ?? campaign.images?.find((img) => img.is_cover)?.image_url
+    ?? campaign.images?.[0]?.image_url
+    ?? null
+
   return (
     <div className="border rounded-xl p-4 bg-card space-y-3">
-      <div className={cn('h-24 rounded-lg bg-linear-to-br flex items-center justify-center', campaign.gradient)}>
-        <span className="text-white/40 text-5xl font-black">{(campaign.category?.name ?? campaign.category ?? '')[0]}</span>
+      <div className={cn('relative h-24 rounded-lg bg-linear-to-br overflow-hidden flex items-center justify-center', campaign.gradient)}>
+        {coverUrl ? (
+          <img src={coverUrl} alt={campaign.title} className="w-full h-full object-cover" />
+        ) : (
+          <span className="text-white/40 text-5xl font-black">{(campaign.category?.name ?? campaign.category ?? '')[0]}</span>
+        )}
+        <ShareCampaign
+          title={campaign.title}
+          url={`${window.location.origin}/campaigns/${campaign.slug}`}
+          className="absolute top-2 right-2"
+          buttonClassName="w-8 h-8 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-sm text-white hover:bg-black/60 transition-colors [&>svg]:w-4 [&>svg]:h-4"
+          buttonLabel=""
+        />
       </div>
       <div>
         <p className="font-semibold text-sm leading-snug">{campaign.title}</p>
@@ -29,12 +45,6 @@ function CampaignSummaryCard({ campaign }) {
       <div className="text-xs text-muted-foreground border-t pt-2">
         <span>{campaign.donors_count} donors · {daysLeft(campaign.deadline)} days left</span>
       </div>
-      <ShareCampaign
-        title={campaign.title}
-        url={`${window.location.origin}/campaigns/${campaign.slug}`}
-        buttonClassName="w-full flex items-center justify-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-        buttonLabel="Share this campaign"
-      />
     </div>
   )
 }
