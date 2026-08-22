@@ -24,7 +24,7 @@ import {
   AlertCircle,
   CheckCircle,
 } from 'lucide-react'
-import { ROUTES } from '@/constants'
+import { ROUTES, CAMPAIGN_STATUS } from '@/constants'
 import { formatGMD } from '@/utils/formatters'
 import { analyticsApi } from '@/api/adminApi'
 import { DatePicker } from '@/components/custom/DatePicker'
@@ -43,6 +43,23 @@ const DATE_RANGES = [
   { label: 'Last 90 Days', value: 'year', days: 90 },
   { label: 'All Time', value: 'all', days: null },
 ]
+
+// Light, semantic per-status colors -- mirrors the status badge colors used
+// elsewhere in the admin (campaigns table, campaign detail page), just as
+// hex values since a Recharts Cell fill can't take a Tailwind class.
+// Distinct hues matter here (unlike the money charts elsewhere on this
+// page, which share the brand gradient) since each slice is a genuinely
+// different category, not just a different point on the same series.
+const CAMPAIGN_STATUS_PIE_COLORS = {
+  [CAMPAIGN_STATUS.ACTIVE]: '#86efac',
+  [CAMPAIGN_STATUS.APPROVED]: '#86efac',
+  [CAMPAIGN_STATUS.COMPLETED]: '#93c5fd',
+  [CAMPAIGN_STATUS.PENDING]: '#fcd34d',
+  [CAMPAIGN_STATUS.SUSPENDED]: '#fdba74',
+  [CAMPAIGN_STATUS.REJECTED]: '#fca5a5',
+  [CAMPAIGN_STATUS.DRAFT]: '#d1d5db',
+}
+const DEFAULT_STATUS_PIE_COLOR = '#d1d5db'
 
 function StatCardSkeleton() {
   return (
@@ -351,12 +368,6 @@ export function AdminDashboardPage() {
             <div className="w-full max-w-xs mx-auto">
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
-                  <defs>
-                    <linearGradient id="pieSliceGradient" x1="0" y1="0" x2="1" y2="1">
-                      <stop offset="0%" stopColor={brandGradientFrom} />
-                      <stop offset="100%" stopColor={brandGradientTo} />
-                    </linearGradient>
-                  </defs>
                   <Pie
                     data={campaignStatus}
                     dataKey="count"
@@ -372,7 +383,12 @@ export function AdminDashboardPage() {
                     animationDuration={800}
                   >
                     {campaignStatus.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill="url(#pieSliceGradient)" stroke="#fff" strokeWidth={2} />
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={CAMPAIGN_STATUS_PIE_COLORS[entry.status] || DEFAULT_STATUS_PIE_COLOR}
+                        stroke="#fff"
+                        strokeWidth={2}
+                      />
                     ))}
                   </Pie>
                   <Tooltip
