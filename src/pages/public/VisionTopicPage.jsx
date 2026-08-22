@@ -1,9 +1,11 @@
 import { Link, useParams } from '@tanstack/react-router'
-import { ChevronLeft, MapPin, Wrench, Sprout, Telescope } from 'lucide-react'
+import { MapPin, Wrench, Sprout, Telescope } from 'lucide-react'
 import { useVisionTopic } from '@/hooks/useVision'
 import { MarkdownContent } from '@/components/custom/MarkdownEditor'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
 import { EmptyState } from '@/components/custom/EmptyState'
+import { Breadcrumbs } from '@/components/custom/Breadcrumbs'
+import { usePageMeta } from '@/hooks/usePageMeta'
 import { ROUTES } from '@/constants'
 
 const PHASES = [
@@ -35,16 +37,17 @@ export function VisionTopicPage() {
 
   const phasesWithContent = PHASES.filter((phase) => topic[phase.key]?.trim())
 
+  usePageMeta({
+    title: topic.title,
+    description: topic.summary || topic.current_state,
+    type: 'article',
+  })
+
   return (
     <div>
       <div className="page-header">
         <div className="max-w-2xl mx-auto px-4 sm:px-6">
-          <Link
-            to={ROUTES.VISION}
-            className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors"
-          >
-            <ChevronLeft className="w-4 h-4" /> Platform Vision
-          </Link>
+          <Breadcrumbs items={[{ label: 'Platform Vision', to: ROUTES.VISION }]} current={topic.title} />
           <h1 className="text-3xl sm:text-4xl font-bold mb-2">{topic.title}</h1>
           {topic.summary && <p className="text-muted-foreground">{topic.summary}</p>}
         </div>

@@ -3,6 +3,8 @@ import { Search, X, SearchX, Loader2 } from 'lucide-react'
 import { usePublicCampaigners } from '@/hooks/useUsers'
 import { CampaignerPhotoTile } from './CampaignerPhotoTile'
 import { CampaignerCardSkeleton } from './CampaignerCardSkeleton'
+import { Breadcrumbs } from '@/components/custom/Breadcrumbs'
+import { Select } from '@/components/custom/Select'
 import { GAMBIA_REGIONS } from '@/constants'
 
 export function CampaignerGrid() {
@@ -42,6 +44,7 @@ export function CampaignerGrid() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+      <Breadcrumbs current="Campaigners" />
       <div className="mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold">Campaigners</h1>
         <p className="text-muted-foreground mt-1 text-sm">
@@ -81,16 +84,14 @@ export function CampaignerGrid() {
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
-          <select
+          <Select
             value={region}
             onChange={(e) => setRegion(e.target.value)}
-            className="text-sm px-3 py-2 rounded-lg border bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
-          >
-            <option value="">All Regions</option>
-            {GAMBIA_REGIONS.map((r) => (
-              <option key={r.value} value={r.value}>{r.label}</option>
-            ))}
-          </select>
+            placeholder="All Regions"
+            className="w-44"
+            buttonClassName="py-2"
+            options={GAMBIA_REGIONS.map((r) => ({ value: r.value, label: r.label }))}
+          />
 
           {hasFilters && (
             <button

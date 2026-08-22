@@ -1,15 +1,23 @@
 import { Link } from '@tanstack/react-router'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
+import { Breadcrumbs } from '@/components/custom/Breadcrumbs'
 import { useCategories } from '@/hooks/useCampaigns'
 import { getCategoryIcon } from '@/utils/categoryIcons'
 import { formatGMD } from '@/utils/formatters'
+import { usePageMeta } from '@/hooks/usePageMeta'
 import { ROUTES } from '@/constants'
 
 export function CategoriesPage() {
   const { categories, isLoading } = useCategories()
 
+  usePageMeta({
+    title: 'Categories',
+    description: 'Browse every cause on the platform, ranked by total donations raised.',
+  })
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16">
+      <Breadcrumbs current="Categories" />
       <div className="text-center mb-12">
         <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight">All Categories</h1>
         <p className="text-muted-foreground mt-4 text-lg max-w-2xl mx-auto">
@@ -35,6 +43,7 @@ export function CategoriesPage() {
                   <img
                     src={cat.image_url}
                     alt={cat.name}
+                    loading="lazy"
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                   />
                 ) : (

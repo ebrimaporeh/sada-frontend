@@ -3,15 +3,23 @@ import { ArrowRight, Compass } from 'lucide-react'
 import { useVisionTopics } from '@/hooks/useVision'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
 import { EmptyState } from '@/components/custom/EmptyState'
+import { Breadcrumbs } from '@/components/custom/Breadcrumbs'
+import { usePageMeta } from '@/hooks/usePageMeta'
 import { ROUTES } from '@/constants'
 
 export function VisionIndexPage() {
   const { topics, isLoading } = useVisionTopics()
 
+  usePageMeta({
+    title: 'Platform Vision',
+    description: "What's actually built today, and where each part of the platform is headed next.",
+  })
+
   return (
     <div>
       <div className="page-header">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 text-center">
+          <Breadcrumbs current="Platform Vision" className="justify-center" />
           <div className="section-label justify-center">
             <div className="section-label-line" />
             <span className="section-label-text">Roadmap</span>

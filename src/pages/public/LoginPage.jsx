@@ -3,7 +3,7 @@ import { AuthShell } from '@/components/custom/AuthShell'
 
 export function LoginPage() {
   return (
-    <AuthShell>
+    <AuthShell title="Sign In">
       <LoginForm />
     </AuthShell>
   )

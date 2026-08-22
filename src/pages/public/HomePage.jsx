@@ -4,8 +4,11 @@ import { FeaturedCampaigns } from '@/features/home/components/FeaturedCampaigns'
 import { CategoriesSection } from '@/features/home/components/CategoriesSection'
 import { HowItWorks } from '@/features/home/components/HowItWorks'
 import { PaymentMethodsSection } from '@/features/home/components/PaymentMethodsSection'
+import { usePageMeta } from '@/hooks/usePageMeta'
 
 export function HomePage() {
+  usePageMeta({ url: window.location.origin + '/' })
+
   return (
     <>
       <HeroSection />

@@ -3,6 +3,8 @@ import { CheckCircle2, Heart, Share2, ArrowRight, Loader2, Clock, XCircle } from
 import { useCampaign } from '@/hooks/useCampaigns'
 import { useVerifyDonation } from '@/hooks/useDonations'
 import { formatGMD } from '@/utils/formatters'
+import { usePageMeta } from '@/hooks/usePageMeta'
+import { campaignShareUrl } from '@/utils/shareUrls'
 import { ROUTES } from '@/constants'
 
 export function DonateSuccessPage() {
@@ -12,19 +14,22 @@ export function DonateSuccessPage() {
   const reference = search?.ref
   const { data: verifyData, isLoading: isVerifying } = useVerifyDonation(reference, slug)
 
+  usePageMeta({ title: 'Thank You', noindex: true })
+
   const donation = verifyData?.data?.donation
   const donationStatus = donation?.status
   const amount = Number(donation?.amount ?? search?.amount) || 0
 
   const shareText = campaign
-    ? `I just donated to "${campaign.title}" on GambiaFund! Join me in supporting this cause.`
-    : 'I just made a donation on GambiaFund!'
+    ? `I just donated to "${campaign.title}"! Join me in supporting this cause.`
+    : 'I just made a donation!'
 
   function handleShare() {
+    const url = campaignShareUrl(slug)
     if (navigator.share) {
-      navigator.share({ title: campaign?.title || 'GambiaFund', text: shareText, url: window.location.origin + `/campaigns/${slug}` })
+      navigator.share({ title: campaign?.title, text: shareText, url })
     } else {
-      navigator.clipboard.writeText(window.location.origin + `/campaigns/${slug}`)
+      navigator.clipboard.writeText(url)
     }
   }
 

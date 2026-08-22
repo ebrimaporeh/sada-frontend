@@ -11,13 +11,41 @@ export function useMyDonations() {
   })
 }
 
-// Public campaign page donor list — visible to any visitor, not just the campaign owner.
-export function useCampaignDonors(slug) {
+// Public campaign page donor list — visible to any visitor, not just the
+// campaign owner. 20 donors per page (the backend default), sorted by
+// latest (default) or highest amount.
+export function useCampaignDonors(slug, { page = 1, sort = 'latest' } = {}) {
   return useQuery({
-    queryKey: queryKeys.donations.publicCampaign(slug),
-    queryFn: () => donationApi.getPublicCampaignDonors(slug),
-    select: (res) => ({ donations: res?.results ?? [], count: res?.count ?? 0 }),
+    queryKey: queryKeys.donations.publicCampaign(slug, { page, sort }),
+    queryFn: () => donationApi.getPublicCampaignDonors(slug, { page, sort }),
+    select: (res) => ({
+      donations: res?.results ?? [],
+      count: res?.count ?? 0,
+      totalPages: res?.total_pages ?? 1,
+      hasNext: Boolean(res?.next),
+      hasPrevious: Boolean(res?.previous),
+    }),
     enabled: Boolean(slug),
+    placeholderData: (previousData) => previousData,
+  })
+}
+
+// Owner's own campaign donor list -- unlike useCampaignDonors above, scoped
+// to campaigns the current user owns (returns full donor detail, not the
+// anonymized public projection). 20 donors per page (the backend default).
+export function useMyCampaignDonors(slug, { page = 1 } = {}) {
+  return useQuery({
+    queryKey: queryKeys.donations.campaignPaginated(slug, { page }),
+    queryFn: () => donationApi.getCampaignDonors(slug, { page }),
+    select: (res) => ({
+      donations: res?.results ?? [],
+      count: res?.count ?? 0,
+      totalPages: res?.total_pages ?? 1,
+      hasNext: Boolean(res?.next),
+      hasPrevious: Boolean(res?.previous),
+    }),
+    enabled: Boolean(slug),
+    placeholderData: (previousData) => previousData,
   })
 }
 

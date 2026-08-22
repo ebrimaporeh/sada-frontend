@@ -11,6 +11,22 @@
       rel="stylesheet"
     />
     <title>Dolelma — Crowdfunding for The Gambia</title>
+    <meta name="description" content="Dolelma is The Gambia's crowdfunding platform. Raise funds for medical bills, education, community projects, and more, or support a cause with mobile money or card." />
+
+    <!-- Baseline social-preview tags for pages that don't set their own
+         (see src/hooks/usePageMeta.js) -- a real visitor's/Google's JS
+         overrides these per page, but WhatsApp/Facebook/LinkedIn's
+         crawlers only ever see whatever's here, since they don't run JS.
+         Per-entity pages (campaigns, campaigner profiles, vision topics)
+         are shared via a separate backend-rendered preview URL instead of
+         relying on this static fallback -- see src/utils/shareUrls.js. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Dolelma — Crowdfunding for The Gambia" />
+    <meta property="og:description" content="Raise funds for medical bills, education, community projects, and more, or support a cause with mobile money or card." />
+    <meta property="og:site_name" content="Dolelma" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Dolelma — Crowdfunding for The Gambia" />
+    <meta name="twitter:description" content="Raise funds for medical bills, education, community projects, and more, or support a cause with mobile money or card." />
   </head>
   <body>
     <div id="root"></div>

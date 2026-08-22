@@ -2,17 +2,25 @@ import { Link } from '@tanstack/react-router'
 import { useLegalContent, useLegalVariables } from '@/hooks/useLegalContent'
 import { MarkdownContent } from '@/components/custom/MarkdownEditor'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
+import { Breadcrumbs } from '@/components/custom/Breadcrumbs'
 import { renderLegalVariables } from '@/utils/legalVariables'
+import { usePageMeta } from '@/hooks/usePageMeta'
 import { ROUTES } from '@/constants'
 
 export function TrustSafetyPage() {
   const { content, isLoading } = useLegalContent()
   const { values } = useLegalVariables()
 
+  usePageMeta({
+    title: 'Trust & Safety',
+    description: 'How the platform keeps donors and campaign owners safe.',
+  })
+
   return (
     <div>
       <div className="page-header">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 text-center">
+          <Breadcrumbs current="Trust & Safety" className="justify-center" />
           <div className="section-label justify-center">
             <div className="section-label-line" />
             <span className="section-label-text">Trust &amp; Safety</span>

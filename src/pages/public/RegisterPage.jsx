@@ -3,7 +3,7 @@ import { AuthShell } from '@/components/custom/AuthShell'
 
 export function RegisterPage() {
   return (
-    <AuthShell>
+    <AuthShell title="Create Account">
       <RegisterForm />
     </AuthShell>
   )

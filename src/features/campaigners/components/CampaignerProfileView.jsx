@@ -1,10 +1,11 @@
-import { Link } from '@tanstack/react-router'
-import { Megaphone, MapPin, Calendar, ChevronLeft, Building2 } from 'lucide-react'
+import { Megaphone, MapPin, Calendar, Building2 } from 'lucide-react'
 import { VerifiedTick } from '@/components/custom/VerifiedTick'
 import { CampaignCard } from '@/components/custom/CampaignCard'
 import { CampaignCardSkeleton } from '@/components/custom/CampaignCardSkeleton'
+import { Breadcrumbs } from '@/components/custom/Breadcrumbs'
 import { useCampaigns } from '@/hooks/useCampaigns'
 import { formatGMD, formatDate, initials } from '@/utils/formatters'
+import { usePageMeta } from '@/hooks/usePageMeta'
 import { GAMBIA_REGIONS, ORGANIZATION_TYPES, ACCOUNT_TYPES, ROUTES } from '@/constants'
 import { cn } from '@/utils/cn'
 
@@ -14,13 +15,16 @@ export function CampaignerProfileView({ campaigner }) {
   const isOrg = campaigner.account_type === ACCOUNT_TYPES.ORGANIZATION
   const orgTypeLabel = ORGANIZATION_TYPES.find((t) => t.value === campaigner.organization_type)?.label
 
+  usePageMeta({
+    title: campaigner.full_name,
+    description: campaigner.bio || `${campaigner.campaign_count} campaign(s) on the platform.`,
+    image: campaigner.avatar,
+    type: 'profile',
+  })
+
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 space-y-8">
-      {/* Back */}
-      <Link to={ROUTES.CAMPAIGNERS} className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-        <ChevronLeft className="w-4 h-4" />
-        All Campaigners
-      </Link>
+      <Breadcrumbs items={[{ label: 'Campaigners', to: ROUTES.CAMPAIGNERS }]} current={campaigner.full_name} />
 
       {/* Profile header */}
       <div className="border rounded-2xl p-6 bg-card flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left">

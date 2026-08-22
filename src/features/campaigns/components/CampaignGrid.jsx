@@ -4,6 +4,8 @@ import { Search, X, SearchX, AlertTriangle } from 'lucide-react'
 import { useCampaigns, useCategories } from '@/hooks/useCampaigns'
 import { CampaignCard } from '@/components/custom/CampaignCard'
 import { CampaignCardSkeleton } from '@/components/custom/CampaignCardSkeleton'
+import { Breadcrumbs } from '@/components/custom/Breadcrumbs'
+import { Select } from '@/components/custom/Select'
 import { GAMBIA_REGIONS } from '@/constants'
 import { getCategoryIcon } from '@/utils/categoryIcons'
 
@@ -40,6 +42,7 @@ export function CampaignGrid() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+      <Breadcrumbs current="Campaigns" />
       <div className="mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold">All Campaigns</h1>
         <p className="text-muted-foreground mt-1 text-sm">
@@ -108,16 +111,14 @@ export function CampaignGrid() {
 
         <div className="flex items-center gap-3 flex-wrap">
           {/* Region */}
-          <select
+          <Select
             value={region}
             onChange={(e) => setRegion(e.target.value)}
-            className="text-sm px-3 py-2 rounded-lg border bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
-          >
-            <option value="">All Regions</option>
-            {GAMBIA_REGIONS.map((r) => (
-              <option key={r.value} value={r.value}>{r.label}</option>
-            ))}
-          </select>
+            placeholder="All Regions"
+            className="w-44"
+            buttonClassName="py-2"
+            options={GAMBIA_REGIONS.map((r) => ({ value: r.value, label: r.label }))}
+          />
 
           {/* Urgent toggle */}
           <button

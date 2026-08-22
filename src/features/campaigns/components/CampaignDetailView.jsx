@@ -1,14 +1,18 @@
 import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
-import { MapPin, Users, Clock, Flag, Heart, ChevronLeft, Lock, AlertCircle, X } from 'lucide-react'
+import { MapPin, Users, Clock, Flag, Heart, Lock, AlertCircle, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { ProgressBar } from '@/components/custom/ProgressBar'
 import { ShareCampaign } from '@/components/custom/ShareCampaign'
 import { VerifiedTick } from '@/components/custom/VerifiedTick'
+import { Breadcrumbs } from '@/components/custom/Breadcrumbs'
+import { Select } from '@/components/custom/Select'
 import { MarkdownContent } from '@/components/custom/MarkdownEditor'
 import { formatGMD, formatDate, progressPercent, daysLeft, timeAgo } from '@/utils/formatters'
 import { useCampaignDonors } from '@/hooks/useDonations'
 import { useReportCampaign } from '@/hooks/useCampaigns'
 import { useMe } from '@/hooks/useAuth'
+import { usePageMeta } from '@/hooks/usePageMeta'
+import { campaignShareUrl } from '@/utils/shareUrls'
 import { ROUTES, CAMPAIGN_STATUS } from '@/constants'
 import { cn } from '@/utils/cn'
 
@@ -66,12 +70,19 @@ export function CampaignDetailView({ campaign }) {
   const [showReportModal, setShowReportModal] = useState(false)
   const [reportForm, setReportForm] = useState({ reason: '', description: '', reporterName: '', reporterPhone: '' })
   const [reportError, setReportError] = useState('')
+  const [donorSort, setDonorSort] = useState('latest')
+  const [donorPage, setDonorPage] = useState(1)
   const pct = progressPercent(campaign.raised, campaign.goal)
   const days = daysLeft(campaign.deadline)
   const { data: user } = useMe()
-  const { data: donorData } = useCampaignDonors(campaign.slug, campaign.id)
+  const { data: donorData } = useCampaignDonors(campaign.slug, { page: donorPage, sort: donorSort })
   const reportCampaign = useReportCampaign()
   const donations = donorData?.donations ?? []
+
+  function changeDonorSort(nextSort) {
+    setDonorSort(nextSort)
+    setDonorPage(1)
+  }
 
   const reportReasons = [
     { value: 'fraudulent', label: 'Fraudulent activity' },
@@ -124,14 +135,24 @@ export function CampaignDetailView({ campaign }) {
   const thumbnails = allImages.filter((img) => img.image_url)
 
   const tabs = ['story', 'updates', 'donors']
+  const categoryName = campaign.category?.name ?? campaign.category
+
+  usePageMeta({
+    title: campaign.title,
+    description: campaign.short_description,
+    image: coverUrl,
+    type: 'website',
+  })
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-      {/* Back */}
-      <Link to={ROUTES.CAMPAIGNS} className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6">
-        <ChevronLeft className="w-4 h-4" />
-        All Campaigns
-      </Link>
+      <Breadcrumbs
+        items={[
+          { label: 'Campaigns', to: ROUTES.CAMPAIGNS },
+          ...(categoryName ? [{ label: categoryName }] : []),
+        ]}
+        current={campaign.title}
+      />
 
       <div className="grid lg:grid-cols-3 gap-8">
         {/* Main content */}
@@ -166,7 +187,7 @@ export function CampaignDetailView({ campaign }) {
                     mainImage === img.image_url ? 'border-primary' : 'border-transparent opacity-70 hover:opacity-100',
                   )}
                 >
-                  <img src={img.image_url} alt="thumbnail" className="w-full h-full object-cover" />
+                  <img src={img.image_url} alt={`${campaign.title} — photo ${thumbnails.indexOf(img) + 1}`} loading="lazy" className="w-full h-full object-cover" />
                 </button>
               ))}
             </div>
@@ -205,7 +226,7 @@ export function CampaignDetailView({ campaign }) {
             <div className="flex gap-2">
               <ShareCampaign
                 title={campaign.title}
-                url={`${window.location.origin}/campaigns/${campaign.slug}`}
+                url={campaignShareUrl(campaign.slug)}
                 className="flex-1"
               />
               <button
@@ -235,9 +256,9 @@ export function CampaignDetailView({ campaign }) {
                     {campaign.updates.length}
                   </span>
                 )}
-                {t === 'donors' && donations.length > 0 && (
+                {t === 'donors' && donorData?.count > 0 && (
                   <span className="ml-1.5 bg-muted text-muted-foreground text-xs rounded-full px-1.5 py-0.5">
-                    {donations.length}
+                    {donorData.count}
                   </span>
                 )}
               </button>
@@ -269,7 +290,13 @@ export function CampaignDetailView({ campaign }) {
                     {u.images?.length > 0 && (
                       <div className="flex gap-2 flex-wrap pt-2">
                         {u.images.map((img) => (
-                          <img key={img.id} src={img.image_url} alt="update" className="w-32 h-32 rounded-lg object-cover border" />
+                          <img
+                            key={img.id}
+                            src={img.image_url}
+                            alt={`${u.title || 'Update'} — ${campaign.title}`}
+                            loading="lazy"
+                            className="w-32 h-32 rounded-lg object-cover border"
+                          />
                         ))}
                       </div>
                     )}
@@ -288,8 +315,47 @@ export function CampaignDetailView({ campaign }) {
                 </div>
               ) : (
                 <div>
-                  <p className="text-sm text-muted-foreground mb-4">{donations.length} recent donations</p>
+                  <div className="flex items-center justify-between mb-4 gap-3">
+                    <p className="text-sm text-muted-foreground">
+                      {donorData?.count ?? donations.length} donation{(donorData?.count ?? donations.length) === 1 ? '' : 's'}
+                    </p>
+                    <div className="flex gap-0.5 border rounded-lg p-0.5 flex-shrink-0">
+                      {[['latest', 'Latest'], ['highest', 'Highest']].map(([value, label]) => (
+                        <button
+                          key={value}
+                          onClick={() => changeDonorSort(value)}
+                          className={cn(
+                            'px-3 py-1.5 rounded-md text-xs font-medium transition-colors',
+                            donorSort === value ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground',
+                          )}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   {donations.map((d) => <DonorItem key={d.id} donor={d} />)}
+
+                  {donorData?.totalPages > 1 && (
+                    <div className="flex items-center justify-between mt-5 pt-4 border-t">
+                      <button
+                        onClick={() => setDonorPage((p) => Math.max(1, p - 1))}
+                        disabled={!donorData?.hasPrevious}
+                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg border text-sm font-medium hover:bg-accent transition-colors disabled:opacity-40 disabled:pointer-events-none"
+                      >
+                        <ChevronLeft className="w-4 h-4" /> Previous
+                      </button>
+                      <span className="text-xs text-muted-foreground">Page {donorPage} of {donorData.totalPages}</span>
+                      <button
+                        onClick={() => setDonorPage((p) => p + 1)}
+                        disabled={!donorData?.hasNext}
+                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg border text-sm font-medium hover:bg-accent transition-colors disabled:opacity-40 disabled:pointer-events-none"
+                      >
+                        Next <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -304,7 +370,7 @@ export function CampaignDetailView({ campaign }) {
             <div className="flex gap-2">
               <ShareCampaign
                 title={campaign.title}
-                url={`${window.location.origin}/campaigns/${campaign.slug}`}
+                url={campaignShareUrl(campaign.slug)}
                 className="flex-1"
               />
               <button
@@ -371,18 +437,12 @@ export function CampaignDetailView({ campaign }) {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Reason for reporting *</label>
-                <select
+                <Select
                   value={reportForm.reason}
                   onChange={(e) => setReportForm((f) => ({ ...f, reason: e.target.value }))}
-                  className="w-full px-3 py-2.5 border rounded-xl text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
-                >
-                  <option value="">Select a reason...</option>
-                  {reportReasons.map((r) => (
-                    <option key={r.value} value={r.value}>
-                      {r.label}
-                    </option>
-                  ))}
-                </select>
+                  placeholder="Select a reason..."
+                  options={reportReasons.map((r) => ({ value: r.value, label: r.label }))}
+                />
               </div>
 
               <div className="space-y-2">

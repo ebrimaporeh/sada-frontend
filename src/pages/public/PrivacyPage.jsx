@@ -2,17 +2,22 @@ import { Link } from '@tanstack/react-router'
 import { useLegalContent, useLegalVariables } from '@/hooks/useLegalContent'
 import { MarkdownContent } from '@/components/custom/MarkdownEditor'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
+import { Breadcrumbs } from '@/components/custom/Breadcrumbs'
 import { renderLegalVariables } from '@/utils/legalVariables'
+import { usePageMeta } from '@/hooks/usePageMeta'
 import { ROUTES } from '@/constants'
 
 export function PrivacyPage() {
   const { content, isLoading } = useLegalContent()
   const { values } = useLegalVariables()
 
+  usePageMeta({ title: 'Privacy Policy', description: 'How the platform collects, uses, and protects your data.' })
+
   return (
     <div>
       <div className="page-header">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 text-center">
+          <Breadcrumbs current="Privacy Policy" className="justify-center" />
           <div className="section-label justify-center">
             <div className="section-label-line" />
             <span className="section-label-text">Legal</span>

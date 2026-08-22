@@ -21,7 +21,7 @@ export function ForgotPasswordPage() {
   }
 
   return (
-    <AuthShell>
+    <AuthShell title="Forgot Password">
       {submitted ? (
         <div className="space-y-4 text-center">
           <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">

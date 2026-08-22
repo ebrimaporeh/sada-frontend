@@ -2,8 +2,10 @@ import { Link } from '@tanstack/react-router'
 import { ShieldCheck, Smartphone, ArrowRight, Target } from 'lucide-react'
 import { usePublicStats } from '@/hooks/useCampaigns'
 import { StatsGrid } from '@/components/custom/StatsGrid'
+import { Breadcrumbs } from '@/components/custom/Breadcrumbs'
 import { formatGMD, compactNumber } from '@/utils/formatters'
 import { useSiteSettings } from '@/hooks/useSiteSettings'
+import { usePageMeta } from '@/hooks/usePageMeta'
 import { ROUTES } from '@/constants'
 
 const pillars = [
@@ -23,12 +25,17 @@ export function AboutPage() {
   const { stats } = usePublicStats()
   const { siteName } = useSiteSettings()
 
+  usePageMeta({
+    title: 'About',
+    description: `Why ${siteName} exists, and how it works.`,
+  })
+
   return (
     <div>
       {/* Hero */}
       <section className="bg-linear-to-b from-primary/5 to-background border-b py-20 sm:py-28">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
-          
+          <Breadcrumbs current="About" className="justify-center" />
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1]">
             Crowdfunding, built for The Gambia
           </h1>

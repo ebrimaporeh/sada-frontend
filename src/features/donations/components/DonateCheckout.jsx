@@ -10,6 +10,8 @@ import { useMe } from '@/hooks/useAuth'
 import { settings } from '@/settings'
 import { cn } from '@/utils/cn'
 import { storage } from '@/utils/storage'
+import { campaignShareUrl } from '@/utils/shareUrls'
+import { usePageMeta } from '@/hooks/usePageMeta'
 
 const GUEST_DONOR_STORAGE_KEY = 'guest_donor_info'
 
@@ -46,7 +48,7 @@ function CampaignSummaryCard({ campaign }) {
           making it render but stay invisible. */}
       <ShareCampaign
         title={campaign.title}
-        url={`${window.location.origin}/campaigns/${campaign.slug}`}
+        url={campaignShareUrl(campaign.slug)}
         className="border-t pt-3"
         buttonClassName="w-full flex items-center justify-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
         buttonLabel="Share this campaign"
@@ -73,6 +75,9 @@ function MethodBadge({ method, size = 'w-10 h-10' }) {
 export function DonateCheckout({ campaign }) {
   const { data: me } = useMe()
   const search = useSearch({ strict: false })
+  // Checkout pages aren't content worth ranking, and indexing them just
+  // sends search traffic to a dead-end form instead of the campaign page.
+  usePageMeta({ title: `Donate to ${campaign.title}`, noindex: true })
   // Lets a referring flow (e.g. the Zakat calculator) prefill the amount by
   // linking to /donate/$slug?amount=1234.50 instead of the donor retyping it.
   const [amount, setAmount] = useState(search?.amount ? String(search.amount) : '')
