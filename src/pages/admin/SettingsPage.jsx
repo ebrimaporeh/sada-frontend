@@ -630,49 +630,53 @@ function SiteBrandingCard({ onNotify }) {
         <LoadingSpinner />
       ) : (
         <>
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium">Site name</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2.5 border rounded-lg bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
-            />
+          <div className="grid sm:grid-cols-2 gap-5">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Site name</label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full px-3 py-2.5 border rounded-lg bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Site description</label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={2}
+                className="w-full px-3 py-2.5 border rounded-lg bg-background focus:outline-hidden focus:ring-2 focus:ring-ring resize-none"
+              />
+            </div>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium">Site description</label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={2}
-              className="w-full px-3 py-2.5 border rounded-lg bg-background focus:outline-hidden focus:ring-2 focus:ring-ring resize-none"
+          <div className="grid sm:grid-cols-2 gap-5">
+            <LogoUpload
+              label="Logo (transparent)"
+              hint="Used on light surfaces — nav bar, login, footer."
+              currentUrl={logo}
+              preview={logoPreview}
+              surfaceClassName="bg-[repeating-conic-gradient(#e5e7eb_0%_25%,transparent_0%_50%)] bg-[length:12px_12px]"
+              onFileSelected={(file) => {
+                logoFile.current = file
+                setLogoPreview(URL.createObjectURL(file))
+              }}
+            />
+
+            <LogoUpload
+              label="Logo (with background)"
+              hint="Used on dark surfaces where the transparent logo would lose contrast."
+              currentUrl={logoWithBackground}
+              preview={logoWithBgPreview}
+              surfaceClassName="bg-muted"
+              onFileSelected={(file) => {
+                logoWithBgFile.current = file
+                setLogoWithBgPreview(URL.createObjectURL(file))
+              }}
             />
           </div>
-
-          <LogoUpload
-            label="Logo (transparent)"
-            hint="Used on light surfaces — nav bar, login, footer."
-            currentUrl={logo}
-            preview={logoPreview}
-            surfaceClassName="bg-[repeating-conic-gradient(#e5e7eb_0%_25%,transparent_0%_50%)] bg-[length:12px_12px]"
-            onFileSelected={(file) => {
-              logoFile.current = file
-              setLogoPreview(URL.createObjectURL(file))
-            }}
-          />
-
-          <LogoUpload
-            label="Logo (with background)"
-            hint="Used on dark surfaces where the transparent logo would lose contrast."
-            currentUrl={logoWithBackground}
-            preview={logoWithBgPreview}
-            surfaceClassName="bg-muted"
-            onFileSelected={(file) => {
-              logoWithBgFile.current = file
-              setLogoWithBgPreview(URL.createObjectURL(file))
-            }}
-          />
 
           <button
             onClick={handleSave}
