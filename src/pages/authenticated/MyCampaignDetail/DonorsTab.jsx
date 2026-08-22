@@ -1,9 +1,15 @@
 import { useState } from 'react'
-import { Users, SearchX } from 'lucide-react'
+import { Users, SearchX, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
 import { formatGMD, timeAgo } from '@/utils/formatters'
+import { useMyCampaignDonors } from '@/hooks/useDonations'
 
-export function DonorsTab({ donors }) {
+export function DonorsTab({ slug, donorsCount, totalRaised }) {
   const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
+
+  const { data, isLoading } = useMyCampaignDonors(slug, { page })
+  const donors = data?.donations ?? []
+  const totalPages = data?.totalPages ?? 1
 
   const filtered = donors.filter((d) => {
     if (!search) return true
@@ -15,16 +21,15 @@ export function DonorsTab({ donors }) {
     )
   })
 
-  const total = donors.reduce((s, d) => s + Number(d.amount ?? 0), 0)
   const anon = donors.filter((d) => d.is_anonymous ?? d.anonymous).length
 
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label: 'Total donations', value: donors.length },
-          { label: 'Total raised', value: formatGMD(total) },
-          { label: 'Anonymous', value: anon },
+          { label: 'Total donations', value: donorsCount ?? donors.length },
+          { label: 'Total raised', value: formatGMD(totalRaised ?? 0) },
+          { label: 'Anonymous (this page)', value: anon },
         ].map(({ label, value }) => (
           <div key={label} className="border rounded-xl p-4 bg-card text-center">
             <p className="text-xl font-extrabold">{value}</p>
@@ -45,7 +50,11 @@ export function DonorsTab({ donors }) {
       </div>
 
       <div className="border rounded-2xl bg-card divide-y overflow-hidden">
-        {filtered.length === 0 ? (
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="py-12 text-center">
             <SearchX className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">No donors match your search.</p>
@@ -74,6 +83,26 @@ export function DonorsTab({ donors }) {
           })
         )}
       </div>
+
+      {!isLoading && totalPages > 1 && (
+        <div className="flex items-center justify-between pt-1">
+          <button
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={!data?.hasPrevious}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-lg border text-sm font-medium hover:bg-accent transition-colors disabled:opacity-40 disabled:pointer-events-none"
+          >
+            <ChevronLeft className="w-4 h-4" /> Previous
+          </button>
+          <span className="text-xs text-muted-foreground">Page {page} of {totalPages}</span>
+          <button
+            onClick={() => setPage((p) => p + 1)}
+            disabled={!data?.hasNext}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-lg border text-sm font-medium hover:bg-accent transition-colors disabled:opacity-40 disabled:pointer-events-none"
+          >
+            Next <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      )}
     </div>
   )
 }

@@ -7,6 +7,7 @@ import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
 import { EmptyState } from '@/components/custom/EmptyState'
 import { ShareCampaign } from '@/components/custom/ShareCampaign'
 import { formatGMD, progressPercent } from '@/utils/formatters'
+import { campaignShareUrl } from '@/utils/shareUrls'
 import { ROUTES } from '@/constants'
 import { cn } from '@/utils/cn'
 import { TABS, STATUS_BADGE } from './MyCampaignDetail/shared'
@@ -68,7 +69,7 @@ export function MyCampaignDetailPage() {
                 </Link>
                 <ShareCampaign
                   title={campaign.title}
-                  url={`${window.location.origin}/campaigns/${campaign.slug}`}
+                  url={campaignShareUrl(campaign.slug)}
                   buttonClassName="inline-flex items-center gap-1.5 text-xs border font-medium px-3 py-1.5 rounded-full hover:bg-accent transition-colors"
                 />
               </div>
@@ -115,7 +116,9 @@ export function MyCampaignDetailPage() {
             availableBalance={availableBalance}
           />
         )}
-        {activeTab === 'donors' && <DonorsTab donors={donors} />}
+        {activeTab === 'donors' && (
+          <DonorsTab slug={campaign.slug} donorsCount={campaign.donors_count} totalRaised={campaign.raised} />
+        )}
         {activeTab === 'updates' && <UpdatesTab campaign={campaign} />}
         {activeTab === 'edit' && <EditTab campaign={campaign} />}
         {activeTab === 'withdraw' && (
