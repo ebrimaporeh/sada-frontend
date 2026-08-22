@@ -2,8 +2,13 @@ import { useState, useRef } from 'react'
 import { Info, CheckCircle2, AlertCircle, PauseCircle, PlayCircle, ImagePlus, X, Loader2, Trash2 } from 'lucide-react'
 import { useCategories, useUpdateMyCampaign, useTogglePauseCampaign, useUpdateCampaignMedia, useDeleteGalleryImage } from '@/hooks/useCampaigns'
 import { DatePicker } from '@/components/custom/DatePicker'
+import { SearchSelect } from '@/components/custom/SearchSelect'
+import { Select } from '@/components/custom/Select'
 import { GAMBIA_REGIONS, CAMPAIGN_STATUS } from '@/constants'
 import { compressImage } from '@/utils/imageCompression'
+import { getCategoryIcon } from '@/utils/categoryIcons'
+
+const RELATIONSHIPS = ['Self', 'Spouse', 'Child', 'Parent', 'Sibling', 'Friend', 'Community', 'Organization', 'Other']
 
 const inputClass = 'w-full px-3 py-2.5 border rounded-xl text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring'
 const labelClass = 'text-sm font-medium block mb-1.5'
@@ -207,21 +212,22 @@ export function EditTab({ campaign }) {
         <div className="grid sm:grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <label className={labelClass}>Category</label>
-            <select value={form.category} onChange={set('category')} className={inputClass}>
-              <option value="">Select category</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.slug}>{c.name}</option>
-              ))}
-            </select>
+            <SearchSelect
+              value={form.category}
+              onChange={set('category')}
+              placeholder="Select category"
+              searchPlaceholder="Search categories…"
+              options={categories.map((c) => ({ value: c.slug, label: c.name, icon: getCategoryIcon(c.icon) }))}
+            />
           </div>
           <div className="space-y-1.5">
             <label className={labelClass}>Region</label>
-            <select value={form.region} onChange={set('region')} className={inputClass}>
-              <option value="">Select region</option>
-              {GAMBIA_REGIONS.map((r) => (
-                <option key={r.value} value={r.value}>{r.label}</option>
-              ))}
-            </select>
+            <Select
+              value={form.region}
+              onChange={set('region')}
+              placeholder="Select region"
+              options={GAMBIA_REGIONS.map((r) => ({ value: r.value, label: r.label }))}
+            />
           </div>
         </div>
 
@@ -232,11 +238,11 @@ export function EditTab({ campaign }) {
           </div>
           <div className="space-y-1.5">
             <label className={labelClass}>Relationship</label>
-            <select value={form.beneficiary_relationship} onChange={set('beneficiary_relationship')} className={inputClass}>
-              {['Self', 'Spouse', 'Child', 'Parent', 'Sibling', 'Friend', 'Community', 'Organization', 'Other'].map((r) => (
-                <option key={r}>{r}</option>
-              ))}
-            </select>
+            <Select
+              value={form.beneficiary_relationship}
+              onChange={set('beneficiary_relationship')}
+              options={RELATIONSHIPS.map((r) => ({ value: r, label: r }))}
+            />
           </div>
         </div>
 

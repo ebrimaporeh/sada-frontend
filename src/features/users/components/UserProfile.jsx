@@ -5,6 +5,7 @@ import { useMe } from '@/hooks/useAuth'
 import { useUpdateMe, useUploadAvatar, useMyOrganizationChangeRequests, useSubmitOrganizationChangeRequest } from '@/hooks/useUsers'
 import { compressImage } from '@/utils/imageCompression'
 import { PageHeader } from '@/components/custom/PageHeader'
+import { Select } from '@/components/custom/Select'
 import { initials } from '@/utils/formatters'
 import { GAMBIA_REGIONS, ORGANIZATION_TYPES, ACCOUNT_TYPES, ROLES, ROUTES } from '@/constants'
 import { cn } from '@/utils/cn'
@@ -101,6 +102,14 @@ function ChangeableField({ fieldName, label, currentValue, pendingRequest, type 
   )
 }
 
+// Stored phone numbers aren't consistently formatted (some carry a leading
+// "+220", some don't -- see seed data vs. the donate flow) -- strip it so
+// the field's own "+220" prefix badge never doubles up with a value that
+// already has it.
+function stripCountryCode(phone) {
+  return (phone || '').replace(/^\+220\s*/, '')
+}
+
 function Field({ label, hint, error, children }) {
   return (
     <div className="space-y-1.5">
@@ -156,7 +165,7 @@ export function UserProfile() {
   const [form, setForm] = useState({
     first_name: user?.first_name || '',
     last_name: user?.last_name || '',
-    phone: user?.phone || '',
+    phone: stripCountryCode(user?.phone),
     region: user?.region || '',
     bio: user?.bio || '',
   })
@@ -181,6 +190,7 @@ export function UserProfile() {
     // only changes via a reviewed change request (see Organization Details
     // below), never through this free-edit form.
     if (isOrg) delete payload.phone
+    else if (payload.phone) payload.phone = `+220${payload.phone.trim()}`
     updateMe.mutate(payload, {
       onSuccess: () => {
         setSaved(true)
@@ -296,16 +306,12 @@ export function UserProfile() {
         )}
 
         <Field label="Region" hint="Your region in The Gambia">
-          <select
+          <Select
             value={form.region}
             onChange={set('region')}
-            className="w-full px-3 py-2.5 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
-          >
-            <option value="">Select your region</option>
-            {GAMBIA_REGIONS.map((r) => (
-              <option key={r.value} value={r.value}>{r.label}</option>
-            ))}
-          </select>
+            placeholder="Select your region"
+            options={GAMBIA_REGIONS.map((r) => ({ value: r.value, label: r.label }))}
+          />
         </Field>
 
         <Field label="Bio" hint="Tell donors a bit about yourself (shown on your campaigns)">

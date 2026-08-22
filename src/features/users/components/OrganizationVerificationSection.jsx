@@ -4,6 +4,7 @@ import { useMe } from '@/hooks/useAuth'
 import { useMyOrganizationVerification, useSubmitOrganizationVerification } from '@/hooks/useUsers'
 import { formatDate } from '@/utils/formatters'
 import { ImageZoomModal } from '@/components/custom/ImageZoomModal'
+import { Select } from '@/components/custom/Select'
 import { compressImage } from '@/utils/imageCompression'
 
 const ID_TYPES = [
@@ -272,15 +273,11 @@ export function OrganizationVerificationSection() {
 
           <div className="space-y-1.5">
             <label className="text-sm font-medium">ID Type</label>
-            <select
+            <Select
               value={contactIdType}
               onChange={(e) => { setContactIdType(e.target.value); setContactPhotoBack(null) }}
-              className="w-full px-3 py-2.5 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
-            >
-              {ID_TYPES.map((t) => (
-                <option key={t.value} value={t.value}>{t.label}</option>
-              ))}
-            </select>
+              options={ID_TYPES}
+            />
           </div>
 
           <div className="space-y-1.5">

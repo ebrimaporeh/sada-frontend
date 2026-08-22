@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { Eye, Code, Bold, Italic, Heading2, List, Link2 } from 'lucide-react'
+import { Select } from '@/components/custom/Select'
 import { cn } from '@/utils/cn'
 import { renderLegalVariables } from '@/utils/legalVariables'
 
@@ -93,22 +94,17 @@ export function MarkdownEditor({ value, onChange, placeholder = 'Write your cont
               </button>
             ))}
             {variables && variables.length > 0 && (
-              <select
+              <Select
                 value=""
-                onChange={(e) => {
-                  if (e.target.value) insertText(e.target.value)
-                  e.target.value = ''
-                }}
-                title="Insert a variable that stays up to date with its live value"
-                className="text-xs border rounded-lg pl-2 pr-1 py-1.5 bg-background text-muted-foreground hover:text-foreground ml-1"
-              >
-                <option value="">Insert variable…</option>
-                {variables.map((v) => (
-                  <option key={v.key} value={`{{${v.key}}}`}>
-                    {v.label}{v.value ? ` — ${v.value}` : ''}
-                  </option>
-                ))}
-              </select>
+                onChange={(e) => { if (e.target.value) insertText(e.target.value) }}
+                placeholder="Insert variable…"
+                className="w-44 ml-1"
+                buttonClassName="text-xs py-1.5"
+                options={variables.map((v) => ({
+                  value: `{{${v.key}}}`,
+                  label: v.label + (v.value ? ` — ${v.value}` : ''),
+                }))}
+              />
             )}
           </div>
         )}

@@ -8,7 +8,10 @@ import { PageHeader } from '@/components/custom/PageHeader'
 import { MarkdownEditor } from '@/components/custom/MarkdownEditor'
 import { DatePicker } from '@/components/custom/DatePicker'
 import { VerifyPromptModal } from '@/components/custom/VerifyPromptModal'
+import { SearchSelect } from '@/components/custom/SearchSelect'
+import { Select } from '@/components/custom/Select'
 import { compressImage } from '@/utils/imageCompression'
+import { getCategoryIcon } from '@/utils/categoryIcons'
 import { useMe } from '@/hooks/useAuth'
 import { cn } from '@/utils/cn'
 
@@ -398,6 +401,7 @@ export function CampaignForm() {
   }
 
   const categoryObj = categories.find((c) => c.slug === form.category || c.id === Number(form.category))
+  const CategoryIcon = categoryObj ? getCategoryIcon(categoryObj.icon) : null
   const minDeadline = new Date()
   minDeadline.setDate(minDeadline.getDate() + 1)
 
@@ -433,21 +437,22 @@ export function CampaignForm() {
 
           <div className="grid sm:grid-cols-2 gap-4">
             <FieldGroup label="Category *" error={errors.category}>
-              <select value={form.category} onChange={set('category')} className="w-full px-3 py-2.5 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring">
-                <option value="">Select a category</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.slug}>{c.icon} {c.name}</option>
-                ))}
-              </select>
+              <SearchSelect
+                value={form.category}
+                onChange={set('category')}
+                placeholder="Select a category"
+                searchPlaceholder="Search categories…"
+                options={categories.map((c) => ({ value: c.slug, label: c.name, icon: getCategoryIcon(c.icon) }))}
+              />
             </FieldGroup>
 
             <FieldGroup label="Region *" error={errors.region}>
-              <select value={form.region} onChange={set('region')} className="w-full px-3 py-2.5 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring">
-                <option value="">Select region in The Gambia</option>
-                {GAMBIA_REGIONS.map((r) => (
-                  <option key={r.value} value={r.value}>{r.label}</option>
-                ))}
-              </select>
+              <Select
+                value={form.region}
+                onChange={set('region')}
+                placeholder="Select region in The Gambia"
+                options={GAMBIA_REGIONS.map((r) => ({ value: r.value, label: r.label }))}
+              />
             </FieldGroup>
           </div>
 
@@ -456,12 +461,12 @@ export function CampaignForm() {
               <TextInput value={form.beneficiary} onChange={set('beneficiary')} placeholder="Full name or organization" />
             </FieldGroup>
             <FieldGroup label="Your Relationship *" error={errors.beneficiary_relationship}>
-              <select value={form.beneficiary_relationship} onChange={set('beneficiary_relationship')} className="w-full px-3 py-2.5 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring">
-                <option value="">Select relationship</option>
-                {RELATIONSHIPS.map((r) => (
-                  <option key={r} value={r}>{r}</option>
-                ))}
-              </select>
+              <Select
+                value={form.beneficiary_relationship}
+                onChange={set('beneficiary_relationship')}
+                placeholder="Select relationship"
+                options={RELATIONSHIPS.map((r) => ({ value: r, label: r }))}
+              />
             </FieldGroup>
           </div>
 
@@ -556,7 +561,14 @@ export function CampaignForm() {
             <div className="p-4 grid grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
                 <p className="text-xs text-muted-foreground mb-1">Category</p>
-                <p className="text-sm font-medium">{categoryObj ? `${categoryObj.icon} ${categoryObj.name}` : '—'}</p>
+                <p className="text-sm font-medium flex items-center gap-1.5">
+                  {categoryObj ? (
+                    <>
+                      <CategoryIcon className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                      {categoryObj.name}
+                    </>
+                  ) : '—'}
+                </p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground mb-1">Region</p>
