@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
 import { AlertCircle, CheckCircle, Clock, Loader2, TrendingUp } from 'lucide-react'
 import { cn } from '@/utils/cn'
-import { useAdminReports, useAdminUpdateReport } from '@/hooks/useAdmin'
-import { useAdminChangeCampaignStatus } from '@/hooks/useCampaigns'
+import { useAdminReports } from '@/hooks/useAdmin'
 import { AdminPagination } from '@/components/custom/AdminPagination'
 import { ReportSheet } from '@/components/custom/ReportSheet'
 import { EmptyState } from '@/components/custom/EmptyState'
@@ -29,10 +28,6 @@ export function ReportsTab({ campaign }) {
   const [page, setPage] = useState(1)
   const [selectedReport, setSelectedReport] = useState(null)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
-  const [isEditMode, setIsEditMode] = useState(false)
-  const [editData, setEditData] = useState({})
-  const [isSaving, setIsSaving] = useState(false)
-  const [isChangingCampaignStatus, setIsChangingCampaignStatus] = useState(false)
   const limit = 10
 
   useEffect(() => { setPage(1) }, [filter])
@@ -43,8 +38,6 @@ export function ReportsTab({ campaign }) {
     page,
     page_size: limit,
   })
-  const { mutateAsync: updateReport } = useAdminUpdateReport()
-  const { mutateAsync: changeCampaignStatus } = useAdminChangeCampaignStatus()
 
   const reports = reportsData?.results || []
   const totalPages = reportsData?.total_pages || 1
@@ -52,35 +45,7 @@ export function ReportsTab({ campaign }) {
 
   const handleSelectReport = (report) => {
     setSelectedReport(report)
-    setEditData({
-      status: report.status || 'pending',
-      admin_notes: report.admin_notes || '',
-      reason: report.reason || '',
-      description: report.description || '',
-    })
-    setIsEditMode(false)
     setIsSheetOpen(true)
-  }
-
-  const handleSaveChanges = async () => {
-    setIsSaving(true)
-    try {
-      await updateReport({ id: selectedReport.id, ...editData })
-      setIsEditMode(false)
-      setIsSheetOpen(false)
-    } finally {
-      setIsSaving(false)
-    }
-  }
-
-  const handleCampaignStatusChange = async (campaignId, newStatus, reason) => {
-    setIsChangingCampaignStatus(true)
-    try {
-      await changeCampaignStatus({ id: campaignId, status: newStatus, reason: reason || '' })
-      setSelectedReport((prev) => ({ ...prev, campaign: { ...prev.campaign, status: newStatus } }))
-    } finally {
-      setIsChangingCampaignStatus(false)
-    }
   }
 
   return (
@@ -148,14 +113,6 @@ export function ReportsTab({ campaign }) {
         isOpen={isSheetOpen}
         onClose={() => setIsSheetOpen(false)}
         report={selectedReport}
-        isEditMode={isEditMode}
-        onEditMode={setIsEditMode}
-        editData={editData}
-        onEditChange={(data) => setEditData({ ...editData, ...data })}
-        onSave={handleSaveChanges}
-        isSaving={isSaving}
-        onCampaignStatusChange={handleCampaignStatusChange}
-        isChangingCampaignStatus={isChangingCampaignStatus}
       />
     </div>
   )

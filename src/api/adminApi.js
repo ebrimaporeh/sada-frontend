@@ -69,8 +69,8 @@ export const adminApi = {
   getReports: (params = {}) =>
     apiClient.get('/campaigns/admin/reports/', { params }).then(r => r.data),
 
-  updateReport: (id, data) =>
-    apiClient.patch(`/campaigns/admin/reports/${id}/update/`, data).then(r => r.data),
+  getReportedCampaigns: () =>
+    apiClient.get('/campaigns/admin/reports/campaigns/').then(r => r.data),
 }
 
 export { analyticsApi }

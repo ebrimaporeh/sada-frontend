@@ -314,7 +314,7 @@ export function useAdminCampaigns(params = {}) {
 export function useAdminCampaignAction() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, action, reason }) => campaignApi.campaignAction(id, action, { reason }),
+    mutationFn: ({ id, action, reason, notes }) => campaignApi.campaignAction(id, action, { reason, notes }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.all() })
     },

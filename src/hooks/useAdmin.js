@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { queryKeys } from '@/api/queryKeys'
 import { adminApi, analyticsApi } from '@/api/adminApi'
 import { userApi } from '@/api/userApi'
@@ -7,6 +7,16 @@ export function useAdminReports(params = {}) {
   return useQuery({
     queryKey: queryKeys.admin?.reports?.(params) || ['admin', 'reports', params],
     queryFn: () => adminApi.getReports(params),
+  })
+}
+
+// Distinct campaigns that have at least one report -- backs the Reports
+// table's "Campaign" filter dropdown.
+export function useAdminReportedCampaigns() {
+  return useQuery({
+    queryKey: ['admin', 'reports', 'campaigns'],
+    queryFn: () => adminApi.getReportedCampaigns(),
+    select: (res) => res?.data?.campaigns ?? [],
   })
 }
 
@@ -90,12 +100,3 @@ export function useAdminBadgeCounts({ enabled = true } = {}) {
   }
 }
 
-export function useAdminUpdateReport() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: ({ id, ...data }) => adminApi.updateReport(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.admin?.reports?.() || ['admin', 'reports'] })
-    },
-  })
-}

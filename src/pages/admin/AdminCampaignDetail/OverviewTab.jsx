@@ -1,47 +1,13 @@
-import { useState } from 'react'
 import {
   Target, TrendingUp, Landmark, Wallet, Users, Eye, Mail, Phone,
-  Loader2, AlertCircle, ImageOff,
+  AlertCircle, ImageOff,
 } from 'lucide-react'
-import { useAdminChangeCampaignStatus } from '@/hooks/useCampaigns'
 import { formatGMD, formatDate, progressPercent } from '@/utils/formatters'
 import { ProgressBar } from '@/components/custom/ProgressBar'
-import { useMe } from '@/hooks/useAuth'
-import { Resource, hasResourceAccess } from '@/utils/permissions'
 import { StatCard, SectionCard } from './shared'
+import { CAMPAIGN_STATUS } from '@/constants'
 
-const STATUS_OPTIONS = [
-  { value: 'draft', label: 'Draft' },
-  { value: 'pending', label: 'Pending Review' },
-  { value: 'active', label: 'Active' },
-  { value: 'completed', label: 'Completed' },
-  { value: 'rejected', label: 'Rejected' },
-  { value: 'suspended', label: 'Suspended' },
-]
-
-export function OverviewTab({ campaign, onRefetch }) {
-  const { data: me } = useMe()
-  const canModerate = hasResourceAccess(me?.role, Resource.CAMPAIGNS_MODERATE)
-  const [isEditingStatus, setIsEditingStatus] = useState(false)
-  const [newStatus, setNewStatus] = useState('')
-  const [reason, setReason] = useState('')
-  const statusMutation = useAdminChangeCampaignStatus()
-
-  const handleStatusChange = () => {
-    if (!newStatus) return
-    statusMutation.mutate(
-      { id: campaign.id, status: newStatus, reason },
-      {
-        onSuccess: () => {
-          setIsEditingStatus(false)
-          setNewStatus('')
-          setReason('')
-          onRefetch?.()
-        },
-      },
-    )
-  }
-
+export function OverviewTab({ campaign }) {
   return (
     <div className="space-y-6">
       {/* Cover image */}
@@ -141,67 +107,7 @@ export function OverviewTab({ campaign, onRefetch }) {
         )}
       </SectionCard>
 
-      {/* Status change */}
-      {canModerate && (
-        <SectionCard title="Campaign Status">
-          {!isEditingStatus ? (
-            <button
-              onClick={() => { setNewStatus(campaign.status); setIsEditingStatus(true) }}
-              className="w-full px-4 py-3 rounded-xl border hover:bg-accent transition-colors text-sm font-medium"
-            >
-              Change Campaign Status
-            </button>
-          ) : (
-            <div className="space-y-4">
-              <div>
-                <label className="text-xs font-semibold text-muted-foreground block mb-2">NEW STATUS</label>
-                <select
-                  value={newStatus}
-                  onChange={(e) => setNewStatus(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-hidden focus:ring-2 focus:ring-ring bg-background"
-                >
-                  {STATUS_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>{option.label}</option>
-                  ))}
-                </select>
-              </div>
-
-              {(newStatus === 'rejected' || newStatus === 'suspended') && (
-                <div>
-                  <label className="text-xs font-semibold text-muted-foreground block mb-2">
-                    REASON FOR {newStatus === 'rejected' ? 'REJECTION' : 'SUSPENSION (OPTIONAL)'}
-                  </label>
-                  <textarea
-                    value={reason}
-                    onChange={(e) => setReason(e.target.value)}
-                    placeholder={`Provide a reason for ${newStatus === 'rejected' ? 'rejecting' : 'suspending'} this campaign...`}
-                    className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-hidden focus:ring-2 focus:ring-ring bg-background resize-none"
-                    rows="3"
-                  />
-                </div>
-              )}
-
-              <div className="flex gap-2">
-                <button
-                  onClick={() => { setIsEditingStatus(false); setReason('') }}
-                  className="flex-1 px-4 py-2 rounded-lg border hover:bg-accent transition-colors text-sm font-medium"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleStatusChange}
-                  disabled={statusMutation.isPending}
-                  className="flex-1 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {statusMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Update Status'}
-                </button>
-              </div>
-            </div>
-          )}
-        </SectionCard>
-      )}
-
-      {campaign.rejection_reason && (
+      {campaign.status === CAMPAIGN_STATUS.REJECTED && campaign.rejection_reason && (
         <div className="p-4 border border-red-200 rounded-2xl bg-red-50 text-red-800">
           <div className="flex gap-3">
             <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
@@ -211,6 +117,31 @@ export function OverviewTab({ campaign, onRefetch }) {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Status change and suspension actions live in the page header, next
+          to the status badge -- this is read-only context about the current
+          suspension, if any. */}
+      {campaign.status === CAMPAIGN_STATUS.SUSPENDED && (
+        <SectionCard title="Suspension Details">
+          <div className="space-y-3 text-sm">
+            {campaign.rejection_reason && (
+              <div>
+                <p className="text-xs font-semibold text-muted-foreground mb-1">REASON</p>
+                <p>{campaign.rejection_reason}</p>
+              </div>
+            )}
+            {campaign.admin_notes && (
+              <div>
+                <p className="text-xs font-semibold text-muted-foreground mb-1">NOTES</p>
+                <p className="text-muted-foreground">{campaign.admin_notes}</p>
+              </div>
+            )}
+            {!campaign.rejection_reason && !campaign.admin_notes && (
+              <p className="text-muted-foreground">No reason or notes were recorded for this suspension.</p>
+            )}
+          </div>
+        </SectionCard>
       )}
     </div>
   )

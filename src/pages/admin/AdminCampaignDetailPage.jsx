@@ -10,6 +10,7 @@ import { useMe } from '@/hooks/useAuth'
 import { Resource, hasResourceAccess } from '@/utils/permissions'
 import { cn } from '@/utils/cn'
 import { TABS, STATUS_BADGE } from './AdminCampaignDetail/shared'
+import { StatusActions } from './AdminCampaignDetail/StatusActions'
 import { OverviewTab } from './AdminCampaignDetail/OverviewTab'
 import { DonationsTab } from './AdminCampaignDetail/DonationsTab'
 import { WithdrawalsTab } from './AdminCampaignDetail/WithdrawalsTab'
@@ -37,6 +38,7 @@ export function AdminCampaignDetailPage() {
   })
 
   const visibleTabs = TABS.filter((tab) => hasResourceAccess(me?.role, TAB_RESOURCE[tab.id]))
+  const canModerate = hasResourceAccess(me?.role, Resource.CAMPAIGNS_MODERATE)
 
   if (isLoading) return <LoadingSpinner className="py-32" />
 
@@ -95,6 +97,7 @@ export function AdminCampaignDetailPage() {
             <span className={cn('text-xs font-semibold px-3 py-1.5 rounded-full border capitalize', STATUS_BADGE[campaign.status] || 'bg-gray-100 text-gray-600 border-gray-200')}>
               {campaign.status}
             </span>
+            {canModerate && <StatusActions campaign={campaign} onRefetch={refetch} />}
             <Link
               to="/campaigns/$slug"
               params={{ slug: campaign.slug }}
@@ -127,7 +130,7 @@ export function AdminCampaignDetailPage() {
 
       {/* Tab content */}
       <div>
-        {activeTab === 'overview' && <OverviewTab campaign={campaign} onRefetch={refetch} />}
+        {activeTab === 'overview' && <OverviewTab campaign={campaign} />}
         {activeTab === 'donations' && <DonationsTab campaign={campaign} />}
         {activeTab === 'withdrawals' && <WithdrawalsTab campaign={campaign} />}
         {activeTab === 'reports' && <ReportsTab campaign={campaign} />}
