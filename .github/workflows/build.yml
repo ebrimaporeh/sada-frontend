@@ -14,7 +14,12 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          # jsdom (used by the Vitest suite) requires Node ^22.22.2 ||
+          # ^24.15.0 || >=26.0.0 -- Node 20 actually crashes every test
+          # with "webidl.util.markAsUncloneable is not a function" (a
+          # missing internal API jsdom's bundled undici depends on), it
+          # doesn't just warn. Confirmed by running this workflow.
+          node-version: "24"
           cache: "npm"
 
       - name: Install dependencies
