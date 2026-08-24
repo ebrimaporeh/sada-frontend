@@ -11,6 +11,10 @@ export const queryClient = new QueryClient({
   },
 })
 
+// Vite replaces import.meta.env.VITE_* with a literal string at build time
+// (npm run build), not at runtime -- editing this var in Vercel's dashboard
+// has no effect on an already-built deployment until a fresh build actually
+// runs (push a commit, or Redeploy with build cache off).
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'
 
 export const apiClient = axios.create({
