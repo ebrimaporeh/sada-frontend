@@ -11,8 +11,4 @@ Disallow: /reset-password
 Disallow: /verify-email
 Disallow: /donate/
 
-# TODO: replace with this deployment's real backend origin before going live
-# (see .claude/frontend/deployment.md at the workspace root -- this is
-# per-deployment config, same as VITE_API_URL/CORS_ALLOWED_ORIGINS, and
-# isn't knowable from the repo).
-Sitemap: https://api.example.com/sitemap.xml
+Sitemap: https://api.dolelma.org/sitemap.xml
