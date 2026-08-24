@@ -28,3 +28,23 @@ export function useUpdateRolePermissions() {
     },
   })
 }
+
+export function useCreateRole() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ name, resources }) => permissionsApi.createRole(name, resources),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.permissions.roles() })
+    },
+  })
+}
+
+export function useDeleteRole() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (role) => permissionsApi.deleteRole(role),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.permissions.roles() })
+    },
+  })
+}

@@ -1,7 +1,7 @@
 import { Outlet, Link, Navigate } from '@tanstack/react-router'
 import { useMe, useLogout } from '@/hooks/useAuth'
 import { ROUTES } from '@/constants'
-import { User, Users, UserCog, Megaphone, Heart, LayoutDashboard, Home, LogOut, AlertCircle, BarChart3, Layers, Settings, ShieldCheck, Compass, Menu, X, Loader2, ClipboardList } from 'lucide-react'
+import { User, Users, UserCog, Megaphone, Heart, LayoutDashboard, Home, LogOut, AlertCircle, BarChart3, Layers, Settings, ShieldCheck, Menu, X, Loader2, ClipboardList } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import { useEffect, useState } from 'react'
 import { Resource, hasResourceAccess, isAdminAreaRole } from '@/utils/permissions'
@@ -34,25 +34,28 @@ function NavBadge({ count }) {
 // src/utils/permissions.js), not a static role → resource map.
 function SidebarNav({ onNavigate, resources }) {
   const can = (resource) => hasResourceAccess(resources, resource)
-  const showManagement = can(Resource.USERS) || can(Resource.STAFF) || can(Resource.CAMPAIGNS_VIEW) || can(Resource.DONATIONS) || can(Resource.CATEGORIES)
-  const showModeration = can(Resource.REPORTS) || can(Resource.VERIFICATIONS)
+  // The Staff page now has a Roles & Permissions tab too, so its link
+  // should show for anyone who can use either half of that page.
+  const canStaff = can(Resource.STAFF_VIEW) || can(Resource.ROLES_MANAGE)
+  const showManagement = can(Resource.USERS_VIEW) || canStaff || can(Resource.CAMPAIGNS_VIEW) || can(Resource.DONATIONS_VIEW) || can(Resource.CATEGORIES_VIEW)
+  const showModeration = can(Resource.REPORTS_VIEW) || can(Resource.VERIFICATIONS_VIEW)
   const { pendingReports, pendingVerifications } = useAdminBadgeCounts({ enabled: showModeration })
 
   return (
     <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
-      {can(Resource.DASHBOARD) && (
+      {can(Resource.DASHBOARD_VIEW) && (
         <Link to="/admin" activeOptions={{ exact: true }} className={cn(navLinkClass)} onClick={onNavigate}>
           <LayoutDashboard className="w-4 h-4" /> Dashboard
         </Link>
       )}
 
       {showManagement && <NavSectionLabel>Management</NavSectionLabel>}
-      {can(Resource.USERS) && (
+      {can(Resource.USERS_VIEW) && (
         <Link to={ROUTES.ADMIN_USERS} className={cn(navLinkClass)} onClick={onNavigate}>
           <Users className="w-4 h-4" /> Campaigners
         </Link>
       )}
-      {can(Resource.STAFF) && (
+      {canStaff && (
         <Link to={ROUTES.ADMIN_STAFF} className={cn(navLinkClass)} onClick={onNavigate}>
           <UserCog className="w-4 h-4" /> Staff
         </Link>
@@ -62,32 +65,32 @@ function SidebarNav({ onNavigate, resources }) {
           <Megaphone className="w-4 h-4" /> Campaigns
         </Link>
       )}
-      {can(Resource.DONATIONS) && (
+      {can(Resource.DONATIONS_VIEW) && (
         <Link to={ROUTES.ADMIN_DONATIONS} className={cn(navLinkClass)} onClick={onNavigate}>
           <Heart className="w-4 h-4" /> Donations
         </Link>
       )}
-      {can(Resource.CATEGORIES) && (
+      {can(Resource.CATEGORIES_VIEW) && (
         <Link to="/admin/categories" className={cn(navLinkClass)} onClick={onNavigate}>
           <Layers className="w-4 h-4" /> Categories
         </Link>
       )}
 
       {showModeration && <NavSectionLabel>Moderation</NavSectionLabel>}
-      {can(Resource.REPORTS) && (
+      {can(Resource.REPORTS_VIEW) && (
         <Link to="/admin/reports" className={cn(navLinkClass)} onClick={onNavigate}>
           <AlertCircle className="w-4 h-4" /> Reports
           <NavBadge count={pendingReports} />
         </Link>
       )}
-      {can(Resource.VERIFICATIONS) && (
+      {can(Resource.VERIFICATIONS_VIEW) && (
         <Link to={ROUTES.ADMIN_VERIFICATIONS} className={cn(navLinkClass)} onClick={onNavigate}>
           <ShieldCheck className="w-4 h-4" /> Verifications
           <NavBadge count={pendingVerifications} />
         </Link>
       )}
 
-      {can(Resource.FINANCES) && (
+      {can(Resource.FINANCES_VIEW) && (
         <>
           <NavSectionLabel>Analytics</NavSectionLabel>
           <Link to="/admin/finances" className={cn(navLinkClass)} onClick={onNavigate}>
@@ -97,17 +100,12 @@ function SidebarNav({ onNavigate, resources }) {
       )}
 
       <NavSectionLabel>Platform</NavSectionLabel>
-      {can(Resource.SETTINGS) && (
+      {can(Resource.SETTINGS_EDIT) && (
         <Link to="/admin/settings" className={cn(navLinkClass)} onClick={onNavigate}>
           <Settings className="w-4 h-4" /> Settings
         </Link>
       )}
-      {can(Resource.SETTINGS) && (
-        <Link to={ROUTES.ADMIN_VISION} className={cn(navLinkClass)} onClick={onNavigate}>
-          <Compass className="w-4 h-4" /> Platform Vision
-        </Link>
-      )}
-      {can(Resource.AUDIT) && (
+      {can(Resource.AUDIT_VIEW) && (
         <Link to={ROUTES.ADMIN_AUDIT} className={cn(navLinkClass)} onClick={onNavigate}>
           <ClipboardList className="w-4 h-4" /> Activity Log
         </Link>
@@ -171,7 +169,7 @@ export function AdminLayout() {
     )
   }
 
-  if (!user || !isAdminAreaRole(user.role)) {
+  if (!user || !isAdminAreaRole(user)) {
     return <Navigate to={ROUTES.DASHBOARD} />
   }
 

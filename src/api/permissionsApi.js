@@ -6,4 +6,10 @@ export const permissionsApi = {
 
   updateRolePermissions: (role, resources) =>
     apiClient.patch(`/permissions/roles/${role}/`, { resources }).then((r) => r.data),
+
+  createRole: (name, resources) =>
+    apiClient.post('/permissions/roles/', { name, resources }).then((r) => r.data),
+
+  deleteRole: (role) =>
+    apiClient.delete(`/permissions/roles/${role}/`).then((r) => r.data),
 }

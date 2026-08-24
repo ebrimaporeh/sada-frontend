@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
-import { ShieldCheck, Users, Wallet, AlertCircle, CheckCircle2, Loader2, Check } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { ShieldCheck, Users, AlertCircle, CheckCircle2, Loader2, Check } from 'lucide-react'
 import { Sheet } from './Sheet'
 import { ConfirmModal } from './ConfirmModal'
 import { formatDate } from '@/utils/formatters'
@@ -7,14 +7,8 @@ import { useUpdateUser, useChangeStaffRole } from '@/hooks/useUsers'
 import { useRolePermissions } from '@/hooks/usePermissions'
 import { useMe } from '@/hooks/useAuth'
 import { ROLES } from '@/constants'
-import { RESOURCE_LABELS, ROLE_LABELS } from '@/utils/permissions'
+import { RESOURCE_LABELS, roleLabel } from '@/utils/permissions'
 import { cn } from '@/utils/cn'
-
-const ROLE_OPTIONS = [
-  { value: ROLES.USER, label: 'User', description: 'No admin panel access', icon: Users },
-  { value: ROLES.MODERATOR, label: 'Moderator', description: 'Campaigns, categories, reports & verifications', icon: ShieldCheck },
-  { value: ROLES.FINANCE_OFFICER, label: 'Finance Officer', description: 'Campaigns, donations & finances', icon: Wallet },
-]
 
 export function StaffSheet({ isOpen, onClose, staff }) {
   const { data: me } = useMe()
@@ -22,18 +16,38 @@ export function StaffSheet({ isOpen, onClose, staff }) {
   const changeRole = useChangeStaffRole()
   const { data: rolePermissions } = useRolePermissions()
 
-  const [isActive, setIsActive] = useState(true)
+  // "User" (no admin access) is always offered even though it isn't a row
+  // in the runtime Role catalog; every real role option below comes from
+  // that live catalog, so a brand-new custom role shows up here with zero
+  // extra code.
+  const dynamicRoles = rolePermissions?.roles ?? []
+  const roleOptions = [
+    { value: ROLES.USER, label: 'User', description: 'Campaign dashboard only', icon: Users },
+    ...dynamicRoles.map((r) => ({
+      value: r.role,
+      label: r.label,
+      description: r.resources.length > 0
+        ? `${r.resources.length} permission${r.resources.length === 1 ? '' : 's'} granted`
+        : 'No permissions granted yet',
+      icon: ShieldCheck,
+    })),
+  ]
+
+  // Tracks the committed status locally so the sheet reflects a successful
+  // change immediately, without waiting on the parent staff list to refetch
+  // and re-pass a fresh `staff` prop.
+  const [currentActive, setCurrentActive] = useState(true)
+  const [pendingActive, setPendingActive] = useState(null)
   const [targetRole, setTargetRole] = useState(ROLES.USER)
   const [saved, setSaved] = useState(false)
   const [showRoleConfirm, setShowRoleConfirm] = useState(false)
-  const touchedActiveRef = useRef(false)
 
   useEffect(() => {
     if (staff) {
-      setIsActive(staff.is_active ?? true)
+      setCurrentActive(staff.is_active ?? true)
+      setPendingActive(null)
       setTargetRole(staff.role)
       setSaved(false)
-      touchedActiveRef.current = false
     }
   }, [staff])
 
@@ -42,27 +56,14 @@ export function StaffSheet({ isOpen, onClose, staff }) {
   const isSelf = me?.id === staff.id
   const isCurrentlyAdmin = staff.role === ROLES.ADMIN
   const roleChanged = targetRole !== staff.role
-  const activeChanged = isActive !== (staff.is_active ?? true)
-  const dirty = roleChanged || activeChanged
   // Live, admin-editable resources for the selected role -- see the Staff
   // page's role-permissions editor, which is what this data reflects.
   const previewResources = rolePermissions?.roles.find((r) => r.role === targetRole)?.resources ?? []
-  const targetRoleLabel = ROLE_OPTIONS.find((r) => r.value === targetRole)?.label || ROLE_LABELS[targetRole] || targetRole
-
-  function applyActiveChange(onDone) {
-    if (!activeChanged) { onDone?.(); return }
-    updateUser.mutate({ id: staff.id, is_active: isActive }, { onSuccess: () => onDone?.() })
-  }
+  const targetRoleLabel = roleLabel(targetRole, dynamicRoles)
 
   function handleSave() {
-    if (roleChanged) {
-      setShowRoleConfirm(true)
-      return
-    }
-    applyActiveChange(() => {
-      setSaved(true)
-      setTimeout(() => setSaved(false), 2500)
-    })
+    if (!roleChanged) return
+    setShowRoleConfirm(true)
   }
 
   function confirmRoleChange() {
@@ -70,8 +71,21 @@ export function StaffSheet({ isOpen, onClose, staff }) {
       { id: staff.id, role: targetRole },
       {
         onSuccess: () => {
-          applyActiveChange()
           setShowRoleConfirm(false)
+          setSaved(true)
+          setTimeout(() => setSaved(false), 2500)
+        },
+      },
+    )
+  }
+
+  function confirmStatusChange() {
+    updateUser.mutate(
+      { id: staff.id, is_active: pendingActive },
+      {
+        onSuccess: () => {
+          setCurrentActive(pendingActive)
+          setPendingActive(null)
           setSaved(true)
           setTimeout(() => setSaved(false), 2500)
         },
@@ -99,7 +113,7 @@ export function StaffSheet({ isOpen, onClose, staff }) {
           </button>
           <button
             onClick={handleSave}
-            disabled={!dirty || isPending}
+            disabled={!roleChanged || isPending}
             className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium disabled:opacity-50"
           >
             {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
@@ -124,32 +138,24 @@ export function StaffSheet({ isOpen, onClose, staff }) {
           <p className="text-sm">{staff.phone || '—'}</p>
         </div>
 
-        {/* Status — editable, same pattern as regular UserSheet */}
+        {/* Status — dropdown selection applies immediately via its own
+            confirmation modal, independent of the Save Changes footer
+            button (which only handles the role change below). */}
         <div className="p-3 rounded-lg bg-muted/50 border space-y-2">
-          <label className="text-xs font-semibold text-muted-foreground block">STATUS</label>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => { touchedActiveRef.current = true; setIsActive(true) }}
+          <div className="flex items-center justify-between gap-3">
+            <label className="text-xs font-semibold text-muted-foreground">STATUS</label>
+            <select
+              value={currentActive ? 'active' : 'inactive'}
+              onChange={(e) => {
+                const next = e.target.value === 'active'
+                if (next !== currentActive) setPendingActive(next)
+              }}
               disabled={isPending}
-              className={cn(
-                'flex-1 text-xs font-medium px-3 py-2 rounded-lg border transition-colors disabled:opacity-40 disabled:cursor-not-allowed',
-                isActive ? 'bg-green-100 text-green-700 border-green-300' : 'hover:bg-accent',
-              )}
+              className="text-xs font-medium px-3 py-1.5 rounded-lg border bg-background disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              Active
-            </button>
-            <button
-              type="button"
-              onClick={() => { touchedActiveRef.current = true; setIsActive(false) }}
-              disabled={isSelf || isPending}
-              className={cn(
-                'flex-1 text-xs font-medium px-3 py-2 rounded-lg border transition-colors disabled:opacity-40 disabled:cursor-not-allowed',
-                !isActive ? 'bg-red-100 text-red-700 border-red-300' : 'hover:bg-accent',
-              )}
-            >
-              Inactive
-            </button>
+              <option value="active">Active</option>
+              <option value="inactive" disabled={isSelf}>Inactive</option>
+            </select>
           </div>
           {isSelf && (
             <p className="text-[11px] text-muted-foreground flex items-center gap-1">
@@ -164,7 +170,7 @@ export function StaffSheet({ isOpen, onClose, staff }) {
             ROLE {isCurrentlyAdmin && <span className="normal-case font-normal">— currently Admin</span>}
           </label>
           <div className="space-y-2">
-            {ROLE_OPTIONS.map(({ value, label, description, icon: Icon }) => (
+            {roleOptions.map(({ value, label, description, icon: Icon }) => (
               <button
                 key={value}
                 type="button"
@@ -199,7 +205,7 @@ export function StaffSheet({ isOpen, onClose, staff }) {
             {roleChanged ? `PERMISSIONS AS ${targetRoleLabel.toUpperCase()}` : 'CURRENT PERMISSIONS'}
           </label>
           {previewResources.length === 0 ? (
-            <p className="text-xs text-muted-foreground">No admin panel access.</p>
+            <p className="text-xs text-muted-foreground">Campaign dashboard only.</p>
           ) : (
             <ul className="space-y-1">
               {previewResources.map((resource) => (
@@ -241,7 +247,7 @@ export function StaffSheet({ isOpen, onClose, staff }) {
       onClose={() => setShowRoleConfirm(false)}
       onConfirm={confirmRoleChange}
       title={`Change role to ${targetRoleLabel}?`}
-      description={`${staff.email} will move from ${ROLE_LABELS[staff.role] || staff.role} to ${targetRoleLabel}. ${
+      description={`${staff.email} will move from ${roleLabel(staff.role, dynamicRoles)} to ${targetRoleLabel}. ${
         targetRole === ROLES.USER
           ? 'This revokes all admin panel access.'
           : `They will be able to: ${previewResources.map((r) => RESOURCE_LABELS[r] || r).join(', ')}.`
@@ -250,6 +256,22 @@ export function StaffSheet({ isOpen, onClose, staff }) {
       isLoading={changeRole.isPending}
       variant="destructive"
       errorMessage={changeRole.isError ? changeRole.error?.response?.data?.message || 'Failed to change role.' : null}
+    />
+
+    <ConfirmModal
+      isOpen={pendingActive !== null}
+      onClose={() => setPendingActive(null)}
+      onConfirm={confirmStatusChange}
+      title={`${pendingActive ? 'Reactivate' : 'Deactivate'} ${staff.full_name || staff.email}?`}
+      description={
+        pendingActive
+          ? `${staff.email} will regain access to the admin panel.`
+          : `${staff.email} will immediately lose access to the admin panel. This can be reversed at any time.`
+      }
+      confirmLabel={pendingActive ? 'Yes, reactivate' : 'Yes, deactivate'}
+      isLoading={updateUser.isPending}
+      variant="destructive"
+      errorMessage={updateUser.isError ? updateUser.error?.response?.data?.message || 'Failed to update status.' : null}
     />
     </>
   )

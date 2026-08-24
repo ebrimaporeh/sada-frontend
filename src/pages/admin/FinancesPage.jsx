@@ -30,6 +30,49 @@ const PERIODS = [
   { value: 'year', label: 'This Year' },
 ]
 
+function StatCardSkeleton() {
+  return (
+    <div className="border rounded-xl p-5 bg-card animate-pulse">
+      <div className="flex items-center justify-between mb-3">
+        <div className="h-4 bg-muted rounded w-24" />
+        <div className="w-10 h-10 rounded-lg bg-muted" />
+      </div>
+      <div className="h-7 bg-muted rounded w-20 mb-2" />
+      <div className="h-3 bg-muted rounded w-16" />
+    </div>
+  )
+}
+
+function ChartSkeleton({ height = 300 }) {
+  return <div className="bg-muted rounded-lg animate-pulse" style={{ height }} />
+}
+
+function TableSkeleton({ rows = 5 }) {
+  return (
+    <div className="space-y-3 animate-pulse">
+      {Array.from({ length: rows }).map((_, i) => (
+        <div key={i} className="flex items-center gap-4 py-1">
+          <div className="h-3.5 bg-muted rounded flex-1 max-w-[200px]" />
+          <div className="h-3.5 bg-muted rounded w-20" />
+          <div className="h-3.5 bg-muted rounded w-20" />
+          <div className="h-2 bg-muted rounded w-20" />
+          <div className="h-5 bg-muted rounded-full w-16" />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function ProviderCardSkeleton() {
+  return (
+    <div className="border rounded-lg p-4 bg-muted/30 space-y-2 animate-pulse">
+      <div className="h-4 bg-muted rounded w-20" />
+      <div className="h-5 bg-muted rounded w-24" />
+      <div className="h-3 bg-muted rounded w-16" />
+    </div>
+  )
+}
+
 export function FinancesPage() {
   const [showStats, setShowStats] = useStatsVisibility('finances')
   const [page, setPage] = useState(1)
@@ -195,18 +238,22 @@ export function FinancesPage() {
       {/* Stats Grid */}
       {showStats && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {financialStats.map(({ label, value, change, icon: Icon, color, bg }) => (
-            <div key={label} className="border rounded-xl p-5 bg-card hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-sm text-muted-foreground font-medium">{label}</p>
-                <div className={`w-10 h-10 rounded-lg ${bg} flex items-center justify-center`}>
-                  <Icon className={`w-5 h-5 ${color}`} />
+          {isLoading ? (
+            Array.from({ length: 4 }).map((_, i) => <StatCardSkeleton key={i} />)
+          ) : (
+            financialStats.map(({ label, value, change, icon: Icon, color, bg }) => (
+              <div key={label} className="border rounded-xl p-5 bg-card hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-sm text-muted-foreground font-medium">{label}</p>
+                  <div className={`w-10 h-10 rounded-lg ${bg} flex items-center justify-center`}>
+                    <Icon className={`w-5 h-5 ${color}`} />
+                  </div>
                 </div>
+                <p className="text-2xl font-bold mb-2">{value}</p>
+                <p className="text-xs text-muted-foreground">{change}</p>
               </div>
-              <p className="text-2xl font-bold mb-2">{isLoading ? '—' : value}</p>
-              <p className="text-xs text-muted-foreground">{change}</p>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       )}
 
@@ -215,7 +262,9 @@ export function FinancesPage() {
         {/* Donations Trend */}
         <div className="border rounded-xl p-5 bg-card">
           <h3 className="text-lg font-bold mb-4">Donations Trend</h3>
-          {donationsTrend.length > 0 ? (
+          {isLoading ? (
+            <ChartSkeleton height={300} />
+          ) : donationsTrend.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <AreaChart data={donationsTrend} margin={{ top: 20, right: 30, left: 0, bottom: 10 }}>
                 <defs>
@@ -265,7 +314,9 @@ export function FinancesPage() {
         {/* Transaction Status */}
         <div className="border rounded-xl p-5 bg-card">
           <h3 className="text-lg font-bold mb-4">Transaction Status</h3>
-          {transactions.total > 0 ? (
+          {isLoading ? (
+            <ChartSkeleton height={300} />
+          ) : transactions.total > 0 ? (
             <div className="flex flex-col items-center justify-center h-[300px]">
               <div className="w-full max-w-xs mx-auto">
                 <ResponsiveContainer width="100%" height={250}>
@@ -336,7 +387,9 @@ export function FinancesPage() {
       {/* Top Campaigns Table */}
       <div className="border rounded-xl p-5 bg-card space-y-4">
         <h2 className="text-lg font-bold">Top Campaigns Performance</h2>
-        {topCampaigns.length === 0 ? (
+        {isLoading ? (
+          <TableSkeleton rows={5} />
+        ) : topCampaigns.length === 0 ? (
           <div className="py-8 text-center text-muted-foreground">
             <p>No campaigns for this period</p>
           </div>
@@ -436,7 +489,11 @@ export function FinancesPage() {
       {/* Payment Provider Breakdown */}
       <div className="border rounded-xl p-5 bg-card space-y-4">
         <h2 className="text-lg font-bold">Payment Provider Breakdown</h2>
-        {providerBreakdown.length === 0 ? (
+        {isLoading ? (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => <ProviderCardSkeleton key={i} />)}
+          </div>
+        ) : providerBreakdown.length === 0 ? (
           <div className="py-8 text-center text-muted-foreground">
             <p>No transactions for this period</p>
           </div>

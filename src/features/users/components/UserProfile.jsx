@@ -7,7 +7,8 @@ import { compressImage } from '@/utils/imageCompression'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { Select } from '@/components/custom/Select'
 import { initials } from '@/utils/formatters'
-import { GAMBIA_REGIONS, ORGANIZATION_TYPES, ACCOUNT_TYPES, ROLES, ROUTES } from '@/constants'
+import { GAMBIA_REGIONS, ORGANIZATION_TYPES, ACCOUNT_TYPES, ROUTES } from '@/constants'
+import { hasResourceAccess, Resource } from '@/utils/permissions'
 import { cn } from '@/utils/cn'
 
 const CHANGEABLE_FIELD_LABELS = {
@@ -213,7 +214,9 @@ export function UserProfile() {
       ? `${form.first_name} ${form.last_name}`.trim()
       : user?.email || ''
 
-  const verificationRoute = user?.role === ROLES.ADMIN ? ROUTES.ADMIN_VERIFICATION : ROUTES.VERIFICATION
+  const verificationRoute = hasResourceAccess(user?.resources, Resource.VERIFICATIONS_VIEW)
+    ? ROUTES.ADMIN_VERIFICATION
+    : ROUTES.VERIFICATION
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">

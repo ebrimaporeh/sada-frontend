@@ -3,7 +3,8 @@ import { useNavigate } from '@tanstack/react-router'
 import { queryKeys } from '@/api/queryKeys'
 import { authApi } from '@/api/authApi'
 import { userApi } from '@/api/userApi'
-import { ROLES } from '@/constants'
+import { ROLES, ROUTES } from '@/constants'
+import { landingRouteForResources } from '@/utils/permissions'
 
 export function useMe() {
   return useQuery({
@@ -34,24 +35,24 @@ export function useLogin() {
       localStorage.setItem('access_token', data.data.tokens.access)
       localStorage.setItem('refresh_token', data.data.tokens.refresh)
       queryClient.setQueryData(queryKeys.auth.me(), data.data.user)
-      const destination = data.data.user.role === ROLES.ADMIN ? '/admin' : '/dashboard'
+      const destination = data.data.user.role === ROLES.ADMIN
+        ? '/admin'
+        : landingRouteForResources(data.data.user.resources)
       navigate({ to: destination })
     },
   })
 }
 
 export function useRegister() {
-  const queryClient = useQueryClient()
   const navigate = useNavigate()
 
   return useMutation({
     mutationFn: authApi.register,
+    // No tokens come back — the backend doesn't log a new account in until
+    // its email is verified (see login_user's email_verified check), so
+    // there's nothing to store here. Send them to check their inbox instead.
     onSuccess: (data) => {
-      localStorage.setItem('access_token', data.data.tokens.access)
-      localStorage.setItem('refresh_token', data.data.tokens.refresh)
-      queryClient.setQueryData(queryKeys.auth.me(), data.data.user)
-      const destination = data.data.user.role === ROLES.ADMIN ? '/admin' : '/dashboard'
-      navigate({ to: destination })
+      navigate({ to: ROUTES.VERIFY_EMAIL, search: { email: data.data.user.email } })
     },
   })
 }
@@ -147,7 +148,9 @@ export function useGoogleOAuth() {
       localStorage.setItem('access_token', data.data.tokens.access)
       localStorage.setItem('refresh_token', data.data.tokens.refresh)
       queryClient.setQueryData(queryKeys.auth.me(), data.data.user)
-      const destination = data.data.user.role === ROLES.ADMIN ? '/admin' : '/dashboard'
+      const destination = data.data.user.role === ROLES.ADMIN
+        ? '/admin'
+        : landingRouteForResources(data.data.user.resources)
       navigate({ to: destination })
     },
   })

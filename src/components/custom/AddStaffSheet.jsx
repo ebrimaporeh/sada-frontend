@@ -1,25 +1,41 @@
-import { useState } from 'react'
-import { Loader2, CheckCircle2, AlertCircle, ShieldCheck, Wallet } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Loader2, CheckCircle2, AlertCircle, ShieldCheck } from 'lucide-react'
 import { Sheet } from './Sheet'
 import { ConfirmModal } from './ConfirmModal'
 import { useCreateUser } from '@/hooks/useUsers'
+import { useRolePermissions } from '@/hooks/usePermissions'
 import { cn } from '@/utils/cn'
 
-// Staff-only — regular users self-register, so "Regular User" isn't an
-// option here. Every role offered grants real admin-panel access, so every
-// submission goes through the confirmation modal below.
-const ROLE_OPTIONS = [
-  { value: 'moderator', label: 'Moderator', description: 'Sees campaigns, categories, reports & verifications', icon: ShieldCheck },
-  { value: 'finance_officer', label: 'Finance Officer', description: 'Sees campaigns, donations & finances', icon: Wallet },
-]
-
-const EMPTY_FORM = { email: '', first_name: '', last_name: '', phone: '', role: 'moderator' }
+const EMPTY_FORM = { email: '', first_name: '', last_name: '', phone: '', role: '' }
 
 export function AddStaffSheet({ isOpen, onClose }) {
   const [form, setForm] = useState(EMPTY_FORM)
   const [justCreated, setJustCreated] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const createUser = useCreateUser()
+  const { data: rolePermissions } = useRolePermissions()
+
+  // Staff-only — regular users self-register, so "User" isn't an option
+  // here. Every role offered comes from the live Role catalog (any admin
+  // can create a new one at any time) and grants real admin-panel access,
+  // so every submission goes through the confirmation modal below.
+  const roleOptions = (rolePermissions?.roles ?? []).map((r) => ({
+    value: r.role,
+    label: r.label,
+    description: r.resources.length > 0
+      ? `${r.resources.length} permission${r.resources.length === 1 ? '' : 's'} granted`
+      : 'No permissions granted yet',
+    icon: ShieldCheck,
+  }))
+
+  // Default to the first available role once the catalog loads — can't
+  // hardcode a slug like "moderator" any more, an admin may have renamed
+  // or deleted it.
+  useEffect(() => {
+    if (!form.role && roleOptions.length > 0) {
+      setForm((f) => ({ ...f, role: roleOptions[0].value }))
+    }
+  }, [roleOptions, form.role])
 
   function handleClose() {
     setForm(EMPTY_FORM)
@@ -40,7 +56,7 @@ export function AddStaffSheet({ isOpen, onClose }) {
       },
       {
         onSuccess: () => {
-          setForm(EMPTY_FORM)
+          setForm((f) => ({ ...EMPTY_FORM, role: f.role }))
           setJustCreated(true)
           setShowConfirm(false)
           setTimeout(() => setJustCreated(false), 4000)
@@ -55,7 +71,7 @@ export function AddStaffSheet({ isOpen, onClose }) {
   }
 
   const set = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }))
-  const selectedRole = ROLE_OPTIONS.find((r) => r.value === form.role)
+  const selectedRole = roleOptions.find((r) => r.value === form.role)
 
   return (
     <>
@@ -75,7 +91,7 @@ export function AddStaffSheet({ isOpen, onClose }) {
           <button
             type="submit"
             form="add-staff-form"
-            disabled={createUser.isPending || !form.email.trim()}
+            disabled={createUser.isPending || !form.email.trim() || !form.role}
             className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium disabled:opacity-50"
           >
             {createUser.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
@@ -133,25 +149,31 @@ export function AddStaffSheet({ isOpen, onClose }) {
 
         <div className="space-y-1.5">
           <label className="text-sm font-medium">Role</label>
-          <div className="space-y-2">
-            {ROLE_OPTIONS.map(({ value, label, description, icon: Icon }) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setForm((f) => ({ ...f, role: value }))}
-                className={cn(
-                  'w-full flex items-start gap-3 text-left p-3 rounded-xl border transition-colors',
-                  form.role === value ? 'border-primary bg-primary/5' : 'hover:bg-muted/50',
-                )}
-              >
-                <Icon className={cn('w-4 h-4 mt-0.5 flex-shrink-0', form.role === value ? 'text-primary' : 'text-muted-foreground')} />
-                <div>
-                  <p className="text-xs font-semibold">{label}</p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">{description}</p>
-                </div>
-              </button>
-            ))}
-          </div>
+          {roleOptions.length === 0 ? (
+            <p className="text-xs text-muted-foreground bg-muted/50 rounded-lg p-3">
+              No roles exist yet — create one from the Roles & Permissions tab first.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {roleOptions.map(({ value, label, description, icon: Icon }) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setForm((f) => ({ ...f, role: value }))}
+                  className={cn(
+                    'w-full flex items-start gap-3 text-left p-3 rounded-xl border transition-colors',
+                    form.role === value ? 'border-primary bg-primary/5' : 'hover:bg-muted/50',
+                  )}
+                >
+                  <Icon className={cn('w-4 h-4 mt-0.5 flex-shrink-0', form.role === value ? 'text-primary' : 'text-muted-foreground')} />
+                  <div>
+                    <p className="text-xs font-semibold">{label}</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">{description}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <p className="text-xs text-muted-foreground bg-muted/50 rounded-lg p-3">

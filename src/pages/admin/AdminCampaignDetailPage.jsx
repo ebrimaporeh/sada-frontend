@@ -20,9 +20,9 @@ import { ReportsTab } from './AdminCampaignDetail/ReportsTab'
 // say, finances shouldn't see a Withdrawals tab that would just 403.
 const TAB_RESOURCE = {
   overview: Resource.CAMPAIGNS_VIEW,
-  donations: Resource.DONATIONS,
-  withdrawals: Resource.FINANCES,
-  reports: Resource.REPORTS,
+  donations: Resource.DONATIONS_VIEW,
+  withdrawals: Resource.FINANCES_VIEW,
+  reports: Resource.REPORTS_VIEW,
 }
 
 export function AdminCampaignDetailPage() {

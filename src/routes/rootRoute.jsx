@@ -84,17 +84,21 @@ async function requireAuth() {
 async function requireAdmin() {
   await requireAuth()
   const user = queryClient.getQueryData(queryKeys.auth.me())
-  if (!isAdminAreaRole(user?.role)) throw redirect({ to: ROUTES.DASHBOARD })
+  if (!isAdminAreaRole(user)) throw redirect({ to: ROUTES.DASHBOARD })
 }
 
 // Per-route fine-grained check, layered under requireAdmin (which already
 // guarantees auth + an admin-area role by the time a child route's
 // beforeLoad runs). `user.resources` is live, admin-editable state (see
-// src/utils/permissions.js), not a static per-role map.
+// src/utils/permissions.js), not a static per-role map. Pass an array to
+// require any one of several resources -- e.g. the Staff page has two
+// tabs gated on different resources, so its route shouldn't 404 someone
+// who only has one of them.
 function requireResource(resource) {
+  const resourceList = Array.isArray(resource) ? resource : [resource]
   return () => {
     const user = queryClient.getQueryData(queryKeys.auth.me())
-    if (!hasResourceAccess(user?.resources, resource)) {
+    if (!resourceList.some((r) => hasResourceAccess(user?.resources, r))) {
       throw redirect({ to: landingRouteForResources(user?.resources) })
     }
   }
@@ -300,21 +304,21 @@ const adminUsersRoute = createRoute({
   getParentRoute: () => adminLayout,
   path: ROUTES.ADMIN_USERS,
   component: UsersPage,
-  beforeLoad: requireResource(Resource.USERS),
+  beforeLoad: requireResource(Resource.USERS_VIEW),
 })
 
 const adminUserDetailRoute = createRoute({
   getParentRoute: () => adminLayout,
   path: ROUTES.ADMIN_USER_DETAIL,
   component: AdminCampaignerDetailPage,
-  beforeLoad: requireResource(Resource.USERS),
+  beforeLoad: requireResource(Resource.USERS_VIEW),
 })
 
 const adminStaffRoute = createRoute({
   getParentRoute: () => adminLayout,
   path: ROUTES.ADMIN_STAFF,
   component: StaffPage,
-  beforeLoad: requireResource(Resource.STAFF),
+  beforeLoad: requireResource([Resource.STAFF_VIEW, Resource.ROLES_MANAGE]),
 })
 
 const adminCampaignsRoute = createRoute({
@@ -335,63 +339,63 @@ const adminDonationsRoute = createRoute({
   getParentRoute: () => adminLayout,
   path: ROUTES.ADMIN_DONATIONS,
   component: AdminDonationsPage,
-  beforeLoad: requireResource(Resource.DONATIONS),
+  beforeLoad: requireResource(Resource.DONATIONS_VIEW),
 })
 
 const adminDashboardRoute = createRoute({
   getParentRoute: () => adminLayout,
   path: '/admin',
   component: AdminDashboardPage,
-  beforeLoad: requireResource(Resource.DASHBOARD),
+  beforeLoad: requireResource(Resource.DASHBOARD_VIEW),
 })
 
 const adminReportsRoute = createRoute({
   getParentRoute: () => adminLayout,
   path: '/admin/reports',
   component: ReportsPage,
-  beforeLoad: requireResource(Resource.REPORTS),
+  beforeLoad: requireResource(Resource.REPORTS_VIEW),
 })
 
 const adminVerificationsRoute = createRoute({
   getParentRoute: () => adminLayout,
   path: ROUTES.ADMIN_VERIFICATIONS,
   component: VerificationsPage,
-  beforeLoad: requireResource(Resource.VERIFICATIONS),
+  beforeLoad: requireResource(Resource.VERIFICATIONS_VIEW),
 })
 
 const adminFinancesRoute = createRoute({
   getParentRoute: () => adminLayout,
   path: '/admin/finances',
   component: FinancesPage,
-  beforeLoad: requireResource(Resource.FINANCES),
+  beforeLoad: requireResource(Resource.FINANCES_VIEW),
 })
 
 const adminCategoriesRoute = createRoute({
   getParentRoute: () => adminLayout,
   path: '/admin/categories',
   component: CategoriesPage,
-  beforeLoad: requireResource(Resource.CATEGORIES),
+  beforeLoad: requireResource(Resource.CATEGORIES_VIEW),
 })
 
 const adminSettingsRoute = createRoute({
   getParentRoute: () => adminLayout,
   path: '/admin/settings',
   component: AdminSettingsPage,
-  beforeLoad: requireResource(Resource.SETTINGS),
+  beforeLoad: requireResource(Resource.SETTINGS_EDIT),
 })
 
 const adminVisionRoute = createRoute({
   getParentRoute: () => adminLayout,
   path: ROUTES.ADMIN_VISION,
   component: AdminVisionPage,
-  beforeLoad: requireResource(Resource.SETTINGS),
+  beforeLoad: requireResource(Resource.SETTINGS_EDIT),
 })
 
 const adminAuditRoute = createRoute({
   getParentRoute: () => adminLayout,
   path: ROUTES.ADMIN_AUDIT,
   component: AuditPage,
-  beforeLoad: requireResource(Resource.AUDIT),
+  beforeLoad: requireResource(Resource.AUDIT_VIEW),
 })
 
 const adminProfileRoute = createRoute({

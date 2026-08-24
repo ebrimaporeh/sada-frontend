@@ -28,7 +28,7 @@ export function AuthenticatedLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   // Redirect admin-area roles (admin, moderator, finance officer) to the admin layout
-  if (!isLoading && isAdminAreaRole(user?.role)) {
+  if (!isLoading && isAdminAreaRole(user)) {
     return <Navigate to="/admin" />
   }
 

@@ -3,13 +3,13 @@ import { Percent, Save, CheckCircle2, AlertCircle, Image as ImageIcon, Upload, H
 import { PageHeader } from '@/components/custom/PageHeader'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
 import { MarkdownEditor } from '@/components/custom/MarkdownEditor'
+import { Toggle } from '@/components/custom/Toggle'
 import { usePlatformSettings, useUpdatePlatformSettings } from '@/hooks/usePayments'
 import { useSiteSettings, useUpdateSiteSettings } from '@/hooks/useSiteSettings'
 import { useZakatSettings, useUpdateZakatSettings } from '@/hooks/useZakat'
 import { useLegalContent, useUpdateLegalContent, useLegalVariables } from '@/hooks/useLegalContent'
 import { formatGMD } from '@/utils/formatters'
 import { compressImage } from '@/utils/imageCompression'
-import { cn } from '@/utils/cn'
 
 const PAGE_TABS = [
   { key: 'branding', label: 'Branding', icon: Palette },
@@ -230,35 +230,6 @@ function LegalContentCard({ onNotify }) {
         {updateLegalContent.isPending ? 'Saving…' : 'Save Changes'}
       </button>
     </div>
-  )
-}
-
-function Toggle({ checked, onChange, label, description, disabled }) {
-  return (
-    <label className={cn('flex items-start justify-between gap-4 cursor-pointer group', disabled && 'opacity-60 cursor-not-allowed')}>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium">{label}</p>
-        {description && <p className="text-xs text-muted-foreground mt-0.5">{description}</p>}
-      </div>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        disabled={disabled}
-        onClick={() => onChange(!checked)}
-        className={cn(
-          'relative flex-shrink-0 w-10 h-6 rounded-full transition-colors focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed',
-          checked ? 'bg-primary' : 'bg-muted-foreground/30',
-        )}
-      >
-        <span
-          className={cn(
-            'absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow-sm transition-transform',
-            checked ? 'translate-x-4' : 'translate-x-0',
-          )}
-        />
-      </button>
-    </label>
   )
 }
 

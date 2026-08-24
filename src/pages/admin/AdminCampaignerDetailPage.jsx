@@ -17,10 +17,10 @@ import { PayoutsTab } from './CampaignerDetail/PayoutsTab'
 // Which resource gates each tab -- an admin who can view users but not,
 // say, finances shouldn't see a Payouts tab that would just 403.
 const TAB_RESOURCE = {
-  overview: Resource.USERS,
+  overview: Resource.USERS_VIEW,
   campaigns: Resource.CAMPAIGNS_VIEW,
-  donations: Resource.DONATIONS,
-  payouts: Resource.FINANCES,
+  donations: Resource.DONATIONS_VIEW,
+  payouts: Resource.FINANCES_VIEW,
 }
 
 export function AdminCampaignerDetailPage() {

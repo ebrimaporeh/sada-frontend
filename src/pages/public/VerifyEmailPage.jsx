@@ -11,7 +11,7 @@ export function VerifyEmailPage() {
   const token = search?.token
   const attempted = useRef(false)
 
-  const [resendEmail, setResendEmail] = useState('')
+  const [resendEmail, setResendEmail] = useState(search?.email || '')
   const [resendDone, setResendDone] = useState(false)
   const verifyEmail = useVerifyEmail()
   const resendVerification = useResendVerification()
@@ -33,14 +33,43 @@ export function VerifyEmailPage() {
   return (
     <AuthShell title="Verify Email">
       {!token ? (
-        <div className="space-y-4 text-center">
-          <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center mx-auto">
-            <AlertCircle className="w-6 h-6 text-destructive" />
+        <div className="space-y-5 text-center">
+          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+            <CheckCircle2 className="w-6 h-6 text-primary" />
           </div>
           <div className="space-y-1">
-            <h1 className="text-xl font-bold">Missing verification token</h1>
-            <p className="text-sm text-muted-foreground">This link is missing its token. Use the button below to get a new one.</p>
+            <h1 className="text-xl font-bold">Check your email</h1>
+            <p className="text-sm text-muted-foreground">
+              {search?.email
+                ? `We've sent a verification link to ${search.email}. Click it to activate your account before signing in.`
+                : "We've sent you a verification link. Click it to activate your account before signing in."}
+            </p>
           </div>
+
+          {resendDone ? (
+            <p className="text-sm text-muted-foreground">
+              If that email is registered and unverified, a new link is on its way.
+            </p>
+          ) : (
+            <form onSubmit={handleResend} className="space-y-3 text-left">
+              <label className="text-sm font-medium">Didn't get it? Resend the link</label>
+              <input
+                type="email"
+                value={resendEmail}
+                onChange={(e) => setResendEmail(e.target.value)}
+                required
+                placeholder="you@example.com"
+                className="w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-ring"
+              />
+              <button
+                type="submit"
+                disabled={resendVerification.isPending}
+                className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50 hover:opacity-90 transition-opacity"
+              >
+                {resendVerification.isPending ? 'Sending…' : 'Resend Link'}
+              </button>
+            </form>
+          )}
         </div>
       ) : verifyEmail.isPending ? (
         <div className="space-y-4 text-center py-4">
