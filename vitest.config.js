@@ -13,6 +13,11 @@ export default mergeConfig(
       globals: true,
       setupFiles: ['./src/test/setup.js'],
       css: true,
+      coverage: {
+        provider: 'v8',
+        reporter: ['text', 'lcov', 'html'],
+        reportsDirectory: 'coverage',
+      },
     },
   }),
 )

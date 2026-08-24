@@ -8,7 +8,7 @@ import globals from 'globals'
 // "couldn't find eslint.config.js"), so this establishes the baseline
 // rather than tightening an existing one.
 export default [
-  { ignores: ['dist', 'node_modules'] },
+  { ignores: ['dist', 'node_modules', 'coverage'] },
   js.configs.recommended,
   {
     files: ['**/*.{js,jsx}'],
