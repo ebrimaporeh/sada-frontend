@@ -242,6 +242,8 @@ function PaymentGatewaysCard({ onNotify }) {
     if (platformSettings && !form) {
       setForm({
         modempay_enabled: platformSettings.modempay_enabled,
+        wave_enabled: platformSettings.wave_enabled,
+        aps_enabled: platformSettings.aps_enabled,
         stripe_enabled: platformSettings.stripe_enabled,
         stripe_settlement_currency: platformSettings.stripe_settlement_currency || 'usd',
         gmd_to_settlement_rate: String(platformSettings.gmd_to_settlement_rate ?? ''),
@@ -262,6 +264,8 @@ function PaymentGatewaysCard({ onNotify }) {
     updateSettings.mutate(
       {
         modempay_enabled: form.modempay_enabled,
+        wave_enabled: form.wave_enabled,
+        aps_enabled: form.aps_enabled,
         stripe_enabled: form.stripe_enabled,
         stripe_settlement_currency: form.stripe_settlement_currency.trim().toLowerCase(),
         gmd_to_settlement_rate: form.gmd_to_settlement_rate,
@@ -294,16 +298,34 @@ function PaymentGatewaysCard({ onNotify }) {
       </div>
 
       <div className="space-y-4 divide-y">
-        <Toggle
-          checked={form.modempay_enabled}
-          onChange={(v) => setForm((f) => ({ ...f, modempay_enabled: v }))}
-          label={
-            <span className="inline-flex items-center gap-1.5">
-              <Smartphone className="w-3.5 h-3.5" /> ModemPay
-            </span>
-          }
-          description="Mobile money donations and withdrawals via Wave and APS Wallet."
-        />
+        <div>
+          <Toggle
+            checked={form.modempay_enabled}
+            onChange={(v) => setForm((f) => ({ ...f, modempay_enabled: v }))}
+            label={
+              <span className="inline-flex items-center gap-1.5">
+                <Smartphone className="w-3.5 h-3.5" /> ModemPay
+              </span>
+            }
+            description="Mobile money donations and withdrawals via Wave and APS Wallet."
+          />
+          <div className="mt-3 ml-4 pl-4 border-l-2 space-y-3">
+            <Toggle
+              checked={form.wave_enabled}
+              onChange={(v) => setForm((f) => ({ ...f, wave_enabled: v }))}
+              disabled={!form.modempay_enabled}
+              label="Wave"
+              description="Donations and withdrawals. Turning this off also stops withdrawals — Wave is the only payout network."
+            />
+            <Toggle
+              checked={form.aps_enabled}
+              onChange={(v) => setForm((f) => ({ ...f, aps_enabled: v }))}
+              disabled={!form.modempay_enabled}
+              label="APS Wallet"
+              description="Donations only. Turn this off on its own if APS starts failing, without affecting Wave."
+            />
+          </div>
+        </div>
         <div className="pt-4">
           <Toggle
             checked={form.stripe_enabled}

@@ -4,6 +4,7 @@ import { settings } from '@/settings'
 import { ROUTES } from '@/constants'
 import { Logo } from '@/components/custom/Logo'
 import { useSiteSettings } from '@/hooks/useSiteSettings'
+import { useDonationMethods, useGateways } from '@/hooks/usePayments'
 
 const PLATFORM_LINKS = [
   ['Campaigns', ROUTES.CAMPAIGNS],
@@ -21,10 +22,16 @@ const SUPPORT_LINKS = [
   ['Terms of Service', ROUTES.TERMS],
 ]
 
-const PAYMENT_PARTNERS = ['Wave', 'APS', 'Card (Stripe)']
+const GATEWAY_LABELS = { modempay: 'ModemPay', stripe: 'Stripe' }
 
 export function Footer() {
   const { siteName } = useSiteSettings()
+  // Server-driven, not a hand-maintained list -- a method/gateway an admin
+  // has toggled off in Settings disappears from the footer immediately,
+  // same as it already does on the donate form (see useDonationMethods).
+  const { methods } = useDonationMethods()
+  const { gateways } = useGateways()
+  const gatewayNames = gateways.map((g) => GATEWAY_LABELS[g.code] || g.code)
   return (
     <footer className="mt-16 bg-foreground text-background">
       {/* CTA strip */}
@@ -68,9 +75,9 @@ export function Footer() {
               <Smartphone className="w-3.5 h-3.5" /> Donate with
             </p>
             <div className="flex flex-wrap gap-1.5">
-              {PAYMENT_PARTNERS.map((name) => (
+              {methods.map(({ id, name }) => (
                 <span
-                  key={name}
+                  key={id}
                   className="text-xs font-medium text-background/70 border border-background/15 rounded-full px-2.5 py-1"
                 >
                   {name}
@@ -107,8 +114,16 @@ export function Footer() {
           <p className="text-sm text-background/60 leading-relaxed">
             Secured and powered by
             <br />
-            <span className="font-semibold text-background/80">Stripe</span> &amp;{' '}
-            <span className="font-semibold text-background/80">ModemPay</span>
+            {gatewayNames.length > 0 ? (
+              gatewayNames.map((name, i) => (
+                <span key={name}>
+                  {i > 0 && <> &amp; </>}
+                  <span className="font-semibold text-background/80">{name}</span>
+                </span>
+              ))
+            ) : (
+              <span className="font-semibold text-background/80">ModemPay</span>
+            )}
           </p>
         </div>
       </div>
