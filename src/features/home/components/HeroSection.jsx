@@ -3,11 +3,10 @@ import { ArrowRight, Heart } from 'lucide-react'
 import { ROUTES } from '@/constants'
 import { CampaignCard } from '@/components/custom/CampaignCard'
 import { CampaignCardSkeleton } from '@/components/custom/CampaignCardSkeleton'
-import { useFeaturedCampaigns } from '@/hooks/useCampaigns'
+import { useHeroCampaign } from '@/hooks/useCampaigns'
 
 export function HeroSection() {
-  const { campaigns, isLoading } = useFeaturedCampaigns()
-  const heroCard = campaigns[0] ?? null
+  const { campaign: heroCard, isLoading } = useHeroCampaign()
 
   return (
     <section className="relative overflow-hidden">

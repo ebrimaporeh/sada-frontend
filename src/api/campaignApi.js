@@ -11,6 +11,9 @@ export const campaignApi = {
   getFeatured: () =>
     apiClient.get('/campaigns/featured/').then((r) => r.data),
 
+  getHero: () =>
+    apiClient.get('/campaigns/hero/').then((r) => r.data),
+
   getPublicStats: () =>
     apiClient.get('/campaigns/stats/public/').then((r) => r.data),
 

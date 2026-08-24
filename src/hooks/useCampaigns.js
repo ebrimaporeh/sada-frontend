@@ -136,6 +136,24 @@ export function useFeaturedCampaigns() {
   }
 }
 
+// Hero card (home page) — a single weighted-random pick from the backend
+// (see campaign_service.get_hero_campaign), re-rolled per request rather
+// than a fixed/curated list like useFeaturedCampaigns above. staleTime: 0
+// so navigating back to the homepage re-rolls instead of showing a cached
+// pick from earlier in the session.
+export function useHeroCampaign() {
+  const query = useQuery({
+    queryKey: queryKeys.campaigns.hero(),
+    queryFn: campaignApi.getHero,
+    select: (res) => res?.data?.campaign ?? null,
+    staleTime: 0,
+  })
+  return {
+    campaign: query.data ?? null,
+    isLoading: query.isLoading,
+  }
+}
+
 // ── Filter state ─────────────────────────────────────────────────────────────
 
 export function useCampaignFilters() {
