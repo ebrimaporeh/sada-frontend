@@ -1,3 +1,6 @@
+// Same build-time-only caveat as src/api/client.js's BASE_URL -- this repo
+// reads VITE_API_URL independently in two places, so a value change needs
+// both a fresh build AND (if you ever change the fallback) an edit here too.
 const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'
 
 export const settings = {
