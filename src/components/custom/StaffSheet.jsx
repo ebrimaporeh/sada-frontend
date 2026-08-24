@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
-import { ShieldCheck, Users, AlertCircle, CheckCircle2, Loader2, Check } from 'lucide-react'
+import { ShieldCheck, Users, AlertCircle, CheckCircle2, Loader2, Check, Trash2 } from 'lucide-react'
 import { Sheet } from './Sheet'
 import { ConfirmModal } from './ConfirmModal'
 import { formatDate } from '@/utils/formatters'
-import { useUpdateUser, useChangeStaffRole } from '@/hooks/useUsers'
+import { useUpdateUser, useChangeStaffRole, useDeleteUser } from '@/hooks/useUsers'
 import { useRolePermissions } from '@/hooks/usePermissions'
 import { useMe } from '@/hooks/useAuth'
 import { ROLES } from '@/constants'
@@ -14,6 +14,7 @@ export function StaffSheet({ isOpen, onClose, staff }) {
   const { data: me } = useMe()
   const updateUser = useUpdateUser()
   const changeRole = useChangeStaffRole()
+  const deleteUser = useDeleteUser()
   const { data: rolePermissions } = useRolePermissions()
 
   // "User" (no admin access) is always offered even though it isn't a row
@@ -41,6 +42,7 @@ export function StaffSheet({ isOpen, onClose, staff }) {
   const [targetRole, setTargetRole] = useState(ROLES.USER)
   const [saved, setSaved] = useState(false)
   const [showRoleConfirm, setShowRoleConfirm] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   useEffect(() => {
     if (staff) {
@@ -79,6 +81,15 @@ export function StaffSheet({ isOpen, onClose, staff }) {
     )
   }
 
+  function confirmDelete() {
+    deleteUser.mutate(staff.id, {
+      onSuccess: () => {
+        setShowDeleteConfirm(false)
+        onClose()
+      },
+    })
+  }
+
   function confirmStatusChange() {
     updateUser.mutate(
       { id: staff.id, is_active: pendingActive },
@@ -93,7 +104,7 @@ export function StaffSheet({ isOpen, onClose, staff }) {
     )
   }
 
-  const isPending = updateUser.isPending || changeRole.isPending
+  const isPending = updateUser.isPending || changeRole.isPending || deleteUser.isPending
   const isError = updateUser.isError || changeRole.isError
   const errorMessage = changeRole.error?.response?.data?.message || updateUser.error?.response?.data?.message || 'Failed to save changes.'
 
@@ -223,6 +234,31 @@ export function StaffSheet({ isOpen, onClose, staff }) {
           <p className="text-sm">{formatDate(staff.created_at)}</p>
         </div>
 
+        {/* Danger zone */}
+        <div className="p-3 rounded-lg bg-red-50 border border-red-200 space-y-2">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold text-red-800">Delete Staff Member</p>
+              <p className="text-[11px] text-red-700/80 mt-0.5">
+                Removes their personal info and admin access. Their activity records are kept.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowDeleteConfirm(true)}
+              disabled={isSelf || isPending}
+              className="flex-shrink-0 inline-flex items-center gap-1.5 text-xs font-semibold text-red-700 border border-red-300 rounded-lg px-3 py-1.5 hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+            >
+              <Trash2 className="w-3.5 h-3.5" /> Delete
+            </button>
+          </div>
+          {isSelf && (
+            <p className="text-[11px] text-red-700/80 flex items-center gap-1">
+              <AlertCircle className="w-3 h-3" /> You can't delete your own account.
+            </p>
+          )}
+        </div>
+
         {isPending && (
           <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-muted text-muted-foreground text-sm font-medium">
             <Loader2 className="w-4 h-4 flex-shrink-0 animate-spin" /> Saving changes…
@@ -272,6 +308,18 @@ export function StaffSheet({ isOpen, onClose, staff }) {
       isLoading={updateUser.isPending}
       variant="destructive"
       errorMessage={updateUser.isError ? updateUser.error?.response?.data?.message || 'Failed to update status.' : null}
+    />
+
+    <ConfirmModal
+      isOpen={showDeleteConfirm}
+      onClose={() => setShowDeleteConfirm(false)}
+      onConfirm={confirmDelete}
+      title={`Delete ${staff.full_name || staff.email}?`}
+      description="This permanently removes their name, email, phone, and other personal details, and revokes their admin access. This cannot be undone. Their audit history stays on file."
+      confirmLabel="Delete Account"
+      isLoading={deleteUser.isPending}
+      variant="destructive"
+      errorMessage={deleteUser.isError ? deleteUser.error?.response?.data?.message || 'Failed to delete account.' : null}
     />
     </>
   )

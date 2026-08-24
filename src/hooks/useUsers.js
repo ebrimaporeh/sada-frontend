@@ -128,6 +128,9 @@ export function useDeleteUser() {
     mutationFn: userApi.deleteUser,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.users.all() })
+      // The deleted account might have been staff -- that's a separate
+      // query the Staff table reads from (see useCreateUser's same note).
+      queryClient.invalidateQueries({ queryKey: queryKeys.staff.all() })
     },
   })
 }

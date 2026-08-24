@@ -1,12 +1,12 @@
 import { useState } from 'react'
-import { Link } from '@tanstack/react-router'
-import { ShieldCheck, ShieldOff, AlertCircle, CheckCircle2, Loader2, Image as ImageIcon, Building2, ArrowRight } from 'lucide-react'
+import { Link, useNavigate } from '@tanstack/react-router'
+import { ShieldCheck, ShieldOff, AlertCircle, Loader2, Image as ImageIcon, Building2, ArrowRight, Trash2 } from 'lucide-react'
 import { Select } from '@/components/custom/Select'
 import { ConfirmModal } from '@/components/custom/ConfirmModal'
 import { SectionCard } from '../AdminCampaignDetail/shared'
 import { formatDate } from '@/utils/formatters'
-import { ROLES, GAMBIA_REGIONS, ORGANIZATION_TYPES, ACCOUNT_TYPES } from '@/constants'
-import { useUpdateUser, useUserVerification, useUserOrganizationVerification } from '@/hooks/useUsers'
+import { ROLES, GAMBIA_REGIONS, ORGANIZATION_TYPES, ACCOUNT_TYPES, ROUTES } from '@/constants'
+import { useUpdateUser, useUserVerification, useUserOrganizationVerification, useDeleteUser } from '@/hooks/useUsers'
 import { useMe } from '@/hooks/useAuth'
 import { cn } from '@/utils/cn'
 
@@ -169,6 +169,60 @@ function VerificationStatusControl({ user }) {
   )
 }
 
+function DeleteAccountControl({ user }) {
+  const { data: me } = useMe()
+  const navigate = useNavigate()
+  const deleteUser = useDeleteUser()
+  const isSelf = me?.id === user.id
+  const [confirming, setConfirming] = useState(false)
+  const isOrg = user.account_type === ACCOUNT_TYPES.ORGANIZATION
+
+  function handleConfirm() {
+    deleteUser.mutate(user.id, {
+      onSuccess: () => navigate({ to: ROUTES.ADMIN_USERS }),
+    })
+  }
+
+  return (
+    <>
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold">Delete Account</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Removes {isOrg ? 'this organization' : 'this user'}'s personal information and login access. Their campaigns
+            and donation records are kept for financial record-keeping, with personal details removed.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setConfirming(true)}
+          disabled={isSelf}
+          className="flex-shrink-0 inline-flex items-center gap-1.5 text-xs font-semibold text-red-700 border border-red-200 rounded-lg px-3 py-1.5 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+        >
+          <Trash2 className="w-3.5 h-3.5" /> Delete
+        </button>
+      </div>
+      {isSelf && (
+        <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-2">
+          <AlertCircle className="w-3 h-3" /> You can't delete your own account.
+        </p>
+      )}
+
+      <ConfirmModal
+        isOpen={confirming}
+        onClose={() => setConfirming(false)}
+        onConfirm={handleConfirm}
+        title={`Delete ${user.full_name || user.email}?`}
+        description="This permanently removes their name, email, phone, and other personal details, and they will no longer be able to log in. This cannot be undone. Their campaigns and donation records stay on file for financial record-keeping."
+        confirmLabel="Delete Account"
+        variant="destructive"
+        isLoading={deleteUser.isPending}
+        errorMessage={deleteUser.isError ? deleteUser.error?.response?.data?.message || 'Failed to delete account.' : null}
+      />
+    </>
+  )
+}
+
 function IdPhotos({ front, back }) {
   if (!front && !back) return null
   return (
@@ -306,6 +360,10 @@ export function OverviewTab({ user }) {
           )}
         </SectionCard>
       )}
+
+      <SectionCard title="Danger Zone" className="border-red-200">
+        <DeleteAccountControl user={user} />
+      </SectionCard>
     </div>
   )
 }
