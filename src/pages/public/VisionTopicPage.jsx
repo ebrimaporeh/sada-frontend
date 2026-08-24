@@ -19,6 +19,15 @@ export function VisionTopicPage() {
   const { slug } = useParams({ strict: false })
   const { topic, isLoading, isError } = useVisionTopic(slug)
 
+  // Must run on every render, including the loading/not-found ones below --
+  // a hook called only on the success path breaks React's Rules of Hooks
+  // the moment this component re-renders after data loads.
+  usePageMeta({
+    title: topic?.title,
+    description: topic?.summary || topic?.current_state,
+    type: 'article',
+  })
+
   if (isLoading) return <LoadingSpinner className="py-32" />
 
   if (isError || !topic) {
@@ -36,12 +45,6 @@ export function VisionTopicPage() {
   }
 
   const phasesWithContent = PHASES.filter((phase) => topic[phase.key]?.trim())
-
-  usePageMeta({
-    title: topic.title,
-    description: topic.summary || topic.current_state,
-    type: 'article',
-  })
 
   return (
     <div>
