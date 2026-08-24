@@ -244,6 +244,7 @@ function PaymentGatewaysCard({ onNotify }) {
         modempay_enabled: platformSettings.modempay_enabled,
         wave_enabled: platformSettings.wave_enabled,
         aps_enabled: platformSettings.aps_enabled,
+        afrimoney_enabled: platformSettings.afrimoney_enabled,
         stripe_enabled: platformSettings.stripe_enabled,
         stripe_settlement_currency: platformSettings.stripe_settlement_currency || 'usd',
         gmd_to_settlement_rate: String(platformSettings.gmd_to_settlement_rate ?? ''),
@@ -266,6 +267,7 @@ function PaymentGatewaysCard({ onNotify }) {
         modempay_enabled: form.modempay_enabled,
         wave_enabled: form.wave_enabled,
         aps_enabled: form.aps_enabled,
+        afrimoney_enabled: form.afrimoney_enabled,
         stripe_enabled: form.stripe_enabled,
         stripe_settlement_currency: form.stripe_settlement_currency.trim().toLowerCase(),
         gmd_to_settlement_rate: form.gmd_to_settlement_rate,
@@ -307,7 +309,7 @@ function PaymentGatewaysCard({ onNotify }) {
                 <Smartphone className="w-3.5 h-3.5" /> ModemPay
               </span>
             }
-            description="Mobile money donations and withdrawals via Wave and APS Wallet."
+            description="Mobile money donations and withdrawals via Wave, APS Wallet, and Afrimoney."
           />
           <div className="mt-3 ml-4 pl-4 border-l-2 space-y-3">
             <Toggle
@@ -323,6 +325,13 @@ function PaymentGatewaysCard({ onNotify }) {
               disabled={!form.modempay_enabled}
               label="APS Wallet"
               description="Donations only. Turn this off on its own if APS starts failing, without affecting Wave."
+            />
+            <Toggle
+              checked={form.afrimoney_enabled}
+              onChange={(v) => setForm((f) => ({ ...f, afrimoney_enabled: v }))}
+              disabled={!form.modempay_enabled}
+              label="Afrimoney"
+              description="Donations and withdrawals — Afrimoney supports both, same as Wave."
             />
           </div>
         </div>

@@ -1,5 +1,6 @@
 import waveLogo from '@/assets/wave-logo.png'
 import apsLogo from '@/assets/APS-logo.svg'
+import afrimoneyLogo from '@/assets/afrimoney-logo.png'
 
 export const ROLES = {
   ADMIN: 'admin',
@@ -103,15 +104,16 @@ export const DONATION_STATUS = {
 export const PAYMENT_METHODS = [
   { id: 'wave', gateway: 'modempay', name: 'Wave', short: 'W', logo: waveLogo, color: 'bg-cyan-500', description: 'Wave mobile money', requiresPhone: true },
   { id: 'aps', gateway: 'modempay', name: 'APS Wallet', short: 'APS', logo: apsLogo, color: 'bg-blue-800', description: 'APS mobile wallet', requiresPhone: true },
+  { id: 'afrimoney', gateway: 'modempay', name: 'Afrimoney', short: 'AM', logo: afrimoneyLogo, color: 'bg-orange-600', description: 'Afrimoney mobile money', requiresPhone: true },
   { id: 'card', gateway: 'stripe', name: 'Card', short: '\u{1F4B3}', color: 'bg-violet-600', description: 'Debit or credit card', requiresPhone: false },
 ]
 
-// Withdrawals only support wave right now — ModemPay's payout/transfer API
+// Withdrawals support wave and afrimoney — ModemPay's payout/transfer API
 // doesn't list aps as a valid network (only their checkout/donation side
 // does), and Stripe has no payout path to a Gambian mobile-money wallet at
 // all. Still filtered against the backend's payout_methods in useGateways()
 // consumers, so this is a presentation fallback, not the source of truth.
-export const PAYOUT_METHODS = PAYMENT_METHODS.filter((p) => p.id === 'wave')
+export const PAYOUT_METHODS = PAYMENT_METHODS.filter((p) => p.id === 'wave' || p.id === 'afrimoney')
 
 export const GAMBIA_REGIONS = [
   { value: 'banjul',      label: 'Banjul' },
