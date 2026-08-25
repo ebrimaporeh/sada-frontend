@@ -21,6 +21,13 @@ const ID_TYPE_LABELS = {
 
 const ORG_TYPE_LABELS = Object.fromEntries(ORGANIZATION_TYPES.map((t) => [t.value, t.label]))
 
+// Recovery-email change requests skip admin approval entirely -- the
+// proposed address confirms itself via the link sent to it (see
+// ConfirmRecoveryEmailPage on the frontend, confirm_recovery_email_change
+// on the backend). The backend rejects an approve attempt for these fields
+// outright; this just keeps the button from being offered in the first place.
+const EMAIL_CHANGE_FIELDS = ['recovery_email_1', 'recovery_email_2']
+
 const STATUS_CONFIG = {
   pending: { icon: Clock, label: 'Pending Review', color: 'text-amber-600', bg: 'bg-amber-50' },
   approved: { icon: CheckCircle2, label: 'Approved', color: 'text-green-600', bg: 'bg-green-50' },
@@ -321,7 +328,31 @@ export function VerificationsPage() {
               </p>
             )}
 
-            {selected.status === 'pending' && (
+            {selected.status === 'pending' && isChangeRequest && EMAIL_CHANGE_FIELDS.includes(selected.field_name) && (
+              <div className="space-y-3 border-t pt-4">
+                <p className="text-xs text-muted-foreground flex items-start gap-2">
+                  <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                  This is confirmed automatically when {selected.proposed_value} clicks the link we sent it —
+                  there's nothing for an admin to approve. You can still reject it if it looks suspicious.
+                </p>
+                <textarea
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  placeholder="Reason for rejection (required if rejecting)..."
+                  rows={3}
+                  className="w-full px-3 py-2 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring resize-none"
+                />
+                <button
+                  onClick={() => handleReview('reject')}
+                  disabled={reviewMutation.isPending || !reason.trim()}
+                  className="w-full px-4 py-2 rounded-lg border border-red-200 text-red-700 hover:bg-red-50 transition-colors text-sm font-medium disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {reviewMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />} Reject
+                </button>
+              </div>
+            )}
+
+            {selected.status === 'pending' && !(isChangeRequest && EMAIL_CHANGE_FIELDS.includes(selected.field_name)) && (
               <div className="space-y-3 border-t pt-4">
                 <textarea
                   value={reason}

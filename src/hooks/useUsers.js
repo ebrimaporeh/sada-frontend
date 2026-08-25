@@ -249,6 +249,15 @@ export function useSubmitOrganizationChangeRequest() {
   })
 }
 
+// Reached from the link in the confirmation email (ConfirmRecoveryEmailPage)
+// -- the person confirming may not even be logged in, so this doesn't touch
+// any cached query.
+export function useConfirmRecoveryEmailChange() {
+  return useMutation({
+    mutationFn: (token) => userApi.confirmRecoveryEmailChange(token),
+  })
+}
+
 export function useAdminOrganizationChangeRequests(params = {}, { enabled = true } = {}) {
   return useQuery({
     queryKey: queryKeys.organizationChangeRequest.adminList(params),

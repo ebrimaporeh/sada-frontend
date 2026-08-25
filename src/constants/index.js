@@ -31,6 +31,7 @@ export const ROUTES = {
   FORGOT_PASSWORD: '/forgot-password',
   RESET_PASSWORD: '/reset-password',
   VERIFY_EMAIL: '/verify-email',
+  CONFIRM_RECOVERY_EMAIL: '/confirm-recovery-email',
 
   // Public campaign routes
   CAMPAIGNS: '/campaigns',

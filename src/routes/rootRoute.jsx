@@ -15,6 +15,7 @@ import { RegisterPage } from '@/pages/public/RegisterPage'
 import { ForgotPasswordPage } from '@/pages/public/ForgotPasswordPage'
 import { ResetPasswordPage } from '@/pages/public/ResetPasswordPage'
 import { VerifyEmailPage } from '@/pages/public/VerifyEmailPage'
+import { ConfirmRecoveryEmailPage } from '@/pages/public/ConfirmRecoveryEmailPage'
 import { CampaignsPage } from '@/pages/public/CampaignsPage'
 import { CategoriesPage as PublicCategoriesPage } from '@/pages/public/CategoriesPage'
 import { CampaignDetailPage } from '@/pages/public/CampaignDetailPage'
@@ -142,6 +143,12 @@ const verifyEmailRoute = createRoute({
   getParentRoute: () => publicLayout,
   path: ROUTES.VERIFY_EMAIL,
   component: VerifyEmailPage,
+})
+
+const confirmRecoveryEmailRoute = createRoute({
+  getParentRoute: () => publicLayout,
+  path: ROUTES.CONFIRM_RECOVERY_EMAIL,
+  component: ConfirmRecoveryEmailPage,
 })
 
 const campaignsRoute = createRoute({
@@ -420,6 +427,7 @@ const routeTree = rootRoute.addChildren([
     forgotPasswordRoute,
     resetPasswordRoute,
     verifyEmailRoute,
+    confirmRecoveryEmailRoute,
     campaignsRoute,
     categoriesRoute,
     campaignDetailRoute,

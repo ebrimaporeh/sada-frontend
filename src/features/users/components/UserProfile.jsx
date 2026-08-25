@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import { Link } from '@tanstack/react-router'
-import { Camera, CheckCircle2, ShieldCheck, ShieldQuestion, AlertCircle, Building2, Clock, Loader2 } from 'lucide-react'
+import { Camera, CheckCircle2, ShieldCheck, ShieldQuestion, AlertCircle, Building2, Clock, Loader2, Mail } from 'lucide-react'
 import { useMe } from '@/hooks/useAuth'
 import { useUpdateMe, useUploadAvatar, useMyOrganizationChangeRequests, useSubmitOrganizationChangeRequest } from '@/hooks/useUsers'
 import { compressImage } from '@/utils/imageCompression'
@@ -18,25 +18,37 @@ const CHANGEABLE_FIELD_LABELS = {
   recovery_email_2: 'Recovery Email 2',
 }
 
+// Recovery emails skip admin review entirely -- submitting one sends a
+// confirmation link to the *new* address instead, and the change applies
+// the moment that's clicked (see ConfirmRecoveryEmailPage). Phone numbers
+// still go through admin approval. Same component either way; only the
+// copy and pending-state icon differ.
 function ChangeableField({ fieldName, label, currentValue, pendingRequest, type = 'text' }) {
   const [editing, setEditing] = useState(false)
   const [value, setValue] = useState('')
   const [error, setError] = useState('')
+  const [justSubmittedTo, setJustSubmittedTo] = useState('')
   const submitChange = useSubmitOrganizationChangeRequest()
+  const isEmailField = type === 'email'
 
   function startEdit() {
     setValue(currentValue || '')
     setError('')
+    setJustSubmittedTo('')
     setEditing(true)
   }
 
   function handleSubmit(e) {
     e.preventDefault()
     setError('')
+    const proposedValue = value.trim()
     submitChange.mutate(
-      { field_name: fieldName, proposed_value: value.trim() },
+      { field_name: fieldName, proposed_value: proposedValue },
       {
-        onSuccess: () => setEditing(false),
+        onSuccess: () => {
+          setEditing(false)
+          if (isEmailField) setJustSubmittedTo(proposedValue)
+        },
         onError: (err) => setError(err?.response?.data?.message || 'Failed to submit change request.'),
       },
     )
@@ -77,7 +89,9 @@ function ChangeableField({ fieldName, label, currentValue, pendingRequest, type 
               disabled={submitChange.isPending || !value.trim()}
               className="text-xs bg-primary text-primary-foreground font-medium px-3 py-1.5 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
             >
-              {submitChange.isPending ? 'Submitting…' : 'Submit for approval'}
+              {submitChange.isPending
+                ? (isEmailField ? 'Sending…' : 'Submitting…')
+                : (isEmailField ? 'Send confirmation link' : 'Submit for approval')}
             </button>
             <button
               type="button"
@@ -92,9 +106,19 @@ function ChangeableField({ fieldName, label, currentValue, pendingRequest, type 
       ) : (
         <>
           <p className="font-medium">{currentValue || '—'}</p>
-          {pendingRequest && (
-            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1 mt-1 flex items-center gap-1.5">
-              <Clock className="w-3 h-3 flex-shrink-0" /> Pending review: {pendingRequest.proposed_value}
+          {pendingRequest ? (
+            isEmailField ? (
+              <p className="text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded-lg px-2 py-1 mt-1 flex items-center gap-1.5">
+                <Mail className="w-3 h-3 flex-shrink-0" /> Awaiting confirmation from {pendingRequest.proposed_value}
+              </p>
+            ) : (
+              <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1 mt-1 flex items-center gap-1.5">
+                <Clock className="w-3 h-3 flex-shrink-0" /> Pending review: {pendingRequest.proposed_value}
+              </p>
+            )
+          ) : justSubmittedTo && (
+            <p className="text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded-lg px-2 py-1 mt-1 flex items-center gap-1.5">
+              <Mail className="w-3 h-3 flex-shrink-0" /> Confirmation link sent to {justSubmittedTo}
             </p>
           )}
         </>
@@ -122,6 +146,15 @@ function Field({ label, hint, error, children }) {
           <AlertCircle className="w-3 h-3" /> {error}
         </p>
       )}
+    </div>
+  )
+}
+
+function InfoField({ label, value }) {
+  return (
+    <div>
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="font-medium text-sm">{value || '—'}</p>
     </div>
   )
 }
@@ -280,6 +313,59 @@ export function UserProfile() {
         </div>
       </div>
 
+      {/* Organization Details — full-width, its own row, not squeezed into
+          the narrow sidebar below (there's a lot here: 3 read-only fields
+          + 4 changeable ones, and it's the org's primary profile content). */}
+      {isOrg && org && (
+        <div className="border rounded-2xl p-6 bg-card space-y-4">
+          <div>
+            <h2 className="font-semibold text-base flex items-center gap-2">
+              <Building2 className="w-4 h-4" /> Organization Details
+            </h2>
+            <p className="text-xs text-muted-foreground mt-1">
+              Name, type, and contact person were set at registration and aren't editable here. Phone number
+              changes need admin approval. Recovery emails are different — changing one sends a confirmation
+              link to the new address, and it takes effect as soon as that link is clicked, with no admin
+              involved. Either way nothing changes until the request resolves.
+            </p>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 pt-1">
+            <InfoField label="Organization Name" value={org.organization_name} />
+            <InfoField label="Type" value={orgTypeLabel} />
+            <InfoField label="Contact Person" value={org.contact_person_name} />
+            <ChangeableField
+              fieldName="phone"
+              label={CHANGEABLE_FIELD_LABELS.phone}
+              currentValue={user.phone}
+              pendingRequest={pendingRequestFor('phone')}
+              type="tel"
+            />
+            <ChangeableField
+              fieldName="phone_2"
+              label={CHANGEABLE_FIELD_LABELS.phone_2}
+              currentValue={org.phone_2}
+              pendingRequest={pendingRequestFor('phone_2')}
+              type="tel"
+            />
+            <div className="hidden lg:block" />
+            <ChangeableField
+              fieldName="recovery_email_1"
+              label={CHANGEABLE_FIELD_LABELS.recovery_email_1}
+              currentValue={org.recovery_email_1}
+              pendingRequest={pendingRequestFor('recovery_email_1')}
+              type="email"
+            />
+            <ChangeableField
+              fieldName="recovery_email_2"
+              label={CHANGEABLE_FIELD_LABELS.recovery_email_2}
+              currentValue={org.recovery_email_2}
+              pendingRequest={pendingRequestFor('recovery_email_2')}
+              type="email"
+            />
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-wrap items-start gap-6">
       {/* Form */}
       <form onSubmit={handleSubmit} className="flex-[2] min-w-[360px] border rounded-2xl p-6 bg-card space-y-5">
@@ -369,61 +455,6 @@ export function UserProfile() {
             <p className="text-xs text-muted-foreground mt-1">Email address cannot be changed here. Contact support if needed.</p>
           </div>
         </div>
-
-        {isOrg && org && (
-          <div className="border rounded-2xl p-6 bg-card space-y-3">
-            <h2 className="font-semibold text-base flex items-center gap-2">
-              <Building2 className="w-4 h-4" /> Organization Details
-            </h2>
-            <p className="text-xs text-muted-foreground">
-              Name, type, and contact person were set at registration and aren't editable here. Phone numbers and
-              recovery emails can be changed, but each change needs admin approval first — this protects your
-              organization's account recovery from being redirected by a single member without oversight.
-            </p>
-            <div className="space-y-3 text-sm pt-1">
-              <div>
-                <p className="text-xs text-muted-foreground">Organization Name</p>
-                <p className="font-medium">{org.organization_name}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Type</p>
-                <p className="font-medium">{orgTypeLabel}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Contact Person</p>
-                <p className="font-medium">{org.contact_person_name}</p>
-              </div>
-              <ChangeableField
-                fieldName="phone"
-                label={CHANGEABLE_FIELD_LABELS.phone}
-                currentValue={user.phone}
-                pendingRequest={pendingRequestFor('phone')}
-                type="tel"
-              />
-              <ChangeableField
-                fieldName="phone_2"
-                label={CHANGEABLE_FIELD_LABELS.phone_2}
-                currentValue={org.phone_2}
-                pendingRequest={pendingRequestFor('phone_2')}
-                type="tel"
-              />
-              <ChangeableField
-                fieldName="recovery_email_1"
-                label={CHANGEABLE_FIELD_LABELS.recovery_email_1}
-                currentValue={org.recovery_email_1}
-                pendingRequest={pendingRequestFor('recovery_email_1')}
-                type="email"
-              />
-              <ChangeableField
-                fieldName="recovery_email_2"
-                label={CHANGEABLE_FIELD_LABELS.recovery_email_2}
-                currentValue={org.recovery_email_2}
-                pendingRequest={pendingRequestFor('recovery_email_2')}
-                type="email"
-              />
-            </div>
-          </div>
-        )}
       </div>
       </div>
     </div>
