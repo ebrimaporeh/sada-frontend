@@ -103,6 +103,11 @@ export function DonateCheckout({ campaign }) {
 
   const selectedMethod = PROVIDERS.find((p) => p.id === provider)
   const requiresPhone = selectedMethod?.requiresPhone ?? true
+  // Per-gateway, admin-configurable (see usePayments.useEligibleMethods) --
+  // falls back to the static settings default only before the gateway list
+  // has loaded or a method is selected yet.
+  const minAmount = selectedMethod?.minDonationAmount ?? settings.donate.minAmount
+  const maxAmount = selectedMethod?.maxDonationAmount ?? settings.donate.maxAmount
 
   // Seed user data if authenticated
   const seeded = useRef(false)
@@ -128,12 +133,12 @@ export function DonateCheckout({ campaign }) {
   const numAmount = Number(amount)
 
   function handleDonate() {
-    if (!numAmount || numAmount < settings.donate.minAmount) {
-      setError(`Minimum donation is ${formatGMD(settings.donate.minAmount)}`)
+    if (!numAmount || numAmount < minAmount) {
+      setError(`Minimum donation is ${formatGMD(minAmount)}`)
       return
     }
-    if (numAmount > settings.donate.maxAmount) {
-      setError(`Maximum donation is ${formatGMD(settings.donate.maxAmount)} per transaction. Please split larger amounts into multiple donations.`)
+    if (numAmount > maxAmount) {
+      setError(`Maximum donation is ${formatGMD(maxAmount)} per transaction. Please split larger amounts into multiple donations.`)
       return
     }
     if (!anonymous && !donorName.trim()) {
@@ -223,8 +228,8 @@ export function DonateCheckout({ campaign }) {
                   value={amount}
                   onChange={(e) => { setAmount(e.target.value); setError('') }}
                   placeholder="Amount"
-                  min={settings.donate.minAmount}
-                  max={settings.donate.maxAmount}
+                  min={minAmount}
+                  max={maxAmount}
                   className="w-full pl-8 pr-4 py-2.5 border rounded-lg bg-background focus:outline-hidden focus:ring-2 focus:ring-ring text-lg font-bold"
                 />
               </div>
