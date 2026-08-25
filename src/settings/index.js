@@ -31,7 +31,9 @@ export const settings = {
   donate: {
     presets: [100, 250, 500, 1000, 2500, 5000],
     minAmount: 50,
-    // ModemPay rejects a single payment intent above this amount.
-    maxAmount: 50000,
+    // ModemPay rejects a single payment intent above this amount -- a real
+    // D13,500 donation attempt 400'd with "cannot exceed GMD 10,000.00" on
+    // 2026-08-23, so this was corrected from a previously-assumed 50,000.
+    maxAmount: 10000,
   },
 }
