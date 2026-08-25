@@ -4,6 +4,7 @@ import { queryKeys } from '@/api/queryKeys'
 import { campaignApi } from '@/api/campaignApi'
 import { donationApi } from '@/api/donationApi'
 import { paymentApi } from '@/api/paymentApi'
+import { useMe } from '@/hooks/useAuth'
 
 // ── Categories ───────────────────────────────────────────────────────────────
 
@@ -315,6 +316,24 @@ export function useTogglePauseCampaign() {
       queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.mine() })
     },
   })
+}
+
+// Whether the signed-in user can perform `permission` on this specific
+// campaign, independent of which profile is currently "active" in the
+// switcher (see useActiveProfile's docstring for why those are deliberately
+// separate) -- an individual campaign only ever grants its own owner, an
+// org campaign checks the caller's real OrganizationMembership.permissions
+// for that campaign's own organization_id, mirroring
+// campaign_service.get_owner_campaign's Http404-vs-PermissionDenied split
+// on the backend (this only answers "can they," it doesn't distinguish
+// "can't see it" from "can see it, no permission" -- both render the same
+// disabled/hidden UI here).
+export function useCampaignPermission(campaign, permission) {
+  const { data: me } = useMe()
+  if (!campaign || !me) return false
+  if (!campaign.organization_id) return campaign.owner_id === me.id
+  const membership = (me.organizations ?? []).find((o) => o.id === campaign.organization_id)
+  return Boolean(membership?.permissions?.includes(permission))
 }
 
 // ── Admin query ───────────────────────────────────────────────────────────────

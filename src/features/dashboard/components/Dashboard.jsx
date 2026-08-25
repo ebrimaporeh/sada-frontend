@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { TrendingUp, Users, Eye, PlusCircle, ArrowRight, Flag, Megaphone, Heart } from 'lucide-react'
+import { TrendingUp, Users, Eye, PlusCircle, ArrowRight, Flag, Megaphone, Heart, Building2 } from 'lucide-react'
 import { useMe } from '@/hooks/useAuth'
 import { useMyMissions } from '@/hooks/useCampaigns'
 import { useMyDonations } from '@/hooks/useDonations'
@@ -47,6 +47,11 @@ function CampaignRow({ campaign }) {
             {campaign.title}
           </Link>
           <p className="text-xs text-muted-foreground mt-0.5">{campaign.region} · {campaign.category?.name ?? campaign.category}</p>
+          {campaign.organization_id && (
+            <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
+              <Building2 className="w-3 h-3" /> {campaign.organization_name}
+            </p>
+          )}
         </div>
         <span className={cn('text-xs font-semibold px-2.5 py-1 rounded-full capitalize flex-shrink-0', STATUS_COLORS[campaign.status] || 'bg-gray-100 text-gray-600')}>
           {campaign.status}

@@ -1,17 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ShieldCheck, Upload, AlertCircle, Clock, CheckCircle2, XCircle, X, Image as ImageIcon, ZoomIn } from 'lucide-react'
-import { useMe } from '@/hooks/useAuth'
 import { useMyOrganizationVerification, useSubmitOrganizationVerification } from '@/hooks/useUsers'
 import { formatDate } from '@/utils/formatters'
 import { ImageZoomModal } from '@/components/custom/ImageZoomModal'
-import { Select } from '@/components/custom/Select'
 import { compressImage } from '@/utils/imageCompression'
-
-const ID_TYPES = [
-  { value: 'national_id', label: 'National ID Card' },
-  { value: 'passport', label: 'Passport' },
-  { value: 'drivers_license', label: "Driver's License" },
-]
 
 const STATUS_BADGE = {
   pending: { label: 'Under Review', icon: Clock, className: 'bg-amber-100 text-amber-700' },
@@ -86,9 +78,7 @@ function SubmittedDocs({ verification }) {
   const [zoomedPhoto, setZoomedPhoto] = useState(null)
 
   const docs = [
-    { label: 'Contact ID — Front', url: verification?.contact_id_photo_front },
-    { label: 'Contact ID — Back', url: verification?.contact_id_photo_back },
-    { label: 'Registration Document', url: verification?.registration_document },
+    { label: 'Registration Certificate', url: verification?.registration_document },
     { label: 'Organization Photo', url: verification?.organization_photo },
   ].filter((d) => d.url)
 
@@ -136,41 +126,36 @@ function VerificationDetails({ verification }) {
 
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-2 gap-3 max-w-xs">
-        <div>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Contact ID Type</p>
-          <p className="text-sm font-medium">{ID_TYPES.find((t) => t.value === verification.contact_id_type)?.label || verification.contact_id_type || '—'}</p>
-        </div>
-        <div>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Contact ID Number</p>
-          <p className="text-sm font-medium">{verification.contact_id_number || '—'}</p>
-        </div>
+      <div>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Registration Number</p>
+        <p className="text-sm font-medium">{verification.registration_number || '—'}</p>
       </div>
       <SubmittedDocs verification={verification} />
     </div>
   )
 }
 
-export function OrganizationVerificationSection() {
-  const { data: user } = useMe()
-  const { data: verification, isLoading } = useMyOrganizationVerification()
-  const submitVerification = useSubmitOrganizationVerification()
+// `organization` is the caller's own me.organizations entry for this org
+// (has is_verified, same shape OrganizationSerializer returns) -- this
+// section no longer assumes "the org" the way it did when Organization was
+// 1:1 with User; it's always scoped to one specific organization the
+// caller currently has open (see OrganizationDetail/SettingsTab).
+//
+// Verifies the organization's own registration -- a certificate/number, not
+// any individual member's personal ID (that's IdentityVerification, a
+// separate, per-person flow). Which member happens to submit this doesn't
+// matter; what's being proven is that the org itself is real.
+export function OrganizationVerificationSection({ organization }) {
+  const { data: verification, isLoading } = useMyOrganizationVerification(organization.id)
+  const submitVerification = useSubmitOrganizationVerification(organization.id)
 
-  const [contactIdType, setContactIdType] = useState('national_id')
-  const [contactIdNumber, setContactIdNumber] = useState('')
-  const [contactPhotoFront, setContactPhotoFront] = useState(null)
-  const [contactPhotoBack, setContactPhotoBack] = useState(null)
+  const [registrationNumber, setRegistrationNumber] = useState('')
   const [registrationDocument, setRegistrationDocument] = useState(null)
   const [organizationPhoto, setOrganizationPhoto] = useState(null)
   const [showForm, setShowForm] = useState(false)
 
-  const needsBack = contactIdType !== 'passport'
-
   function resetForm() {
-    setContactIdType('national_id')
-    setContactIdNumber('')
-    setContactPhotoFront(null)
-    setContactPhotoBack(null)
+    setRegistrationNumber('')
     setRegistrationDocument(null)
     setOrganizationPhoto(null)
   }
@@ -179,10 +164,7 @@ export function OrganizationVerificationSection() {
     e.preventDefault()
     submitVerification.mutate(
       {
-        contact_id_type: contactIdType,
-        contact_id_number: contactIdNumber,
-        contact_id_photo_front: contactPhotoFront,
-        contact_id_photo_back: needsBack ? contactPhotoBack : undefined,
+        registration_number: registrationNumber,
         registration_document: registrationDocument,
         organization_photo: organizationPhoto,
       },
@@ -195,18 +177,18 @@ export function OrganizationVerificationSection() {
     )
   }
 
-  const canSubmitNew = !user?.is_verified && (!verification || verification.status === 'rejected')
+  const canSubmitNew = !organization.is_verified && (!verification || verification.status === 'rejected')
   // Only fall back to the verification record's own status for pending/rejected —
-  // never show "Approved" here when user.is_verified is false. is_verified is the
-  // single source of truth for the verified grant; a stale/desynced approved
-  // record must never contradict it in the UI.
+  // never show "Approved" here when organization.is_verified is false. is_verified
+  // is the single source of truth for the verified grant; a stale/desynced
+  // approved record must never contradict it in the UI.
   const badge = verification && verification.status !== 'approved' ? STATUS_BADGE[verification.status] : null
 
   return (
     <div className="border rounded-2xl p-6 bg-card space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h2 className="font-semibold text-base">Organization Verification</h2>
-        {user?.is_verified ? (
+        {organization.is_verified ? (
           <span className="text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-medium flex items-center gap-1">
             <ShieldCheck className="w-3.5 h-3.5" /> Verified
           </span>
@@ -220,10 +202,11 @@ export function OrganizationVerificationSection() {
       </div>
 
       <p className="text-sm text-muted-foreground">
-        Verified organizations build more trust with donors. Submit your contact person's ID, your organization's registration document, and a photo of your organization to get the verification badge.
+        Verified organizations build more trust with donors. Submit your registration certificate and a photo of
+        your organization to get the verification badge.
       </p>
 
-      {isLoading ? null : user?.is_verified ? (
+      {isLoading ? null : organization.is_verified ? (
         <div className="space-y-3">
           <p className="text-xs text-muted-foreground">
             Your organization was verified{verification?.reviewed_at ? ` on ${formatDate(verification.reviewed_at)}` : ''}.
@@ -269,38 +252,22 @@ export function OrganizationVerificationSection() {
             </p>
           )}
 
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Contact Person's ID</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Registration Proof</p>
 
           <div className="space-y-1.5">
-            <label className="text-sm font-medium">ID Type</label>
-            <Select
-              value={contactIdType}
-              onChange={(e) => { setContactIdType(e.target.value); setContactPhotoBack(null) }}
-              options={ID_TYPES}
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium">ID Number</label>
+            <label className="text-sm font-medium">Registration Number</label>
             <input
               type="text"
-              value={contactIdNumber}
-              onChange={(e) => setContactIdNumber(e.target.value)}
+              value={registrationNumber}
+              onChange={(e) => setRegistrationNumber(e.target.value)}
               required
-              placeholder="e.g. GAM0123456"
+              placeholder="The number printed on your certificate"
               className="w-full px-3 py-2.5 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
             />
           </div>
 
           <div className="grid sm:grid-cols-2 gap-4">
-            <FilePicker label="ID Front Photo" file={contactPhotoFront} onChange={setContactPhotoFront} required />
-            {needsBack && <FilePicker label="ID Back Photo" file={contactPhotoBack} onChange={setContactPhotoBack} required />}
-          </div>
-
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground pt-2">Organization Documents</p>
-
-          <div className="grid sm:grid-cols-2 gap-4">
-            <FilePicker label="Registration Document" file={registrationDocument} onChange={setRegistrationDocument} required />
+            <FilePicker label="Registration Certificate" file={registrationDocument} onChange={setRegistrationDocument} required />
             <FilePicker label="Organization Photo" file={organizationPhoto} onChange={setOrganizationPhoto} required />
           </div>
 
@@ -315,8 +282,7 @@ export function OrganizationVerificationSection() {
             <button
               type="submit"
               disabled={
-                submitVerification.isPending || !contactPhotoFront || (needsBack && !contactPhotoBack) ||
-                !registrationDocument || !organizationPhoto
+                submitVerification.isPending || !registrationNumber.trim() || !registrationDocument || !organizationPhoto
               }
               className="flex-1 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium disabled:opacity-50"
             >

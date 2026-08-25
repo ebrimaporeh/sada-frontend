@@ -1,14 +1,14 @@
 import { useState } from 'react'
 import { Link, useParams } from '@tanstack/react-router'
 import { ChevronLeft, Eye } from 'lucide-react'
-import { useMyCampaign } from '@/hooks/useCampaigns'
+import { useMyCampaign, useCampaignPermission } from '@/hooks/useCampaigns'
 import { ProgressBar } from '@/components/custom/ProgressBar'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
 import { EmptyState } from '@/components/custom/EmptyState'
 import { ShareCampaign } from '@/components/custom/ShareCampaign'
 import { formatGMD, progressPercent } from '@/utils/formatters'
 import { campaignShareUrl } from '@/utils/shareUrls'
-import { ROUTES } from '@/constants'
+import { ROUTES, OrganizationPermission } from '@/constants'
 import { cn } from '@/utils/cn'
 import { TABS, STATUS_BADGE } from './MyCampaignDetail/shared'
 import { OverviewTab } from './MyCampaignDetail/OverviewTab'
@@ -21,6 +21,8 @@ export function MyCampaignDetailPage() {
   const { slug } = useParams({ strict: false })
   const { campaign, donors, payouts, totalPaidOut, availableBalance, isLoading } = useMyCampaign(slug)
   const [activeTab, setActiveTab] = useState('overview')
+  const canEdit = useCampaignPermission(campaign, OrganizationPermission.EDIT_CAMPAIGN)
+  const canWithdraw = useCampaignPermission(campaign, OrganizationPermission.WITHDRAW_FUNDS)
 
   if (isLoading) return <LoadingSpinner className="py-32" />
   if (!campaign) {
@@ -33,6 +35,17 @@ export function MyCampaignDetailPage() {
   }
 
   const pct = progressPercent(campaign.raised, campaign.goal)
+  // Overview/Donors/Updates stay open to any member with read access to
+  // this campaign (matches get_owner_campaign's no-required_permission
+  // read case on the backend) -- only Edit/Withdraw are gated on the
+  // caller's actual OrganizationMembership permissions for an org-owned
+  // campaign. Individual campaigns are unaffected (useCampaignPermission
+  // returns true for both here whenever the viewer is the owner).
+  const visibleTabs = TABS.filter((tab) => {
+    if (tab.id === 'edit') return canEdit
+    if (tab.id === 'withdraw') return canWithdraw
+    return true
+  })
 
   return (
     <div className="space-y-6">
@@ -88,7 +101,7 @@ export function MyCampaignDetailPage() {
 
       {/* Tab bar */}
       <div className="flex gap-1 border-b overflow-x-auto scrollbar-hide -mx-1 px-1">
-        {TABS.map(({ id, label, icon: Icon }) => (
+        {visibleTabs.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
             onClick={() => setActiveTab(id)}
@@ -119,9 +132,9 @@ export function MyCampaignDetailPage() {
         {activeTab === 'donors' && (
           <DonorsTab slug={campaign.slug} donorsCount={campaign.donors_count} totalRaised={campaign.raised} />
         )}
-        {activeTab === 'updates' && <UpdatesTab campaign={campaign} />}
-        {activeTab === 'edit' && <EditTab campaign={campaign} />}
-        {activeTab === 'withdraw' && (
+        {activeTab === 'updates' && <UpdatesTab campaign={campaign} canEdit={canEdit} />}
+        {activeTab === 'edit' && canEdit && <EditTab campaign={campaign} />}
+        {activeTab === 'withdraw' && canWithdraw && (
           <WithdrawTab
             campaign={campaign}
             payouts={payouts}

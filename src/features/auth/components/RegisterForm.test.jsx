@@ -5,6 +5,7 @@ import { RegisterForm } from './RegisterForm'
 
 vi.mock('@tanstack/react-router', () => ({
   Link: ({ children }) => <a>{children}</a>,
+  useSearch: () => ({}),
 }))
 
 vi.mock('@react-oauth/google', () => ({
@@ -61,14 +62,6 @@ describe('RegisterForm', () => {
         terms_accepted: true,
       }),
     )
-  })
-
-  it('defaults to an individual account and switches to organization on request', async () => {
-    const user = userEvent.setup()
-    render(<RegisterForm />)
-
-    await user.click(screen.getByText('Organization'))
-    expect(screen.getByText(/add your organization's details right after you sign up/i)).toBeInTheDocument()
   })
 
   it('surfaces a server-side registration error', () => {

@@ -9,7 +9,7 @@ import {
   useAdminOrganizationVerifications, useReviewOrganizationVerification,
   useAdminOrganizationChangeRequests, useReviewOrganizationChangeRequest,
 } from '@/hooks/useUsers'
-import { ORGANIZATION_TYPES } from '@/constants'
+import { useOrganizationTypes } from '@/hooks/useOrganizations'
 import { formatDate } from '@/utils/formatters'
 import { cn } from '@/utils/cn'
 
@@ -19,7 +19,18 @@ const ID_TYPE_LABELS = {
   drivers_license: "Driver's License",
 }
 
-const ORG_TYPE_LABELS = Object.fromEntries(ORGANIZATION_TYPES.map((t) => [t.value, t.label]))
+// Individual verification requests carry user_name/user_email (the
+// requester IS the person being verified); organization verification and
+// change requests carry submitted_by_name/submitted_by_email plus
+// organization_name (the requester is a member acting for the org, and the
+// thing being verified/changed is the org, not them) -- see
+// OrganizationVerificationSerializer/OrganizationChangeRequestSerializer.
+function requesterName(request, type) {
+  return type === 'individual' ? request.user_name : request.submitted_by_name
+}
+function requesterEmail(request, type) {
+  return type === 'individual' ? request.user_email : request.submitted_by_email
+}
 
 // Recovery-email change requests skip admin approval entirely -- the
 // proposed address confirms itself via the link sent to it (see
@@ -55,6 +66,8 @@ export function VerificationsPage() {
   const reviewVerification = useReviewVerification()
   const reviewOrgVerification = useReviewOrganizationVerification()
   const reviewChangeRequest = useReviewOrganizationChangeRequest()
+  const { data: organizationTypes = [] } = useOrganizationTypes()
+  const orgTypeLabel = (slug) => organizationTypes.find((t) => t.slug === slug)?.name || slug
 
   const isOrg = type === 'organization'
   const isChangeRequest = type === 'change_request'
@@ -157,12 +170,15 @@ export function VerificationsPage() {
                   className="w-full border rounded-xl p-4 text-left hover:shadow-md transition-all flex items-center justify-between gap-4"
                 >
                   <div className="min-w-0">
-                    <p className="font-semibold text-sm truncate">{req.user_name}</p>
-                    <p className="text-xs text-muted-foreground truncate">{req.user_email}</p>
+                    <p className="font-semibold text-sm truncate">
+                      {requesterName(req, type)}
+                      {(isOrg || isChangeRequest) && <span className="text-muted-foreground font-normal"> · {req.organization_name}</span>}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate">{requesterEmail(req, type)}</p>
                     <p className="text-xs text-muted-foreground mt-1">
                       {isChangeRequest
                         ? req.field_label
-                        : isOrg ? ORG_TYPE_LABELS[req.organization_type] : ID_TYPE_LABELS[req.id_type]
+                        : isOrg ? orgTypeLabel(req.organization_type) : ID_TYPE_LABELS[req.id_type]
                       } · Submitted {formatDate(req.created_at)}
                     </p>
                   </div>
@@ -189,8 +205,11 @@ export function VerificationsPage() {
         {selected && (
           <div className="space-y-5">
             <div>
-              <p className="font-semibold">{selected.user_name}</p>
-              <p className="text-sm text-muted-foreground">{selected.user_email}</p>
+              <p className="font-semibold">{requesterName(selected, type)}</p>
+              <p className="text-sm text-muted-foreground">{requesterEmail(selected, type)}</p>
+              {(isOrg || isChangeRequest) && (
+                <p className="text-xs text-muted-foreground mt-0.5">for {selected.organization_name}</p>
+              )}
             </div>
 
             <div className={cn('inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium', STATUS_CONFIG[selected.status].bg)}>
@@ -223,22 +242,16 @@ export function VerificationsPage() {
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
                     <p className="text-xs text-muted-foreground">Organization Type</p>
-                    <p className="font-medium">{ORG_TYPE_LABELS[selected.organization_type]}</p>
+                    <p className="font-medium">{orgTypeLabel(selected.organization_type)}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Contact ID Type</p>
-                    <p className="font-medium">{ID_TYPE_LABELS[selected.contact_id_type]}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Contact ID Number</p>
-                    <p className="font-medium">{selected.contact_id_number}</p>
+                    <p className="text-xs text-muted-foreground">Registration Number</p>
+                    <p className="font-medium">{selected.registration_number}</p>
                   </div>
                 </div>
 
                 {[
-                  ['Contact ID — Front', selected.contact_id_photo_front],
-                  ['Contact ID — Back', selected.contact_id_photo_back],
-                  ['Registration Document', selected.registration_document],
+                  ['Registration Certificate', selected.registration_document],
                   ['Organization Photo', selected.organization_photo],
                 ].filter(([, src]) => src).map(([label, src]) => (
                   <div key={label} className="space-y-2">

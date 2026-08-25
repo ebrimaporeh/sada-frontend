@@ -16,6 +16,7 @@ import { ForgotPasswordPage } from '@/pages/public/ForgotPasswordPage'
 import { ResetPasswordPage } from '@/pages/public/ResetPasswordPage'
 import { VerifyEmailPage } from '@/pages/public/VerifyEmailPage'
 import { ConfirmRecoveryEmailPage } from '@/pages/public/ConfirmRecoveryEmailPage'
+import { InvitationPage } from '@/pages/public/InvitationPage'
 import { CampaignsPage } from '@/pages/public/CampaignsPage'
 import { CategoriesPage as PublicCategoriesPage } from '@/pages/public/CategoriesPage'
 import { CampaignDetailPage } from '@/pages/public/CampaignDetailPage'
@@ -41,11 +42,18 @@ import { CampaignNewPage } from '@/pages/authenticated/CampaignNewPage'
 import { SettingsPage } from '@/pages/authenticated/SettingsPage'
 import { NotificationsPage } from '@/pages/authenticated/NotificationsPage'
 import { VerificationPage } from '@/pages/authenticated/VerificationPage'
+import { OrganizationsPage } from '@/pages/authenticated/OrganizationsPage'
+import { OrganizationNewPage } from '@/pages/authenticated/OrganizationNewPage'
+import { OrganizationOverviewPage } from '@/pages/authenticated/OrganizationOverviewPage'
+import { OrganizationMembersPage } from '@/pages/authenticated/OrganizationMembersPage'
+import { OrganizationRolesPage } from '@/pages/authenticated/OrganizationRolesPage'
+import { OrganizationSettingsPage } from '@/pages/authenticated/OrganizationSettingsPage'
 
 // Pages — admin
 import { AdminDashboardPage } from '@/pages/admin/DashboardPage'
 import { UsersPage } from '@/pages/admin/UsersPage'
 import { AdminCampaignerDetailPage } from '@/pages/admin/AdminCampaignerDetailPage'
+import { AdminOrganizationDetailPage } from '@/pages/admin/AdminOrganizationDetailPage'
 import { StaffPage } from '@/pages/admin/StaffPage'
 import { CampaignsPage as AdminCampaignsPage } from '@/pages/admin/CampaignsPage'
 import { AdminCampaignDetailPage } from '@/pages/admin/AdminCampaignDetailPage'
@@ -149,6 +157,12 @@ const confirmRecoveryEmailRoute = createRoute({
   getParentRoute: () => publicLayout,
   path: ROUTES.CONFIRM_RECOVERY_EMAIL,
   component: ConfirmRecoveryEmailPage,
+})
+
+const invitationRoute = createRoute({
+  getParentRoute: () => publicLayout,
+  path: ROUTES.INVITATIONS,
+  component: InvitationPage,
 })
 
 const campaignsRoute = createRoute({
@@ -298,6 +312,42 @@ const campaignNewRoute = createRoute({
   component: CampaignNewPage,
 })
 
+const organizationsRoute = createRoute({
+  getParentRoute: () => authLayout,
+  path: ROUTES.ORGANIZATIONS,
+  component: OrganizationsPage,
+})
+
+const organizationNewRoute = createRoute({
+  getParentRoute: () => authLayout,
+  path: ROUTES.ORGANIZATION_NEW,
+  component: OrganizationNewPage,
+})
+
+const organizationOverviewRoute = createRoute({
+  getParentRoute: () => authLayout,
+  path: ROUTES.ORGANIZATION_OVERVIEW,
+  component: OrganizationOverviewPage,
+})
+
+const organizationMembersRoute = createRoute({
+  getParentRoute: () => authLayout,
+  path: ROUTES.ORGANIZATION_MEMBERS,
+  component: OrganizationMembersPage,
+})
+
+const organizationRolesRoute = createRoute({
+  getParentRoute: () => authLayout,
+  path: ROUTES.ORGANIZATION_ROLES,
+  component: OrganizationRolesPage,
+})
+
+const organizationSettingsRoute = createRoute({
+  getParentRoute: () => authLayout,
+  path: ROUTES.ORGANIZATION_SETTINGS,
+  component: OrganizationSettingsPage,
+})
+
 // ─── Admin Layout ─────────────────────────────────────────────────────────────
 
 const adminLayout = createRoute({
@@ -318,6 +368,13 @@ const adminUserDetailRoute = createRoute({
   getParentRoute: () => adminLayout,
   path: ROUTES.ADMIN_USER_DETAIL,
   component: AdminCampaignerDetailPage,
+  beforeLoad: requireResource(Resource.USERS_VIEW),
+})
+
+const adminOrganizationDetailRoute = createRoute({
+  getParentRoute: () => adminLayout,
+  path: ROUTES.ADMIN_ORGANIZATION_DETAIL,
+  component: AdminOrganizationDetailPage,
   beforeLoad: requireResource(Resource.USERS_VIEW),
 })
 
@@ -435,6 +492,7 @@ const routeTree = rootRoute.addChildren([
     campaignerDetailRoute,
     donateRoute,
     donateSuccessRoute,
+    invitationRoute,
     zakatRoute,
     aboutRoute,
     helpRoute,
@@ -453,11 +511,18 @@ const routeTree = rootRoute.addChildren([
     notificationsRoute,
     verificationRoute,
     campaignNewRoute,
+    organizationsRoute,
+    organizationNewRoute,
+    organizationOverviewRoute,
+    organizationMembersRoute,
+    organizationRolesRoute,
+    organizationSettingsRoute,
   ]),
   adminLayout.addChildren([
     adminDashboardRoute,
     adminUsersRoute,
     adminUserDetailRoute,
+    adminOrganizationDetailRoute,
     adminStaffRoute,
     adminCampaignsRoute,
     adminCampaignDetailRoute,

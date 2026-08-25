@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { PlusCircle, Eye, ArrowRight, Loader2, Megaphone } from 'lucide-react'
+import { PlusCircle, Eye, ArrowRight, Loader2, Megaphone, Building2 } from 'lucide-react'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { ProgressBar } from '@/components/custom/ProgressBar'
 import { formatGMD, formatDate, progressPercent, daysLeft } from '@/utils/formatters'
@@ -30,6 +30,11 @@ function CampaignCard({ campaign }) {
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold leading-snug line-clamp-2">{campaign.title}</h3>
             <p className="text-xs text-muted-foreground mt-1">{campaign.region} · {campaign.category?.name ?? campaign.category}</p>
+            {campaign.organization_id && (
+              <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                <Building2 className="w-3 h-3" /> {campaign.organization_name}
+              </p>
+            )}
           </div>
           <span className={cn('text-xs font-semibold px-2.5 py-1 rounded-full capitalize flex-shrink-0 mt-0.5', STATUS_COLORS[campaign.status] || 'bg-gray-100 text-gray-600')}>
             {campaign.status}

@@ -5,7 +5,7 @@ import { formatDate } from '@/utils/formatters'
 import { cn } from '@/utils/cn'
 import { compressImage } from '@/utils/imageCompression'
 
-export function UpdatesTab({ campaign }) {
+export function UpdatesTab({ campaign, canEdit }) {
   const addUpdate = useAddCampaignUpdate()
   const editUpdate = useEditCampaignUpdate()
   const deleteUpdate = useDeleteCampaignUpdate()
@@ -97,7 +97,7 @@ export function UpdatesTab({ campaign }) {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">{updates.length} update{updates.length !== 1 ? 's' : ''} posted</p>
-        {!editingId && (
+        {!editingId && canEdit && (
           <button
             onClick={() => setShowForm((v) => !v)}
             className={cn(
@@ -203,12 +203,14 @@ export function UpdatesTab({ campaign }) {
           <Megaphone className="w-8 h-8 mx-auto text-muted-foreground" />
           <p className="font-semibold">No updates yet</p>
           <p className="text-sm text-muted-foreground">Post your first update to keep donors engaged.</p>
-          <button
-            onClick={() => setShowForm(true)}
-            className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-medium px-4 py-2 rounded-xl text-sm hover:bg-primary/90 transition-colors mt-2"
-          >
-            <PlusCircle className="w-4 h-4" /> Post first update
-          </button>
+          {canEdit && (
+            <button
+              onClick={() => setShowForm(true)}
+              className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-medium px-4 py-2 rounded-xl text-sm hover:bg-primary/90 transition-colors mt-2"
+            >
+              <PlusCircle className="w-4 h-4" /> Post first update
+            </button>
+          )}
         </div>
       ) : (
         <div className="space-y-4">
@@ -219,26 +221,28 @@ export function UpdatesTab({ campaign }) {
                   <h4 className="font-semibold leading-snug">{u.title}</h4>
                   <p className="text-xs text-muted-foreground mt-1">{formatDate(u.created_at || u.date)}</p>
                 </div>
-                <div className="flex gap-1 flex-shrink-0">
-                  <button
-                    onClick={() => startEdit(u)}
-                    className="p-2 hover:bg-muted rounded-lg transition-colors"
-                    title="Edit update"
-                  >
-                    <Edit2 className="w-4 h-4 text-muted-foreground" />
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (confirm('Delete this update?')) {
-                        deleteUpdate.mutate({ slug: campaign.slug, updateId: u.id })
-                      }
-                    }}
-                    className="p-2 hover:bg-muted rounded-lg transition-colors"
-                    title="Delete update"
-                  >
-                    <Trash2 className="w-4 h-4 text-muted-foreground" />
-                  </button>
-                </div>
+                {canEdit && (
+                  <div className="flex gap-1 flex-shrink-0">
+                    <button
+                      onClick={() => startEdit(u)}
+                      className="p-2 hover:bg-muted rounded-lg transition-colors"
+                      title="Edit update"
+                    >
+                      <Edit2 className="w-4 h-4 text-muted-foreground" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (confirm('Delete this update?')) {
+                          deleteUpdate.mutate({ slug: campaign.slug, updateId: u.id })
+                        }
+                      }}
+                      className="p-2 hover:bg-muted rounded-lg transition-colors"
+                      title="Delete update"
+                    >
+                      <Trash2 className="w-4 h-4 text-muted-foreground" />
+                    </button>
+                  </div>
+                )}
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{u.content}</p>
               {u.images?.length > 0 && (

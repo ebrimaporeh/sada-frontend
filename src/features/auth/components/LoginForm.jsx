@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from '@tanstack/react-router'
+import { Link, useSearch } from '@tanstack/react-router'
 import { GoogleLogin } from '@react-oauth/google'
 import { Eye, EyeOff } from 'lucide-react'
 import { useLogin, useGoogleOAuth, useResendVerification } from '@/hooks/useAuth'
@@ -31,7 +31,11 @@ const TEST_ACCOUNTS = [
 ]
 
 export function LoginForm() {
-  const [email, setEmail] = useState('')
+  // Prefilled when arriving from an organization invitation link
+  // (InvitationPage sends the invited email along) so the person doesn't
+  // have to retype the exact address the invitation was sent to.
+  const search = useSearch({ strict: false })
+  const [email, setEmail] = useState(search?.email || '')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [activeDemo, setActiveDemo] = useState(null)

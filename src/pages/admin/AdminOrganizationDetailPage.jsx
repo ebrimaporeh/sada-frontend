@@ -1,44 +1,43 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from '@tanstack/react-router'
-import { ChevronLeft, ShieldCheck, ShieldOff } from 'lucide-react'
-import { useUser } from '@/hooks/useUsers'
+import { ChevronLeft, Building2, ShieldCheck, ShieldOff } from 'lucide-react'
+import { useAdminOrganization } from '@/hooks/useOrganizations'
 import { useMe } from '@/hooks/useAuth'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
 import { EmptyState } from '@/components/custom/EmptyState'
 import { Resource, hasResourceAccess } from '@/utils/permissions'
 import { cn } from '@/utils/cn'
-import { TABS } from './CampaignerDetail/shared'
-import { OverviewTab } from './CampaignerDetail/OverviewTab'
-import { CampaignsTab } from './CampaignerDetail/CampaignsTab'
-import { DonationsTab } from './CampaignerDetail/DonationsTab'
-import { PayoutsTab } from './CampaignerDetail/PayoutsTab'
+import { TABS } from './AdminOrganizationDetail/shared'
+import { OverviewTab } from './AdminOrganizationDetail/OverviewTab'
+import { MembersTab } from './AdminOrganizationDetail/MembersTab'
+import { CampaignsTab } from './AdminOrganizationDetail/CampaignsTab'
+import { VerificationTab } from './AdminOrganizationDetail/VerificationTab'
 
-// Which resource gates each tab -- an admin who can view users but not,
-// say, finances shouldn't see a Payouts tab that would just 403.
+// Same reasoning as AdminCampaignerDetailPage's TAB_RESOURCE.
 const TAB_RESOURCE = {
   overview: Resource.USERS_VIEW,
+  members: Resource.USERS_VIEW,
   campaigns: Resource.CAMPAIGNS_VIEW,
-  donations: Resource.DONATIONS_VIEW,
-  payouts: Resource.FINANCES_VIEW,
+  verification: Resource.VERIFICATIONS_VIEW,
 }
 
-export function AdminCampaignerDetailPage() {
+export function AdminOrganizationDetailPage() {
   const navigate = useNavigate()
   const { id } = useParams({ strict: false })
   const { data: me } = useMe()
   const [activeTab, setActiveTab] = useState('overview')
 
-  const { data: user, isLoading } = useUser(id)
+  const { data: organization, isLoading } = useAdminOrganization(id)
 
   const visibleTabs = TABS.filter((tab) => hasResourceAccess(me?.resources, TAB_RESOURCE[tab.id]))
 
   if (isLoading) return <LoadingSpinner className="py-32" />
 
-  if (!user) {
+  if (!organization) {
     return (
       <EmptyState
-        title="Campaigner not found"
-        description="This user doesn't exist or has been removed."
+        title="Organization not found"
+        description="This organization doesn't exist or has been removed."
         action={
           <button
             onClick={() => navigate({ to: '/admin/users' })}
@@ -64,34 +63,26 @@ export function AdminCampaignerDetailPage() {
 
         <div className="flex flex-col sm:flex-row sm:items-start gap-4 justify-between">
           <div className="flex items-center gap-4 min-w-0">
-            <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center text-lg font-bold text-primary flex-shrink-0 overflow-hidden">
-              {user.avatar ? (
-                <img src={user.avatar} alt={user.full_name} className="w-full h-full object-cover" />
+            <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
+              {organization.logo ? (
+                <img src={organization.logo} alt={organization.organization_name} className="w-full h-full object-cover" />
               ) : (
-                (user.full_name || user.email || '?')[0].toUpperCase()
+                <Building2 className="w-6 h-6 text-primary" />
               )}
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-xl sm:text-2xl font-bold leading-snug truncate">{user.full_name || user.email}</h1>
-              </div>
-              <p className="text-sm text-muted-foreground mt-1 truncate">{user.email}</p>
+              <h1 className="text-xl sm:text-2xl font-bold leading-snug truncate">{organization.organization_name}</h1>
+              <p className="text-sm text-muted-foreground mt-1 truncate">{organization.organization_type_name}</p>
             </div>
           </div>
 
           <div className="flex items-center gap-2 flex-wrap flex-shrink-0">
             <span className={cn(
-              'text-xs font-semibold px-3 py-1.5 rounded-full border',
-              user.is_active ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200',
-            )}>
-              {user.is_active ? 'Active' : 'Inactive'}
-            </span>
-            <span className={cn(
               'inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full border',
-              user.is_verified ? 'bg-green-100 text-green-700 border-green-200' : 'bg-amber-100 text-amber-700 border-amber-200',
+              organization.is_verified ? 'bg-green-100 text-green-700 border-green-200' : 'bg-amber-100 text-amber-700 border-amber-200',
             )}>
-              {user.is_verified ? <ShieldCheck className="w-3.5 h-3.5" /> : <ShieldOff className="w-3.5 h-3.5" />}
-              {user.is_verified ? 'Verified' : 'Not Verified'}
+              {organization.is_verified ? <ShieldCheck className="w-3.5 h-3.5" /> : <ShieldOff className="w-3.5 h-3.5" />}
+              {organization.is_verified ? 'Verified' : 'Not Verified'}
             </span>
           </div>
         </div>
@@ -118,10 +109,10 @@ export function AdminCampaignerDetailPage() {
 
       {/* Tab content */}
       <div>
-        {activeTab === 'overview' && <OverviewTab user={user} />}
-        {activeTab === 'campaigns' && <CampaignsTab user={user} />}
-        {activeTab === 'donations' && <DonationsTab user={user} />}
-        {activeTab === 'payouts' && <PayoutsTab user={user} />}
+        {activeTab === 'overview' && <OverviewTab organization={organization} />}
+        {activeTab === 'members' && <MembersTab organization={organization} />}
+        {activeTab === 'campaigns' && <CampaignsTab organization={organization} />}
+        {activeTab === 'verification' && <VerificationTab organization={organization} />}
       </div>
     </div>
   )

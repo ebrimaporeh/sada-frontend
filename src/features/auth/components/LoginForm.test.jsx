@@ -5,6 +5,7 @@ import { LoginForm } from './LoginForm'
 
 vi.mock('@tanstack/react-router', () => ({
   Link: ({ children }) => <a>{children}</a>,
+  useSearch: () => ({}),
 }))
 
 vi.mock('@react-oauth/google', () => ({

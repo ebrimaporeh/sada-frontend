@@ -1,10 +1,13 @@
 import { useState, useRef } from 'react'
 import { Info, CheckCircle2, AlertCircle, PauseCircle, PlayCircle, ImagePlus, X, Loader2, Trash2 } from 'lucide-react'
-import { useCategories, useUpdateMyCampaign, useTogglePauseCampaign, useUpdateCampaignMedia, useDeleteGalleryImage } from '@/hooks/useCampaigns'
+import {
+  useCategories, useUpdateMyCampaign, useTogglePauseCampaign, useUpdateCampaignMedia,
+  useDeleteGalleryImage, useCampaignPermission,
+} from '@/hooks/useCampaigns'
 import { DatePicker } from '@/components/custom/DatePicker'
 import { SearchSelect } from '@/components/custom/SearchSelect'
 import { Select } from '@/components/custom/Select'
-import { GAMBIA_REGIONS, CAMPAIGN_STATUS } from '@/constants'
+import { GAMBIA_REGIONS, CAMPAIGN_STATUS, OrganizationPermission } from '@/constants'
 import { compressImage } from '@/utils/imageCompression'
 import { getCategoryIcon } from '@/utils/categoryIcons'
 
@@ -140,7 +143,9 @@ export function EditTab({ campaign }) {
   const togglePause = useTogglePauseCampaign()
   const [pauseError, setPauseError] = useState('')
   const isPaused = campaign.status === CAMPAIGN_STATUS.SUSPENDED
-  const canTogglePause = campaign.status === CAMPAIGN_STATUS.ACTIVE || campaign.status === CAMPAIGN_STATUS.SUSPENDED
+  const canPauseResume = useCampaignPermission(campaign, OrganizationPermission.PAUSE_RESUME_CAMPAIGN)
+  const canTogglePause = canPauseResume &&
+    (campaign.status === CAMPAIGN_STATUS.ACTIVE || campaign.status === CAMPAIGN_STATUS.SUSPENDED)
 
   function handleTogglePause() {
     setPauseError('')

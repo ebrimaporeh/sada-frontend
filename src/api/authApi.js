@@ -13,7 +13,6 @@ export const authApi = {
     apiClient.post('/auth/password-reset/', { email }).then((r) => r.data),
   confirmPasswordReset: (data) =>
     apiClient.post('/auth/password-reset/confirm/', data).then((r) => r.data),
-  googleOAuth: (idToken, accountType) =>
-    apiClient.post('/auth/google/', { id_token: idToken, ...(accountType ? { account_type: accountType } : {}) }).then((r) => r.data),
+  googleOAuth: (idToken) => apiClient.post('/auth/google/', { id_token: idToken }).then((r) => r.data),
   linkGoogleAccount: (idToken) => apiClient.post('/auth/google/link/', { id_token: idToken }).then((r) => r.data),
 }

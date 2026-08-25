@@ -1,131 +1,14 @@
 import { useState, useRef } from 'react'
 import { Link } from '@tanstack/react-router'
-import { Camera, CheckCircle2, ShieldCheck, ShieldQuestion, AlertCircle, Building2, Clock, Loader2, Mail } from 'lucide-react'
+import { Camera, CheckCircle2, ShieldCheck, ShieldQuestion, Loader2, AlertCircle } from 'lucide-react'
 import { useMe } from '@/hooks/useAuth'
-import { useUpdateMe, useUploadAvatar, useMyOrganizationChangeRequests, useSubmitOrganizationChangeRequest } from '@/hooks/useUsers'
+import { useUpdateMe, useUploadAvatar } from '@/hooks/useUsers'
 import { compressImage } from '@/utils/imageCompression'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { Select } from '@/components/custom/Select'
 import { initials } from '@/utils/formatters'
-import { GAMBIA_REGIONS, ORGANIZATION_TYPES, ACCOUNT_TYPES, ROUTES } from '@/constants'
+import { GAMBIA_REGIONS, ROUTES } from '@/constants'
 import { hasResourceAccess, Resource } from '@/utils/permissions'
-import { cn } from '@/utils/cn'
-
-const CHANGEABLE_FIELD_LABELS = {
-  phone: 'Primary Phone Number',
-  phone_2: 'Second Phone Number',
-  recovery_email_1: 'Recovery Email 1',
-  recovery_email_2: 'Recovery Email 2',
-}
-
-// Recovery emails skip admin review entirely -- submitting one sends a
-// confirmation link to the *new* address instead, and the change applies
-// the moment that's clicked (see ConfirmRecoveryEmailPage). Phone numbers
-// still go through admin approval. Same component either way; only the
-// copy and pending-state icon differ.
-function ChangeableField({ fieldName, label, currentValue, pendingRequest, type = 'text' }) {
-  const [editing, setEditing] = useState(false)
-  const [value, setValue] = useState('')
-  const [error, setError] = useState('')
-  const [justSubmittedTo, setJustSubmittedTo] = useState('')
-  const submitChange = useSubmitOrganizationChangeRequest()
-  const isEmailField = type === 'email'
-
-  function startEdit() {
-    setValue(currentValue || '')
-    setError('')
-    setJustSubmittedTo('')
-    setEditing(true)
-  }
-
-  function handleSubmit(e) {
-    e.preventDefault()
-    setError('')
-    const proposedValue = value.trim()
-    submitChange.mutate(
-      { field_name: fieldName, proposed_value: proposedValue },
-      {
-        onSuccess: () => {
-          setEditing(false)
-          if (isEmailField) setJustSubmittedTo(proposedValue)
-        },
-        onError: (err) => setError(err?.response?.data?.message || 'Failed to submit change request.'),
-      },
-    )
-  }
-
-  return (
-    <div>
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-xs text-muted-foreground">{label}</p>
-        {!editing && !pendingRequest && (
-          <button
-            type="button"
-            onClick={startEdit}
-            className="text-xs text-primary hover:underline font-medium flex-shrink-0"
-          >
-            Change
-          </button>
-        )}
-      </div>
-
-      {editing ? (
-        <form onSubmit={handleSubmit} className="space-y-1.5 mt-1">
-          <input
-            type={type}
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            autoFocus
-            className="w-full px-2.5 py-1.5 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
-          />
-          {error && (
-            <p className="text-xs text-destructive flex items-center gap-1">
-              <AlertCircle className="w-3 h-3 flex-shrink-0" /> {error}
-            </p>
-          )}
-          <div className="flex items-center gap-2">
-            <button
-              type="submit"
-              disabled={submitChange.isPending || !value.trim()}
-              className="text-xs bg-primary text-primary-foreground font-medium px-3 py-1.5 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
-            >
-              {submitChange.isPending
-                ? (isEmailField ? 'Sending…' : 'Submitting…')
-                : (isEmailField ? 'Send confirmation link' : 'Submit for approval')}
-            </button>
-            <button
-              type="button"
-              onClick={() => setEditing(false)}
-              disabled={submitChange.isPending}
-              className="text-xs text-muted-foreground hover:text-foreground px-2 py-1.5"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      ) : (
-        <>
-          <p className="font-medium">{currentValue || '—'}</p>
-          {pendingRequest ? (
-            isEmailField ? (
-              <p className="text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded-lg px-2 py-1 mt-1 flex items-center gap-1.5">
-                <Mail className="w-3 h-3 flex-shrink-0" /> Awaiting confirmation from {pendingRequest.proposed_value}
-              </p>
-            ) : (
-              <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1 mt-1 flex items-center gap-1.5">
-                <Clock className="w-3 h-3 flex-shrink-0" /> Pending review: {pendingRequest.proposed_value}
-              </p>
-            )
-          ) : justSubmittedTo && (
-            <p className="text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded-lg px-2 py-1 mt-1 flex items-center gap-1.5">
-              <Mail className="w-3 h-3 flex-shrink-0" /> Confirmation link sent to {justSubmittedTo}
-            </p>
-          )}
-        </>
-      )}
-    </div>
-  )
-}
 
 // Stored phone numbers aren't consistently formatted (some carry a leading
 // "+220", some don't -- see seed data vs. the donate flow) -- strip it so
@@ -146,15 +29,6 @@ function Field({ label, hint, error, children }) {
           <AlertCircle className="w-3 h-3" /> {error}
         </p>
       )}
-    </div>
-  )
-}
-
-function InfoField({ label, value }) {
-  return (
-    <div>
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="font-medium text-sm">{value || '—'}</p>
     </div>
   )
 }
@@ -220,11 +94,7 @@ export function UserProfile() {
   function handleSubmit(e) {
     e.preventDefault()
     const payload = { ...form }
-    // Primary phone is account-recovery-critical for organizations — it
-    // only changes via a reviewed change request (see Organization Details
-    // below), never through this free-edit form.
-    if (isOrg) delete payload.phone
-    else if (payload.phone) payload.phone = `+220${payload.phone.trim()}`
+    if (payload.phone) payload.phone = `+220${payload.phone.trim()}`
     updateMe.mutate(payload, {
       onSuccess: () => {
         setSaved(true)
@@ -233,19 +103,7 @@ export function UserProfile() {
     })
   }
 
-  const isOrg = user?.account_type === ACCOUNT_TYPES.ORGANIZATION
-  const org = user?.organization
-  const orgTypeLabel = ORGANIZATION_TYPES.find((t) => t.value === org?.organization_type)?.label
-
-  const { data: changeRequests } = useMyOrganizationChangeRequests({ enabled: isOrg })
-  const pendingRequestFor = (fieldName) =>
-    changeRequests?.find((r) => r.field_name === fieldName && r.status === 'pending')
-
-  const displayName = isOrg
-    ? org?.organization_name || user?.email || ''
-    : form.first_name
-      ? `${form.first_name} ${form.last_name}`.trim()
-      : user?.email || ''
+  const displayName = form.first_name ? `${form.first_name} ${form.last_name}`.trim() : user?.email || ''
 
   const verificationRoute = hasResourceAccess(user?.resources, Resource.VERIFICATIONS_VIEW)
     ? ROUTES.ADMIN_VERIFICATION
@@ -258,10 +116,7 @@ export function UserProfile() {
       {/* Avatar section */}
       <div className="border rounded-2xl p-6 bg-card flex flex-col sm:flex-row items-center sm:items-start gap-6">
         <div className="relative flex-shrink-0">
-          <div className={cn(
-            'relative w-20 h-20 bg-primary flex items-center justify-center text-primary-foreground text-xl font-bold overflow-hidden',
-            isOrg ? 'rounded-xl' : 'rounded-full',
-          )}>
+          <div className="relative w-20 h-20 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xl font-bold overflow-hidden">
             {avatarPreview || user?.avatar
               ? <img src={avatarPreview || user?.avatar} alt="avatar" className="w-full h-full object-cover" />
               : initials(displayName || user?.email)
@@ -313,86 +168,29 @@ export function UserProfile() {
         </div>
       </div>
 
-      {/* Organization Details — full-width, its own row, not squeezed into
-          the narrow sidebar below (there's a lot here: 3 read-only fields
-          + 4 changeable ones, and it's the org's primary profile content). */}
-      {isOrg && org && (
-        <div className="border rounded-2xl p-6 bg-card space-y-4">
-          <div>
-            <h2 className="font-semibold text-base flex items-center gap-2">
-              <Building2 className="w-4 h-4" /> Organization Details
-            </h2>
-            <p className="text-xs text-muted-foreground mt-1">
-              Name, type, and contact person were set at registration and aren't editable here. Phone number
-              changes need admin approval. Recovery emails are different — changing one sends a confirmation
-              link to the new address, and it takes effect as soon as that link is clicked, with no admin
-              involved. Either way nothing changes until the request resolves.
-            </p>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 pt-1">
-            <InfoField label="Organization Name" value={org.organization_name} />
-            <InfoField label="Type" value={orgTypeLabel} />
-            <InfoField label="Contact Person" value={org.contact_person_name} />
-            <ChangeableField
-              fieldName="phone"
-              label={CHANGEABLE_FIELD_LABELS.phone}
-              currentValue={user.phone}
-              pendingRequest={pendingRequestFor('phone')}
-              type="tel"
-            />
-            <ChangeableField
-              fieldName="phone_2"
-              label={CHANGEABLE_FIELD_LABELS.phone_2}
-              currentValue={org.phone_2}
-              pendingRequest={pendingRequestFor('phone_2')}
-              type="tel"
-            />
-            <div className="hidden lg:block" />
-            <ChangeableField
-              fieldName="recovery_email_1"
-              label={CHANGEABLE_FIELD_LABELS.recovery_email_1}
-              currentValue={org.recovery_email_1}
-              pendingRequest={pendingRequestFor('recovery_email_1')}
-              type="email"
-            />
-            <ChangeableField
-              fieldName="recovery_email_2"
-              label={CHANGEABLE_FIELD_LABELS.recovery_email_2}
-              currentValue={org.recovery_email_2}
-              pendingRequest={pendingRequestFor('recovery_email_2')}
-              type="email"
-            />
-          </div>
-        </div>
-      )}
-
       <div className="flex flex-wrap items-start gap-6">
       {/* Form */}
       <form onSubmit={handleSubmit} className="flex-[2] min-w-[360px] border rounded-2xl p-6 bg-card space-y-5">
-        <h2 className="font-semibold text-base">{isOrg ? 'Profile Information' : 'Personal Information'}</h2>
+        <h2 className="font-semibold text-base">Personal Information</h2>
 
-        {!isOrg && (
-          <div className="grid sm:grid-cols-2 gap-4">
-            <Field label="First Name">
-              <Input value={form.first_name} onChange={set('first_name')} placeholder="Ousman" />
-            </Field>
-            <Field label="Last Name">
-              <Input value={form.last_name} onChange={set('last_name')} placeholder="Camara" />
-            </Field>
-          </div>
-        )}
-
-        {!isOrg && (
-          <Field label="Phone Number" hint="Used for mobile money contact and account security">
-            <Input
-              value={form.phone}
-              onChange={set('phone')}
-              type="tel"
-              placeholder="7XXXXXXX"
-              prefix="+220"
-            />
+        <div className="grid sm:grid-cols-2 gap-4">
+          <Field label="First Name">
+            <Input value={form.first_name} onChange={set('first_name')} placeholder="Ousman" />
           </Field>
-        )}
+          <Field label="Last Name">
+            <Input value={form.last_name} onChange={set('last_name')} placeholder="Camara" />
+          </Field>
+        </div>
+
+        <Field label="Phone Number" hint="Used for mobile money contact and account security">
+          <Input
+            value={form.phone}
+            onChange={set('phone')}
+            type="tel"
+            placeholder="7XXXXXXX"
+            prefix="+220"
+          />
+        </Field>
 
         <Field label="Region" hint="Your region in The Gambia">
           <Select

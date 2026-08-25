@@ -3,8 +3,22 @@ import { useNavigate } from '@tanstack/react-router'
 import { queryKeys } from '@/api/queryKeys'
 import { authApi } from '@/api/authApi'
 import { userApi } from '@/api/userApi'
-import { ROLES, ROUTES } from '@/constants'
+import { ROLES, ROUTES, PENDING_INVITATION_STORAGE_KEY } from '@/constants'
 import { landingRouteForResources } from '@/utils/permissions'
+
+// If the person landed here from an invitation email/link while logged out
+// (InvitationPage stashes the token before sending them to Login/Register,
+// since there's no generic post-login-redirect mechanism elsewhere in this
+// app to piggyback on), send them back to finish responding to it instead
+// of their normal post-login destination -- this fires the moment any auth
+// flow actually produces tokens (password login, Google OAuth; register
+// itself doesn't, see useRegister), whichever the user completed.
+function postAuthDestination(fallback) {
+  const pendingToken = localStorage.getItem(PENDING_INVITATION_STORAGE_KEY)
+  if (!pendingToken) return fallback
+  localStorage.removeItem(PENDING_INVITATION_STORAGE_KEY)
+  return { to: ROUTES.INVITATIONS, search: { token: pendingToken } }
+}
 
 export function useMe() {
   return useQuery({
@@ -38,7 +52,7 @@ export function useLogin() {
       const destination = data.data.user.role === ROLES.ADMIN
         ? '/admin'
         : landingRouteForResources(data.data.user.resources)
-      navigate({ to: destination })
+      navigate(postAuthDestination({ to: destination }))
     },
   })
 }
@@ -137,13 +151,7 @@ export function useGoogleOAuth() {
   const navigate = useNavigate()
 
   return useMutation({
-    // Accepts either a bare idToken string (login page) or
-    // { idToken, accountType } (signup page, to signal individual vs
-    // organization intent for a brand-new account).
-    mutationFn: (arg) => {
-      const { idToken, accountType } = typeof arg === 'string' ? { idToken: arg } : arg
-      return authApi.googleOAuth(idToken, accountType)
-    },
+    mutationFn: (idToken) => authApi.googleOAuth(idToken),
     onSuccess: (data) => {
       localStorage.setItem('access_token', data.data.tokens.access)
       localStorage.setItem('refresh_token', data.data.tokens.refresh)
@@ -151,7 +159,7 @@ export function useGoogleOAuth() {
       const destination = data.data.user.role === ROLES.ADMIN
         ? '/admin'
         : landingRouteForResources(data.data.user.resources)
-      navigate({ to: destination })
+      navigate(postAuthDestination({ to: destination }))
     },
   })
 }

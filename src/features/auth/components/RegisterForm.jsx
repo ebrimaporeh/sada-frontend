@@ -1,33 +1,36 @@
 import { useState } from 'react'
-import { Link } from '@tanstack/react-router'
+import { Link, useSearch } from '@tanstack/react-router'
 import { GoogleLogin } from '@react-oauth/google'
-import { User, Building2, Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff } from 'lucide-react'
 import { useRegister, useGoogleOAuth } from '@/hooks/useAuth'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
-import { ROUTES, ACCOUNT_TYPES } from '@/constants'
+import { ROUTES } from '@/constants'
 import { cn } from '@/utils/cn'
 
+// Registration only ever creates an individual account now -- an
+// organization is something you create/join afterward from your profile
+// (see src/features/organizations), not a signup-time choice, so there's
+// no account-type toggle here any more.
 const INITIAL_FORM = {
   email: '',
   password: '',
   password_confirm: '',
-  account_type: ACCOUNT_TYPES.INDIVIDUAL,
   terms_accepted: false,
 }
 
 export function RegisterForm() {
-  const [form, setForm] = useState(INITIAL_FORM)
+  // Prefilled when arriving from an organization invitation link
+  // (InvitationPage sends the invited email along).
+  const search = useSearch({ strict: false })
+  const [form, setForm] = useState({ ...INITIAL_FORM, email: search?.email || '' })
   const [visiblePasswords, setVisiblePasswords] = useState({ password: false, password_confirm: false })
   const register = useRegister()
   const googleOAuth = useGoogleOAuth()
-  const isOrg = form.account_type === ACCOUNT_TYPES.ORGANIZATION
 
   const togglePasswordVisibility = (field) =>
     setVisiblePasswords((v) => ({ ...v, [field]: !v[field] }))
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
-
-  const setAccountType = (accountType) => setForm((f) => ({ ...f, account_type: accountType }))
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -59,41 +62,11 @@ export function RegisterForm() {
         </div>
       )}
 
-      {/* Account type toggle */}
-      <div className="grid grid-cols-2 gap-2">
-        <button
-          type="button"
-          onClick={() => setAccountType(ACCOUNT_TYPES.INDIVIDUAL)}
-          className={cn(
-            'flex items-center justify-center gap-2 py-2.5 rounded-lg border text-sm font-medium transition-colors',
-            !isOrg ? 'border-primary bg-primary/5 text-primary' : 'hover:bg-accent',
-          )}
-        >
-          <User className="w-4 h-4" /> Individual
-        </button>
-        <button
-          type="button"
-          onClick={() => setAccountType(ACCOUNT_TYPES.ORGANIZATION)}
-          className={cn(
-            'flex items-center justify-center gap-2 py-2.5 rounded-lg border text-sm font-medium transition-colors',
-            isOrg ? 'border-primary bg-primary/5 text-primary' : 'hover:bg-accent',
-          )}
-        >
-          <Building2 className="w-4 h-4" /> Organization
-        </button>
-      </div>
-
-      {isOrg && (
-        <p className="text-xs text-muted-foreground -mt-2">
-          You'll add your organization's details right after you sign up.
-        </p>
-      )}
-
       {/* Google OAuth */}
       <div className="flex justify-center">
         <GoogleLogin
           onSuccess={(credentialResponse) => {
-            googleOAuth.mutate({ idToken: credentialResponse.credential, accountType: form.account_type })
+            googleOAuth.mutate(credentialResponse.credential)
           }}
           onError={() => {
             console.log('Google signup failed')
