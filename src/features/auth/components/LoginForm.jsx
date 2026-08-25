@@ -3,6 +3,7 @@ import { Link } from '@tanstack/react-router'
 import { GoogleLogin } from '@react-oauth/google'
 import { Eye, EyeOff } from 'lucide-react'
 import { useLogin, useGoogleOAuth, useResendVerification } from '@/hooks/useAuth'
+import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
 import { ROUTES } from '@/constants'
 
 // Standard resend-cooldown window (Discord/Slack-style magic-link resends
@@ -70,6 +71,18 @@ export function LoginForm() {
 
   return (
     <div className="w-full space-y-6">
+      {/* Bridges the gap between the Google consent popup closing and the
+          redirect landing -- without this the page just sits there, then
+          jumps straight to the dashboard with no visual transition. */}
+      {googleOAuth.isPending && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-card border rounded-2xl p-6 flex flex-col items-center gap-3">
+            <LoadingSpinner size="lg" />
+            <p className="text-sm font-medium">Signing you in…</p>
+          </div>
+        </div>
+      )}
+
       <div className="space-y-1 text-center">
         <h1 className="text-2xl font-bold">Sign in</h1>
         <p className="text-sm text-muted-foreground">Enter your credentials to continue</p>

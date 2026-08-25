@@ -3,6 +3,7 @@ import { Link } from '@tanstack/react-router'
 import { GoogleLogin } from '@react-oauth/google'
 import { User, Building2, Eye, EyeOff } from 'lucide-react'
 import { useRegister, useGoogleOAuth } from '@/hooks/useAuth'
+import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
 import { ROUTES, ACCOUNT_TYPES } from '@/constants'
 import { cn } from '@/utils/cn'
 
@@ -35,6 +36,18 @@ export function RegisterForm() {
 
   return (
     <div className="w-full space-y-6">
+      {/* Bridges the gap between the Google consent popup closing and the
+          redirect landing -- without this the page just sits there, then
+          jumps straight to the dashboard with no visual transition. */}
+      {googleOAuth.isPending && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-card border rounded-2xl p-6 flex flex-col items-center gap-3">
+            <LoadingSpinner size="lg" />
+            <p className="text-sm font-medium">Setting up your account…</p>
+          </div>
+        </div>
+      )}
+
       <div className="space-y-2 text-center">
         <h1 className="text-2xl font-bold">Create account</h1>
         <p className="text-muted-foreground">Start your journey today</p>
