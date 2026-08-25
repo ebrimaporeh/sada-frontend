@@ -23,6 +23,7 @@ export function WithdrawTab({ campaign, payouts, availableBalance, totalPaidOut 
   const [showAlternate, setShowAlternate] = useState(true)
   const [step, setStep] = useState('form') // form | confirm | processing | done
   const [error, setError] = useState('')
+  const [failedNotes, setFailedNotes] = useState('')
 
   // Seed provider/phone from user defaults once when me loads
   const defaultSeeded = useRef(false)
@@ -77,6 +78,7 @@ export function WithdrawTab({ campaign, payouts, availableBalance, totalPaidOut 
   }
 
   function handleSubmit() {
+    setFailedNotes('')
     setStep('processing')
     requestPayout.mutate(
       {
@@ -87,7 +89,21 @@ export function WithdrawTab({ campaign, payouts, availableBalance, totalPaidOut 
         phone: `+220${activePhone.trim()}`,
       },
       {
-        onSuccess: () => setStep('done'),
+        onSuccess: (res) => {
+          // The API always returns 201 with a Payout row -- ModemPay
+          // rejections (e.g. amount over its transfer limit) surface as a
+          // FAILED payout in the response body, not an HTTP error. Without
+          // checking this, a rejected withdrawal showed the same "Initiated!"
+          // screen as a real one, with the actual reason sitting unread in
+          // payout.notes.
+          const payout = res?.data?.payout
+          if (payout?.status === 'failed') {
+            setFailedNotes(payout.notes || 'The payment provider could not process this withdrawal.')
+            setStep('confirm')
+            return
+          }
+          setStep('done')
+        },
         onError: (err) => {
           setError(err?.response?.data?.message || 'Withdrawal request failed. Please try again.')
           setStep('confirm')
@@ -384,10 +400,17 @@ export function WithdrawTab({ campaign, payouts, availableBalance, totalPaidOut 
             ))}
           </div>
 
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 flex gap-2 text-xs text-blue-800">
-            <Smartphone className="w-4 h-4 flex-shrink-0 mt-0.5" />
-            After confirming, funds will be sent to +220 {activePhone} within 10 minutes.
-          </div>
+          {failedNotes ? (
+            <div className="bg-destructive/10 border border-destructive/30 rounded-xl p-3 flex gap-2 text-xs text-destructive">
+              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              <span><span className="font-semibold">Withdrawal failed:</span> {failedNotes}</span>
+            </div>
+          ) : (
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 flex gap-2 text-xs text-blue-800">
+              <Smartphone className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              After confirming, funds will be sent to +220 {activePhone} within 10 minutes.
+            </div>
+          )}
 
           {error && (
             <p className="text-sm text-destructive flex items-start gap-1.5">
@@ -398,7 +421,7 @@ export function WithdrawTab({ campaign, payouts, availableBalance, totalPaidOut 
           <div className="flex gap-3">
             <button
               type="button"
-              onClick={() => setStep('form')}
+              onClick={() => { setFailedNotes(''); setStep('form') }}
               className="flex-1 border rounded-xl py-2.5 text-sm font-medium hover:bg-muted transition-colors"
             >
               Back
@@ -408,7 +431,7 @@ export function WithdrawTab({ campaign, payouts, availableBalance, totalPaidOut 
               onClick={handleSubmit}
               className="flex-1 bg-primary text-primary-foreground font-bold py-2.5 rounded-xl hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 text-sm"
             >
-              <Lock className="w-4 h-4" /> Confirm Withdrawal
+              <Lock className="w-4 h-4" /> {failedNotes ? 'Try Again' : 'Confirm Withdrawal'}
             </button>
           </div>
         </div>
@@ -440,12 +463,16 @@ export function WithdrawTab({ campaign, payouts, availableBalance, totalPaidOut 
                       <p className="font-semibold text-sm">{formatGMD(p.amount)}</p>
                       <p className="text-xs text-muted-foreground">{provMeta?.name || p.provider} · +220 {p.phone?.replace(/^\+220/, '')}</p>
                       <p className="text-xs text-muted-foreground mt-0.5">{formatDateTime(p.completed_at || p.requested_at)}</p>
+                      {p.status === 'failed' && p.notes && (
+                        <p className="text-xs text-destructive mt-0.5">{p.notes}</p>
+                      )}
                     </div>
                   </div>
                   <span className={cn(
                     'text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0 capitalize',
                     p.status === 'completed' ? 'bg-green-100 text-green-700' :
-                    p.status === 'processing' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700',
+                    p.status === 'processing' ? 'bg-blue-100 text-blue-700' :
+                    p.status === 'failed' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700',
                   )}>
                     {p.status}
                   </span>
