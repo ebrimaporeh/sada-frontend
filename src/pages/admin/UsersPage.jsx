@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import { Search, ShieldCheck, ShieldOff, User, Building2, Users } from 'lucide-react'
+import { Search, ShieldCheck, ShieldOff, User, Building2, Users, AlertCircle } from 'lucide-react'
 import { useUsers } from '@/hooks/useUsers'
 import { useAdminOrganizations } from '@/hooks/useOrganizations'
 import { PageHeader } from '@/components/custom/PageHeader'
@@ -26,12 +26,19 @@ export function UsersPage() {
     setPage(1)
   }, [type, debouncedSearch])
 
-  const usersQuery = useUsers({ page, page_size: limit, search: debouncedSearch || undefined })
-  const orgsQuery = useAdminOrganizations({ page, page_size: limit, search: debouncedSearch || undefined })
+  const usersQuery = useUsers({ page, page_size: limit, search: debouncedSearch || undefined }, { enabled: !isOrg })
+  const orgsQuery = useAdminOrganizations({ page, page_size: limit, search: debouncedSearch || undefined }, { enabled: isOrg })
 
   const users = usersQuery.data?.results || []
   const organizations = orgsQuery.data?.organizations || []
   const isLoading = isOrg ? orgsQuery.isLoading : usersQuery.isLoading
+  // A failed fetch (permission, network, 500, ...) used to fall through to
+  // the same "No organizations found" empty state as a genuinely-empty
+  // list, with nothing telling the admin their Organizations tab was
+  // actually broken rather than just empty.
+  const isError = isOrg ? orgsQuery.isError : usersQuery.isError
+  const errorMessage = (isOrg ? orgsQuery.error : usersQuery.error)?.response?.data?.message
+    || `Failed to load ${isOrg ? 'organizations' : 'users'}. Please try again.`
   const count = isOrg ? orgsQuery.data?.count : usersQuery.data?.count
   const totalPages = isOrg ? orgsQuery.data?.totalPages : (usersQuery.data?.total_pages || Math.ceil((usersQuery.data?.count || 0) / limit))
   const rows = isOrg ? organizations : users
@@ -86,7 +93,22 @@ export function UsersPage() {
       </div>
 
       {/* Table */}
-      {!isLoading && rows.length === 0 ? (
+      {!isLoading && isError ? (
+        <EmptyState
+          icon={AlertCircle}
+          title={`Couldn't load ${isOrg ? 'organizations' : 'users'}`}
+          description={errorMessage}
+          action={
+            <button
+              type="button"
+              onClick={() => (isOrg ? orgsQuery.refetch() : usersQuery.refetch())}
+              className="text-sm font-medium text-primary hover:underline"
+            >
+              Try again
+            </button>
+          }
+        />
+      ) : !isLoading && rows.length === 0 ? (
         <EmptyState title={`No ${isOrg ? 'organizations' : 'users'} found`} />
       ) : (
         <div className="border rounded-lg overflow-hidden bg-card">

@@ -2,10 +2,11 @@ import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tansta
 import { queryKeys } from '@/api/queryKeys'
 import { userApi } from '@/api/userApi'
 
-export function useUsers(params = {}) {
+export function useUsers(params = {}, options = {}) {
   return useQuery({
     queryKey: queryKeys.users.list(params),
     queryFn: () => userApi.getUsers(params),
+    ...options,
   })
 }
 

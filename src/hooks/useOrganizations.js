@@ -234,11 +234,12 @@ export function useRejectInvitation() {
 
 // ── Admin -- not membership-gated, see organizationsApi.getAdminList ───────
 
-export function useAdminOrganizations(params = {}) {
+export function useAdminOrganizations(params = {}, options = {}) {
   return useQuery({
     queryKey: queryKeys.organizations.adminList(params),
     queryFn: () => organizationsApi.getAdminList(params),
     select: (res) => ({ organizations: res?.results ?? [], count: res?.count ?? 0, totalPages: res?.total_pages ?? 1 }),
+    ...options,
   })
 }
 
