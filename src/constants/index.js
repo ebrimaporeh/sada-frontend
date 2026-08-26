@@ -49,6 +49,7 @@ export const OrganizationPermission = {
   PAUSE_RESUME_CAMPAIGN: 'pause_resume_campaign',
   WITHDRAW_FUNDS: 'withdraw_funds',
   MANAGE_MEMBERS: 'manage_members',
+  MANAGE_ORGANIZATION: 'manage_organization',
 }
 
 // Labeled, ordered list for permission-checklist UI (role create/edit forms).
@@ -59,6 +60,7 @@ export const ORGANIZATION_PERMISSIONS = [
   { value: 'pause_resume_campaign', label: 'Pause/Resume Campaign' },
   { value: 'withdraw_funds', label: 'Withdraw Funds' },
   { value: 'manage_members', label: 'Manage Members' },
+  { value: 'manage_organization', label: 'Manage Organization' },
 ]
 
 export const ROUTES = {

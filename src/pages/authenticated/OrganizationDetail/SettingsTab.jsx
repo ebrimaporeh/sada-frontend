@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { AlertCircle, Clock, Mail, UserCheck } from 'lucide-react'
 import { useMyOrganizationChangeRequests, useSubmitOrganizationChangeRequest } from '@/hooks/useUsers'
+import { useMyOrganizationMembership } from '@/hooks/useOrganizations'
 import { OrganizationVerificationSection } from '@/features/users/components/OrganizationVerificationSection'
+import { OrganizationPermission } from '@/constants'
 import { initials } from '@/utils/formatters'
 
 const CHANGEABLE_FIELD_LABELS = {
@@ -17,7 +19,7 @@ const CHANGEABLE_FIELD_LABELS = {
 // admin-reviewed request. Same component either way; only the copy and
 // pending-state icon differ. Mirrors the pattern this replaced in
 // UserProfile.jsx, just organization-scoped now instead of user-scoped.
-function ChangeableField({ organizationId, fieldName, label, currentValue, pendingRequest, type = 'text' }) {
+function ChangeableField({ organizationId, fieldName, label, currentValue, pendingRequest, type = 'text', canManage }) {
   const [editing, setEditing] = useState(false)
   const [value, setValue] = useState('')
   const [error, setError] = useState('')
@@ -52,7 +54,7 @@ function ChangeableField({ organizationId, fieldName, label, currentValue, pendi
     <div>
       <div className="flex items-center justify-between gap-2">
         <p className="text-xs text-muted-foreground">{label}</p>
-        {!editing && !pendingRequest && (
+        {canManage && !editing && !pendingRequest && (
           <button type="button" onClick={startEdit} className="text-xs text-primary hover:underline font-medium flex-shrink-0">
             Change
           </button>
@@ -139,6 +141,8 @@ function ContactPersonsList({ contactPersons }) {
 
 export function SettingsTab({ organization }) {
   const { data: changeRequests } = useMyOrganizationChangeRequests()
+  const myMembership = useMyOrganizationMembership(organization.id)
+  const canManage = myMembership?.permissions?.includes(OrganizationPermission.MANAGE_ORGANIZATION)
   const pendingRequestFor = (fieldName) =>
     changeRequests?.find((r) => r.organization_id === organization.id && r.field_name === fieldName && r.status === 'pending')
 
@@ -184,6 +188,7 @@ export function SettingsTab({ organization }) {
             currentValue={organization.phone}
             pendingRequest={pendingRequestFor('phone')}
             type="tel"
+            canManage={canManage}
           />
           <ChangeableField
             organizationId={organization.id}
@@ -192,6 +197,7 @@ export function SettingsTab({ organization }) {
             currentValue={organization.phone_2}
             pendingRequest={pendingRequestFor('phone_2')}
             type="tel"
+            canManage={canManage}
           />
           <div className="hidden lg:block" />
           <ChangeableField
@@ -201,6 +207,7 @@ export function SettingsTab({ organization }) {
             currentValue={organization.recovery_email_1}
             pendingRequest={pendingRequestFor('recovery_email_1')}
             type="email"
+            canManage={canManage}
           />
           <ChangeableField
             organizationId={organization.id}
@@ -209,6 +216,7 @@ export function SettingsTab({ organization }) {
             currentValue={organization.recovery_email_2}
             pendingRequest={pendingRequestFor('recovery_email_2')}
             type="email"
+            canManage={canManage}
           />
         </div>
       </div>

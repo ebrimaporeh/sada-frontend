@@ -24,8 +24,13 @@ const BASE_NAV_ITEMS = [
   { label: 'Dashboard', to: ROUTES.DASHBOARD, icon: LayoutDashboard },
   { label: 'My Campaigns', to: ROUTES.MY_CAMPAIGNS, icon: Megaphone },
   { label: 'Start Campaign', to: ROUTES.CAMPAIGN_NEW, icon: PlusCircle },
-  { label: 'Organizations', to: ROUTES.ORGANIZATIONS, icon: Building2 },
 ]
+
+// The org list only makes sense while acting as yourself -- once an org
+// profile is active, Overview/Members/Roles/Org Settings (below) already
+// are that org's own navigation, and switching to a *different* org goes
+// through ProfileSwitcher's dropdown, not this list.
+const ORGANIZATIONS_LIST_ITEM = { label: 'Organizations', to: ROUTES.ORGANIZATIONS, icon: Building2 }
 
 const TRAILING_NAV_ITEMS = [
   { label: 'Notifications', to: ROUTES.NOTIFICATIONS, icon: Bell },
@@ -50,7 +55,7 @@ function orgNavItems(organizationId) {
 
 function buildNavItems(isOrg, organizationId) {
   const items = [...BASE_NAV_ITEMS]
-  if (isOrg) items.push(...orgNavItems(organizationId))
+  items.push(...(isOrg ? orgNavItems(organizationId) : [ORGANIZATIONS_LIST_ITEM]))
   items.push(...TRAILING_NAV_ITEMS)
   return items
 }
