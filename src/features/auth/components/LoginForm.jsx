@@ -248,7 +248,11 @@ export function LoginForm() {
 
       <p className="text-center text-sm text-muted-foreground">
         Don't have an account?{' '}
-        <Link to={ROUTES.REGISTER} className="font-medium text-primary hover:underline">
+        <Link
+          to={ROUTES.REGISTER}
+          search={emailLocked ? { email: search.email } : undefined}
+          className="font-medium text-primary hover:underline"
+        >
           Sign up
         </Link>
       </p>

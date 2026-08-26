@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useSearch, useNavigate } from '@tanstack/react-router'
-import { AlertCircle, ArrowLeft, Building2, CheckCircle2, Loader2, LogIn, UserPlus, XCircle } from 'lucide-react'
+import { AlertCircle, ArrowLeft, Building2, CheckCircle2, Loader2, XCircle } from 'lucide-react'
 import { useMe } from '@/hooks/useAuth'
 import { useInvitationPreview, useAcceptInvitation, useRejectInvitation } from '@/hooks/useOrganizations'
 import { AuthShell } from '@/components/custom/AuthShell'
@@ -18,8 +18,21 @@ export function InvitationPage() {
 
   function continueToAuth(routeTo) {
     localStorage.setItem(PENDING_INVITATION_STORAGE_KEY, token)
-    navigate({ to: routeTo, search: { email: invitation?.email } })
+    navigate({ to: routeTo, search: { email: invitation?.email }, replace: true })
   }
+
+  // No active session -- go straight to Login (prefilled + locked to the
+  // invited email, see LoginForm) instead of making the person choose
+  // between "Log in" and "Create an account" first. A brand-new invitee
+  // with no account yet still reaches Register from Login's own "Sign up"
+  // link; postAuthDestination (useAuth.js) sends them back here once
+  // they're authenticated, via the token stashed in continueToAuth.
+  const pendingResolved = !isLoading && !meLoading && !isError && invitation
+  const isRespondable = pendingResolved && invitation.status === 'pending' && !responded
+  useEffect(() => {
+    if (isRespondable && !me) continueToAuth(ROUTES.LOGIN)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isRespondable, me])
 
   function handleAccept() {
     acceptInvitation.mutate(token, {
@@ -136,24 +149,9 @@ export function InvitationPage() {
       </div>
 
       {!me ? (
-        <div className="space-y-3 mt-6">
-          <p className="text-xs text-center text-muted-foreground">
-            Log in or create an account with this email address to respond.
-          </p>
-          <button
-            type="button"
-            onClick={() => continueToAuth(ROUTES.LOGIN)}
-            className="w-full inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground font-semibold px-6 py-2.5 rounded-xl hover:bg-primary/90 transition-colors text-sm"
-          >
-            <LogIn className="w-4 h-4" /> Log in
-          </button>
-          <button
-            type="button"
-            onClick={() => continueToAuth(ROUTES.REGISTER)}
-            className="w-full inline-flex items-center justify-center gap-2 border font-semibold px-6 py-2.5 rounded-xl hover:bg-accent transition-colors text-sm"
-          >
-            <UserPlus className="w-4 h-4" /> Create an account
-          </button>
+        <div className="space-y-3 mt-6 text-center">
+          <Loader2 className="w-5 h-5 text-muted-foreground animate-spin mx-auto" />
+          <p className="text-xs text-muted-foreground">Taking you to log in…</p>
         </div>
       ) : emailMismatch ? (
         <div className="mt-6 space-y-3">
