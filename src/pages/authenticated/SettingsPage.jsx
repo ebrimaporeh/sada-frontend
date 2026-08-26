@@ -19,6 +19,23 @@ function Section({ title, description, children, className }) {
   )
 }
 
+// Same badge as the public donation page's MethodBadge (DonateCheckout.jsx)
+// -- the real provider logo, not a custom colored initial.
+function MethodLogo({ method, size = 'w-8 h-8' }) {
+  if (method?.logo) {
+    return (
+      <div className={cn(size, 'rounded-lg bg-white border flex items-center justify-center flex-shrink-0 overflow-hidden p-1.5')}>
+        <img src={method.logo} alt={method.name} className="w-full h-full object-contain" />
+      </div>
+    )
+  }
+  return (
+    <div className={cn(size, 'rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0', method?.color)}>
+      {method?.short}
+    </div>
+  )
+}
+
 function Toggle({ checked, onChange, label, description }) {
   return (
     <label className="flex items-start justify-between gap-4 cursor-pointer group">
@@ -276,9 +293,7 @@ export function SettingsPage() {
                       : 'hover:bg-muted/50',
                   )}
                 >
-                  <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0', p.color)}>
-                    {p.short}
-                  </div>
+                  <MethodLogo method={p} />
                   <div className="min-w-0">
                     <p className="text-xs font-semibold">{p.name}</p>
                     <p className="text-[10px] text-muted-foreground">{p.description}</p>
