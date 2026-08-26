@@ -94,6 +94,17 @@ export function SettingsPage() {
     e.preventDefault()
     setPaymentError('')
     const rawPhone = paymentForm.default_payment_phone.trim()
+    // PURA's numbering reform (effective 4 Sept 2026) moves every Gambian
+    // number from 7 to 9 digits, with both formats valid through a
+    // transition period ending 30 Nov 2026 -- accept either length here
+    // rather than only the old (or only the new) format.
+    if (rawPhone) {
+      const digitCount = rawPhone.replace(/\D/g, '').length
+      if (digitCount !== 7 && digitCount !== 9) {
+        setPaymentError('Enter a valid Gambian phone number -- 7 digits (old format) or 9 digits (new format), after +220.')
+        return
+      }
+    }
     const phone = rawPhone ? `+220${rawPhone}` : ''
     updateMe.mutate(
       { default_payment_provider: paymentForm.default_payment_provider, default_payment_phone: phone },
@@ -294,7 +305,10 @@ export function SettingsPage() {
                 className="w-full pl-14 pr-4 py-2.5 border rounded-xl text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
               />
             </div>
-            <p className="text-xs text-muted-foreground">This number will be pre-filled when you request a withdrawal.</p>
+            <p className="text-xs text-muted-foreground">
+              This number will be pre-filled when you request a withdrawal. 7-digit (old) and 9-digit (new) formats
+              are both accepted during the transition to Gambia's new numbering system.
+            </p>
           </div>
 
           {paymentError && (
