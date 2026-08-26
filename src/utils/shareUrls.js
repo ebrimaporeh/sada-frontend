@@ -9,6 +9,6 @@ export function campaignShareUrl(slug) {
   return `${settings.apiOrigin}/share/campaigns/${slug}/`
 }
 
-export function campaignerShareUrl(id) {
-  return `${settings.apiOrigin}/share/campaigners/${id}/`
+export function fundraiserShareUrl(id) {
+  return `${settings.apiOrigin}/share/fundraisers/${id}/`
 }

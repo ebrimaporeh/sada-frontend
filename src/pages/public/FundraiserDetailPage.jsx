@@ -1,12 +1,12 @@
 import { useParams, Link } from '@tanstack/react-router'
 import { ChevronLeft, Megaphone } from 'lucide-react'
-import { usePublicCampaigner } from '@/hooks/useUsers'
-import { CampaignerProfileView } from '@/features/campaigners/components/CampaignerProfileView'
+import { usePublicFundraiser } from '@/hooks/useUsers'
+import { FundraiserProfileView } from '@/features/fundraisers/components/FundraiserProfileView'
 import { CampaignCardSkeleton } from '@/components/custom/CampaignCardSkeleton'
 import { EmptyState } from '@/components/custom/EmptyState'
 import { ROUTES } from '@/constants'
 
-function CampaignerProfileHeaderSkeleton() {
+function FundraiserProfileHeaderSkeleton() {
   return (
     <div className="border rounded-2xl p-6 bg-card flex flex-col sm:flex-row items-center sm:items-start gap-6 animate-pulse">
       <div className="w-24 h-24 rounded-full bg-muted flex-shrink-0" />
@@ -29,19 +29,19 @@ function CampaignerProfileHeaderSkeleton() {
   )
 }
 
-export function CampaignerDetailPage() {
+export function FundraiserDetailPage() {
   const { id } = useParams({ strict: false })
-  const { campaigner, isLoading, isError } = usePublicCampaigner(id)
+  const { fundraiser, isLoading, isError } = usePublicFundraiser(id)
 
   if (isLoading) {
     return (
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 space-y-8">
-        <Link to={ROUTES.CAMPAIGNERS} className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+        <Link to={ROUTES.FUNDRAISERS} className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
           <ChevronLeft className="w-4 h-4" />
-          All Campaigners
+          All Fundraisers
         </Link>
 
-        <CampaignerProfileHeaderSkeleton />
+        <FundraiserProfileHeaderSkeleton />
 
         <div>
           <h2 className="text-lg font-bold flex items-center gap-2 mb-4">
@@ -57,9 +57,9 @@ export function CampaignerDetailPage() {
     )
   }
 
-  if (isError || !campaigner) {
-    return <EmptyState title="Campaigner not found" description="This profile does not exist or has no public campaigns." />
+  if (isError || !fundraiser) {
+    return <EmptyState title="Fundraiser not found" description="This profile does not exist or has no public campaigns." />
   }
 
-  return <CampaignerProfileView campaigner={campaigner} />
+  return <FundraiserProfileView fundraiser={fundraiser} />
 }

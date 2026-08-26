@@ -7,11 +7,11 @@ import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
 import { EmptyState } from '@/components/custom/EmptyState'
 import { Resource, hasResourceAccess } from '@/utils/permissions'
 import { cn } from '@/utils/cn'
-import { TABS } from './CampaignerDetail/shared'
-import { OverviewTab } from './CampaignerDetail/OverviewTab'
-import { CampaignsTab } from './CampaignerDetail/CampaignsTab'
-import { DonationsTab } from './CampaignerDetail/DonationsTab'
-import { PayoutsTab } from './CampaignerDetail/PayoutsTab'
+import { TABS } from './FundraiserDetail/shared'
+import { OverviewTab } from './FundraiserDetail/OverviewTab'
+import { CampaignsTab } from './FundraiserDetail/CampaignsTab'
+import { DonationsTab } from './FundraiserDetail/DonationsTab'
+import { PayoutsTab } from './FundraiserDetail/PayoutsTab'
 
 // Which resource gates each tab -- an admin who can view users but not,
 // say, finances shouldn't see a Payouts tab that would just 403.
@@ -22,7 +22,7 @@ const TAB_RESOURCE = {
   payouts: Resource.FINANCES_VIEW,
 }
 
-export function AdminCampaignerDetailPage() {
+export function AdminFundraiserDetailPage() {
   const navigate = useNavigate()
   const { id } = useParams({ strict: false })
   const { data: me } = useMe()
@@ -37,14 +37,14 @@ export function AdminCampaignerDetailPage() {
   if (!user) {
     return (
       <EmptyState
-        title="Campaigner not found"
+        title="Fundraiser not found"
         description="This user doesn't exist or has been removed."
         action={
           <button
             onClick={() => navigate({ to: '/admin/users' })}
             className="text-sm text-primary hover:underline"
           >
-            Back to campaigners
+            Back to fundraisers
           </button>
         }
       />
@@ -59,7 +59,7 @@ export function AdminCampaignerDetailPage() {
           onClick={() => navigate({ to: '/admin/users' })}
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors"
         >
-          <ChevronLeft className="w-4 h-4" /> Campaigners
+          <ChevronLeft className="w-4 h-4" /> Fundraisers
         </button>
 
         <div className="flex flex-col sm:flex-row sm:items-start gap-4 justify-between">

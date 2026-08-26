@@ -45,7 +45,7 @@ export function PayoutsTab({ user }) {
         <EmptyState
           icon={Banknote}
           title="No payouts yet"
-          description="This campaigner hasn't requested a payout."
+          description="This fundraiser hasn't requested a payout."
         />
       ) : (
         <div className="border rounded-2xl bg-card overflow-hidden">

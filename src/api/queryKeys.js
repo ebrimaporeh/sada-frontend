@@ -36,9 +36,9 @@ export const queryKeys = {
     mine: () => ['organization-change-request', 'mine'],
     adminList: (params) => ['organization-change-request', 'admin', params],
   },
-  campaigners: {
-    list: (params) => ['campaigners', 'list', params],
-    detail: (id) => ['campaigners', 'detail', id],
+  fundraisers: {
+    list: (params) => ['fundraisers', 'list', params],
+    detail: (id) => ['fundraisers', 'detail', id],
   },
   campaigns: {
     all: () => ['campaigns'],

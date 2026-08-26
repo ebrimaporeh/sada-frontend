@@ -204,7 +204,7 @@ export function CampaignDetailView({ campaign }) {
                   <strong className="text-foreground">{campaign.organization_name}</strong>
                 ) : campaign.owner_id ? (
                   <Link
-                    to="/campaigners/$id"
+                    to="/fundraisers/$id"
                     params={{ id: campaign.owner_id }}
                     className="font-bold text-foreground hover:text-primary transition-colors"
                   >

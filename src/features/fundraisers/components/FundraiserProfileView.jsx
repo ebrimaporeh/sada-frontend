@@ -9,22 +9,22 @@ import { usePageMeta } from '@/hooks/usePageMeta'
 import { GAMBIA_REGIONS, ORGANIZATION_TYPES, ACCOUNT_TYPES, ROUTES } from '@/constants'
 import { cn } from '@/utils/cn'
 
-export function CampaignerProfileView({ campaigner }) {
-  const { campaigns, isLoading } = useCampaigns({ owner: campaigner.id })
-  const regionLabel = GAMBIA_REGIONS.find((r) => r.value === campaigner.region)?.label
-  const isOrg = campaigner.account_type === ACCOUNT_TYPES.ORGANIZATION
-  const orgTypeLabel = ORGANIZATION_TYPES.find((t) => t.value === campaigner.organization_type)?.label
+export function FundraiserProfileView({ fundraiser }) {
+  const { campaigns, isLoading } = useCampaigns({ owner: fundraiser.id })
+  const regionLabel = GAMBIA_REGIONS.find((r) => r.value === fundraiser.region)?.label
+  const isOrg = fundraiser.account_type === ACCOUNT_TYPES.ORGANIZATION
+  const orgTypeLabel = ORGANIZATION_TYPES.find((t) => t.value === fundraiser.organization_type)?.label
 
   usePageMeta({
-    title: campaigner.full_name,
-    description: campaigner.bio || `${campaigner.campaign_count} campaign(s) on the platform.`,
-    image: campaigner.avatar,
+    title: fundraiser.full_name,
+    description: fundraiser.bio || `${fundraiser.campaign_count} campaign(s) on the platform.`,
+    image: fundraiser.avatar,
     type: 'profile',
   })
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 space-y-8">
-      <Breadcrumbs items={[{ label: 'Campaigners', to: ROUTES.CAMPAIGNERS }]} current={campaigner.full_name} />
+      <Breadcrumbs items={[{ label: 'Fundraisers', to: ROUTES.FUNDRAISERS }]} current={fundraiser.full_name} />
 
       {/* Profile header */}
       <div className="border rounded-2xl p-6 bg-card flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left">
@@ -32,16 +32,16 @@ export function CampaignerProfileView({ campaigner }) {
           'w-24 h-24 bg-primary flex items-center justify-center text-primary-foreground text-2xl font-bold overflow-hidden flex-shrink-0',
           isOrg ? 'rounded-2xl' : 'rounded-full',
         )}>
-          {campaigner.avatar
-            ? <img src={campaigner.avatar} alt={campaigner.full_name} className="w-full h-full object-cover" />
-            : initials(campaigner.full_name)
+          {fundraiser.avatar
+            ? <img src={fundraiser.avatar} alt={fundraiser.full_name} className="w-full h-full object-cover" />
+            : initials(fundraiser.full_name)
           }
         </div>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-center sm:justify-start gap-1.5">
-            <h1 className="text-xl font-bold">{campaigner.full_name}</h1>
-            {campaigner.is_verified && <VerifiedTick size="w-5 h-5" />}
+            <h1 className="text-xl font-bold">{fundraiser.full_name}</h1>
+            {fundraiser.is_verified && <VerifiedTick size="w-5 h-5" />}
           </div>
 
           <div className="flex items-center justify-center sm:justify-start gap-4 text-sm text-muted-foreground mt-1.5 flex-wrap">
@@ -52,22 +52,22 @@ export function CampaignerProfileView({ campaigner }) {
               <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" /> {regionLabel}</span>
             )}
             <span className="flex items-center gap-1">
-              <Calendar className="w-3.5 h-3.5" /> Joined {formatDate(campaigner.created_at)}
+              <Calendar className="w-3.5 h-3.5" /> Joined {formatDate(fundraiser.created_at)}
             </span>
           </div>
 
-          {campaigner.bio && (
-            <p className="text-sm text-muted-foreground mt-3 max-w-xl">{campaigner.bio}</p>
+          {fundraiser.bio && (
+            <p className="text-sm text-muted-foreground mt-3 max-w-xl">{fundraiser.bio}</p>
           )}
 
           <div className="flex items-center justify-center sm:justify-start gap-6 mt-4 pt-4 border-t">
             <div>
-              <p className="text-lg font-bold">{campaigner.campaign_count}</p>
-              <p className="text-xs text-muted-foreground">Campaign{campaigner.campaign_count !== 1 ? 's' : ''}</p>
+              <p className="text-lg font-bold">{fundraiser.campaign_count}</p>
+              <p className="text-xs text-muted-foreground">Campaign{fundraiser.campaign_count !== 1 ? 's' : ''}</p>
             </div>
-            {campaigner.total_raised != null && (
+            {fundraiser.total_raised != null && (
               <div>
-                <p className="text-lg font-bold">{formatGMD(campaigner.total_raised)}</p>
+                <p className="text-lg font-bold">{formatGMD(fundraiser.total_raised)}</p>
                 <p className="text-xs text-muted-foreground">Total raised</p>
               </div>
             )}

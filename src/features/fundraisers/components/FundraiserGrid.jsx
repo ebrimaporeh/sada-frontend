@@ -1,20 +1,20 @@
 import { useEffect, useRef, useState } from 'react'
 import { Search, X, SearchX, Loader2 } from 'lucide-react'
-import { usePublicCampaigners } from '@/hooks/useUsers'
-import { CampaignerPhotoTile } from './CampaignerPhotoTile'
-import { CampaignerCardSkeleton } from './CampaignerCardSkeleton'
+import { usePublicFundraisers } from '@/hooks/useUsers'
+import { FundraiserPhotoTile } from './FundraiserPhotoTile'
+import { FundraiserCardSkeleton } from './FundraiserCardSkeleton'
 import { Breadcrumbs } from '@/components/custom/Breadcrumbs'
 import { Select } from '@/components/custom/Select'
 import { GAMBIA_REGIONS } from '@/constants'
 
-export function CampaignerGrid() {
+export function FundraiserGrid() {
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
   const [region, setRegion] = useState('')
 
   const {
-    campaigners, isLoading, hasNextPage, isFetchingNextPage, fetchNextPage,
-  } = usePublicCampaigners({ search, region })
+    fundraisers, isLoading, hasNextPage, isFetchingNextPage, fetchNextPage,
+  } = usePublicFundraisers({ search, region })
 
   const hasFilters = search || searchInput || region
   const sentinelRef = useRef(null)
@@ -44,11 +44,11 @@ export function CampaignerGrid() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
-      <Breadcrumbs current="Campaigners" />
+      <Breadcrumbs current="Fundraisers" />
       <div className="mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold">Campaigners</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold">Fundraisers</h1>
         <p className="text-muted-foreground mt-1 text-sm">
-          {isLoading ? 'Loading campaigners…' : `${campaigners.length} campaigner${campaigners.length !== 1 ? 's' : ''} found`}
+          {isLoading ? 'Loading fundraisers…' : `${fundraisers.length} fundraiser${fundraisers.length !== 1 ? 's' : ''} found`}
         </p>
       </div>
 
@@ -59,7 +59,7 @@ export function CampaignerGrid() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Search campaigners by name..."
+              placeholder="Search fundraisers by name..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && submitSearch()}
@@ -108,13 +108,13 @@ export function CampaignerGrid() {
       {isLoading ? (
         <div className="columns-2 sm:columns-3 lg:columns-4 gap-4">
           {Array.from({ length: 10 }).map((_, i) => (
-            <CampaignerCardSkeleton key={i} index={i} />
+            <FundraiserCardSkeleton key={i} index={i} />
           ))}
         </div>
-      ) : campaigners.length === 0 ? (
+      ) : fundraisers.length === 0 ? (
         <div className="text-center py-20">
           <SearchX className="w-10 h-10 mx-auto mb-4 text-muted-foreground" />
-          <p className="text-lg font-semibold mb-2">No campaigners found</p>
+          <p className="text-lg font-semibold mb-2">No fundraisers found</p>
           <p className="text-muted-foreground text-sm">Try adjusting your filters or search term.</p>
           <button onClick={clearFilters} className="mt-4 text-sm text-primary hover:underline">
             Clear all filters
@@ -123,8 +123,8 @@ export function CampaignerGrid() {
       ) : (
         <>
           <div className="columns-2 sm:columns-3 lg:columns-4 gap-4">
-            {campaigners.map((c) => (
-              <CampaignerPhotoTile key={c.id} campaigner={c} />
+            {fundraisers.map((c) => (
+              <FundraiserPhotoTile key={c.id} fundraiser={c} />
             ))}
           </div>
 

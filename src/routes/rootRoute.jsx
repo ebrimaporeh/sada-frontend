@@ -20,8 +20,8 @@ import { InvitationPage } from '@/pages/public/InvitationPage'
 import { CampaignsPage } from '@/pages/public/CampaignsPage'
 import { CategoriesPage as PublicCategoriesPage } from '@/pages/public/CategoriesPage'
 import { CampaignDetailPage } from '@/pages/public/CampaignDetailPage'
-import { CampaignersPage } from '@/pages/public/CampaignersPage'
-import { CampaignerDetailPage } from '@/pages/public/CampaignerDetailPage'
+import { FundraisersPage } from '@/pages/public/FundraisersPage'
+import { FundraiserDetailPage } from '@/pages/public/FundraiserDetailPage'
 import { DonatePage } from '@/pages/public/DonatePage'
 import { DonateSuccessPage } from '@/pages/public/DonateSuccessPage'
 import { ZakatPage } from '@/pages/public/ZakatPage'
@@ -52,7 +52,7 @@ import { OrganizationSettingsPage } from '@/pages/authenticated/OrganizationSett
 // Pages — admin
 import { AdminDashboardPage } from '@/pages/admin/DashboardPage'
 import { UsersPage } from '@/pages/admin/UsersPage'
-import { AdminCampaignerDetailPage } from '@/pages/admin/AdminCampaignerDetailPage'
+import { AdminFundraiserDetailPage } from '@/pages/admin/AdminFundraiserDetailPage'
 import { AdminOrganizationDetailPage } from '@/pages/admin/AdminOrganizationDetailPage'
 import { StaffPage } from '@/pages/admin/StaffPage'
 import { CampaignsPage as AdminCampaignsPage } from '@/pages/admin/CampaignsPage'
@@ -183,16 +183,16 @@ const campaignDetailRoute = createRoute({
   component: CampaignDetailPage,
 })
 
-const campaignersRoute = createRoute({
+const fundraisersRoute = createRoute({
   getParentRoute: () => publicLayout,
-  path: ROUTES.CAMPAIGNERS,
-  component: CampaignersPage,
+  path: ROUTES.FUNDRAISERS,
+  component: FundraisersPage,
 })
 
-const campaignerDetailRoute = createRoute({
+const fundraiserDetailRoute = createRoute({
   getParentRoute: () => publicLayout,
-  path: ROUTES.CAMPAIGNER_DETAIL,
-  component: CampaignerDetailPage,
+  path: ROUTES.FUNDRAISER_DETAIL,
+  component: FundraiserDetailPage,
 })
 
 const donateRoute = createRoute({
@@ -367,7 +367,7 @@ const adminUsersRoute = createRoute({
 const adminUserDetailRoute = createRoute({
   getParentRoute: () => adminLayout,
   path: ROUTES.ADMIN_USER_DETAIL,
-  component: AdminCampaignerDetailPage,
+  component: AdminFundraiserDetailPage,
   beforeLoad: requireResource(Resource.USERS_VIEW),
 })
 
@@ -488,8 +488,8 @@ const routeTree = rootRoute.addChildren([
     campaignsRoute,
     categoriesRoute,
     campaignDetailRoute,
-    campaignersRoute,
-    campaignerDetailRoute,
+    fundraisersRoute,
+    fundraiserDetailRoute,
     donateRoute,
     donateSuccessRoute,
     invitationRoute,

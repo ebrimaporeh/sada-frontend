@@ -18,24 +18,24 @@ export function useUser(id) {
   })
 }
 
-// ── Public campaigner profiles ────────────────────────────────────────────────
+// ── Public fundraiser profiles ────────────────────────────────────────────────
 
-const CAMPAIGNERS_PAGE_SIZE = 10
+const FUNDRAISERS_PAGE_SIZE = 10
 
-export function usePublicCampaigners(filters = {}) {
+export function usePublicFundraisers(filters = {}) {
   const params = {}
   if (filters.region) params.region = filters.region
   if (filters.search) params.search = filters.search
 
   const query = useInfiniteQuery({
-    queryKey: queryKeys.campaigners.list(params),
-    queryFn: ({ pageParam }) => userApi.getCampaigners({ ...params, page: pageParam, page_size: CAMPAIGNERS_PAGE_SIZE }),
+    queryKey: queryKeys.fundraisers.list(params),
+    queryFn: ({ pageParam }) => userApi.getFundraisers({ ...params, page: pageParam, page_size: FUNDRAISERS_PAGE_SIZE }),
     initialPageParam: 1,
     getNextPageParam: (lastPage) => (lastPage.page < lastPage.total_pages ? lastPage.page + 1 : undefined),
   })
 
   return {
-    campaigners: query.data?.pages.flatMap((page) => page.results ?? []) ?? [],
+    fundraisers: query.data?.pages.flatMap((page) => page.results ?? []) ?? [],
     count: query.data?.pages[0]?.count ?? 0,
     isLoading: query.isLoading,
     isError: query.isError,
@@ -45,14 +45,14 @@ export function usePublicCampaigners(filters = {}) {
   }
 }
 
-export function usePublicCampaigner(id) {
+export function usePublicFundraiser(id) {
   const query = useQuery({
-    queryKey: queryKeys.campaigners.detail(id),
-    queryFn: () => userApi.getCampaigner(id),
+    queryKey: queryKeys.fundraisers.detail(id),
+    queryFn: () => userApi.getFundraiser(id),
     enabled: Boolean(id),
     retry: false,
   })
-  return { campaigner: query.data ?? null, isLoading: query.isLoading, isError: query.isError }
+  return { fundraiser: query.data ?? null, isLoading: query.isLoading, isError: query.isError }
 }
 
 export function useUpdateMe() {

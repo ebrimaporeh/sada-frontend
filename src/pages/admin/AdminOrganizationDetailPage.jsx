@@ -13,7 +13,7 @@ import { MembersTab } from './AdminOrganizationDetail/MembersTab'
 import { CampaignsTab } from './AdminOrganizationDetail/CampaignsTab'
 import { VerificationTab } from './AdminOrganizationDetail/VerificationTab'
 
-// Same reasoning as AdminCampaignerDetailPage's TAB_RESOURCE.
+// Same reasoning as AdminFundraiserDetailPage's TAB_RESOURCE.
 const TAB_RESOURCE = {
   overview: Resource.USERS_VIEW,
   members: Resource.USERS_VIEW,
@@ -43,7 +43,7 @@ export function AdminOrganizationDetailPage() {
             onClick={() => navigate({ to: '/admin/users' })}
             className="text-sm text-primary hover:underline"
           >
-            Back to campaigners
+            Back to fundraisers
           </button>
         }
       />
@@ -58,7 +58,7 @@ export function AdminOrganizationDetailPage() {
           onClick={() => navigate({ to: '/admin/users' })}
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors"
         >
-          <ChevronLeft className="w-4 h-4" /> Campaigners
+          <ChevronLeft className="w-4 h-4" /> Fundraisers
         </button>
 
         <div className="flex flex-col sm:flex-row sm:items-start gap-4 justify-between">

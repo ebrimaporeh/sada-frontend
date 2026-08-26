@@ -30,7 +30,7 @@ function upsertLink(rel, href) {
  * This does NOT reach WhatsApp/Facebook/LinkedIn/Slack's link-preview
  * crawlers -- they read a page's initial HTML only and never execute this
  * (or any) JS, so a client-side tag update is invisible to them. Sharing a
- * campaign/campaigner/vision-topic link uses a backend-rendered preview
+ * campaign/fundraiser/vision-topic link uses a backend-rendered preview
  * URL instead (see ShareCampaign's `url` prop and apps/seo on the
  * backend), which is the actual fix for those. This hook is the other
  * half: everything a real visitor's browser and Google itself see.

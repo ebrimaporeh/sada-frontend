@@ -14,7 +14,7 @@ export const ROLES = {
 // account registers (and stays) INDIVIDUAL now; an organization is a
 // separate multi-member entity a person creates/joins afterward (see
 // src/features/organizations), not a type of account. Kept only because a
-// few admin-side pages (Users/Campaigners "Organizations" tab, the org
+// few admin-side pages (Users/Fundraisers "Organizations" tab, the org
 // verification review flow) still read it pending their own rebuild against
 // the new Organization-backed endpoints -- don't use ACCOUNT_TYPES.ORGANIZATION
 // to gate new UI, it's never actually set by anything anymore.
@@ -78,9 +78,9 @@ export const ROUTES = {
   CAMPAIGN_NEW: '/campaigns/new',
   CATEGORIES: '/categories',
 
-  // Public campaigner profile routes
-  CAMPAIGNERS: '/campaigners',
-  CAMPAIGNER_DETAIL: '/campaigners/$id',
+  // Public fundraiser profile routes
+  FUNDRAISERS: '/fundraisers',
+  FUNDRAISER_DETAIL: '/fundraisers/$id',
 
   // Authenticated routes
   DASHBOARD: '/dashboard',

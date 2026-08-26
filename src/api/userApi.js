@@ -58,6 +58,6 @@ export const userApi = {
   reviewOrganizationChangeRequest: (id, action, reason) =>
     apiClient.post(`/users/admin/organization-change-requests/${id}/${action}/`, reason ? { reason } : {}).then((r) => r.data),
 
-  getCampaigners: (params) => apiClient.get('/users/campaigners/', { params }).then((r) => r.data),
-  getCampaigner: (id) => apiClient.get(`/users/campaigners/${id}/`).then((r) => r.data),
+  getFundraisers: (params) => apiClient.get('/users/fundraisers/', { params }).then((r) => r.data),
+  getFundraiser: (id) => apiClient.get(`/users/fundraisers/${id}/`).then((r) => r.data),
 }

@@ -457,7 +457,7 @@ export function SettingsPage() {
       {/* Public profile privacy */}
       <Section
         title="Public Profile"
-        description="Control what's shown on your public campaigner profile."
+        description="Control what's shown on your public fundraiser profile."
         className="flex-1 min-w-[360px]"
       >
         <Toggle
