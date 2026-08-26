@@ -1,9 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useMe } from '@/hooks/useAuth'
 import { useProfileSwitchStore } from '@/store/profileSwitchStore'
+import { useActiveProfileStore, INDIVIDUAL_PROFILE_ID } from '@/store/activeProfileStore'
 
-const STORAGE_KEY = 'active_profile_id'
-export const INDIVIDUAL_PROFILE_ID = 'individual'
+// Re-exported so existing `import { INDIVIDUAL_PROFILE_ID } from
+// '@/hooks/useActiveProfile'` call sites (e.g. ProfileSwitcher) don't need
+// to change now that the id itself lives in the store -- see there for why.
+export { INDIVIDUAL_PROFILE_ID }
+
 // Purely a transition beat (see ProfileSwitchOverlay) -- switching profile
 // itself is instant (everything needed is already in the me cache), this
 // just gives the switch a moment to register visually instead of the nav/
@@ -32,9 +36,8 @@ export function useActiveProfile() {
   const { data: me } = useMe()
   const organizations = me?.organizations ?? []
 
-  const [profileId, setProfileIdState] = useState(
-    () => localStorage.getItem(STORAGE_KEY) || INDIVIDUAL_PROFILE_ID,
-  )
+  const profileId = useActiveProfileStore((s) => s.profileId)
+  const setProfileId = useActiveProfileStore((s) => s.setProfileId)
 
   const activeOrg = profileId === INDIVIDUAL_PROFILE_ID
     ? null
@@ -46,18 +49,16 @@ export function useActiveProfile() {
   useEffect(() => {
     if (!me) return
     if (profileId !== INDIVIDUAL_PROFILE_ID && !activeOrg) {
-      setProfileIdState(INDIVIDUAL_PROFILE_ID)
-      localStorage.setItem(STORAGE_KEY, INDIVIDUAL_PROFILE_ID)
+      setProfileId(INDIVIDUAL_PROFILE_ID)
     }
-  }, [me, profileId, activeOrg])
+  }, [me, profileId, activeOrg, setProfileId])
 
   function setProfile(id) {
     const target = id === INDIVIDUAL_PROFILE_ID
       ? { label: 'Personal account', isOrg: false }
       : { label: organizations.find((o) => o.id === id)?.organization_name || 'organization', isOrg: true }
     useProfileSwitchStore.getState().startSwitch(target)
-    setProfileIdState(id)
-    localStorage.setItem(STORAGE_KEY, id)
+    setProfileId(id)
     setTimeout(() => useProfileSwitchStore.getState().endSwitch(), SWITCH_OVERLAY_DURATION_MS)
   }
 
