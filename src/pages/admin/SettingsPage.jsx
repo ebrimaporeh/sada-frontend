@@ -245,12 +245,26 @@ function PaymentGatewaysCard({ onNotify }) {
         wave_enabled: platformSettings.wave_enabled,
         aps_enabled: platformSettings.aps_enabled,
         afrimoney_enabled: platformSettings.afrimoney_enabled,
+        modempay_min_donation_amount: String(platformSettings.modempay_min_donation_amount ?? ''),
+        modempay_max_donation_amount: String(platformSettings.modempay_max_donation_amount ?? ''),
         stripe_enabled: platformSettings.stripe_enabled,
         stripe_settlement_currency: platformSettings.stripe_settlement_currency || 'usd',
         gmd_to_settlement_rate: String(platformSettings.gmd_to_settlement_rate ?? ''),
+        stripe_min_donation_amount: String(platformSettings.stripe_min_donation_amount ?? ''),
+        stripe_max_donation_amount: String(platformSettings.stripe_max_donation_amount ?? ''),
       })
     }
   }, [platformSettings, form])
+
+  // Shared by both gateways' min/max fields -- returns an error string, or
+  // null if the pair is valid.
+  const validateDonationRange = (minRaw, maxRaw, label) => {
+    const min = Number(minRaw)
+    const max = Number(maxRaw)
+    if (!minRaw || Number.isNaN(min) || min <= 0) return `Enter a positive ${label} minimum donation amount.`
+    if (!maxRaw || Number.isNaN(max) || max <= min) return `${label} maximum donation must be greater than its minimum.`
+    return null
+  }
 
   const handleSave = () => {
     const rate = Number(form.gmd_to_settlement_rate)
@@ -262,15 +276,24 @@ function PaymentGatewaysCard({ onNotify }) {
       onNotify('error', 'Enter a settlement currency code (e.g. usd).')
       return
     }
+    const modempayRangeError = validateDonationRange(form.modempay_min_donation_amount, form.modempay_max_donation_amount, 'ModemPay')
+    if (modempayRangeError) { onNotify('error', modempayRangeError); return }
+    const stripeRangeError = validateDonationRange(form.stripe_min_donation_amount, form.stripe_max_donation_amount, 'Stripe')
+    if (stripeRangeError) { onNotify('error', stripeRangeError); return }
+
     updateSettings.mutate(
       {
         modempay_enabled: form.modempay_enabled,
         wave_enabled: form.wave_enabled,
         aps_enabled: form.aps_enabled,
         afrimoney_enabled: form.afrimoney_enabled,
+        modempay_min_donation_amount: form.modempay_min_donation_amount,
+        modempay_max_donation_amount: form.modempay_max_donation_amount,
         stripe_enabled: form.stripe_enabled,
         stripe_settlement_currency: form.stripe_settlement_currency.trim().toLowerCase(),
         gmd_to_settlement_rate: form.gmd_to_settlement_rate,
+        stripe_min_donation_amount: form.stripe_min_donation_amount,
+        stripe_max_donation_amount: form.stripe_max_donation_amount,
       },
       {
         onSuccess: () => onNotify('success', 'Payment gateway settings updated.'),
@@ -333,6 +356,13 @@ function PaymentGatewaysCard({ onNotify }) {
               label="Afrimoney"
               description="Donations and withdrawals — Afrimoney supports both, same as Wave."
             />
+            <DonationRangeFields
+              minValue={form.modempay_min_donation_amount}
+              maxValue={form.modempay_max_donation_amount}
+              onMinChange={(v) => setForm((f) => ({ ...f, modempay_min_donation_amount: v }))}
+              onMaxChange={(v) => setForm((f) => ({ ...f, modempay_max_donation_amount: v }))}
+              hint="ModemPay enforces its own real limit on its end — keep the maximum here at or below it, or donations in between will pass here and still get rejected."
+            />
           </div>
         </div>
         <div className="pt-4">
@@ -346,6 +376,15 @@ function PaymentGatewaysCard({ onNotify }) {
             }
             description="Card donations only — Stripe cannot pay out to a Gambian mobile-money wallet."
           />
+          <div className="mt-3 ml-4 pl-4 border-l-2">
+            <DonationRangeFields
+              minValue={form.stripe_min_donation_amount}
+              maxValue={form.stripe_max_donation_amount}
+              onMinChange={(v) => setForm((f) => ({ ...f, stripe_min_donation_amount: v }))}
+              onMaxChange={(v) => setForm((f) => ({ ...f, stripe_max_donation_amount: v }))}
+              hint="Not independently confirmed against a real Stripe limit — adjust if Stripe rejects amounts below this."
+            />
+          </div>
         </div>
       </div>
 
@@ -387,6 +426,43 @@ function PaymentGatewaysCard({ onNotify }) {
         <Save className="w-4 h-4" />
         {updateSettings.isPending ? 'Saving…' : 'Save Changes'}
       </button>
+    </div>
+  )
+}
+
+// A gateway's own donation min/max is its policy, not ours -- ModemPay
+// rejecting an amount its API used to accept is exactly what silently broke
+// donations before this became admin-editable, so surfacing both fields
+// together (with a note on why) matters more here than for a typical
+// numeric setting.
+function DonationRangeFields({ minValue, maxValue, onMinChange, onMaxChange, hint }) {
+  return (
+    <div className="mt-3 space-y-1.5">
+      <label className="text-sm font-medium">Donation amount limits</label>
+      <div className="flex items-center gap-2 max-w-xs">
+        <div className="relative flex-1">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">D</span>
+          <input
+            type="number" min="0" step="0.01"
+            value={minValue}
+            onChange={(e) => onMinChange(e.target.value)}
+            placeholder="Min"
+            className="w-full pl-7 pr-2 py-2 border rounded-lg bg-background focus:outline-hidden focus:ring-2 focus:ring-ring text-sm"
+          />
+        </div>
+        <span className="text-xs text-muted-foreground">to</span>
+        <div className="relative flex-1">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">D</span>
+          <input
+            type="number" min="0" step="0.01"
+            value={maxValue}
+            onChange={(e) => onMaxChange(e.target.value)}
+            placeholder="Max"
+            className="w-full pl-7 pr-2 py-2 border rounded-lg bg-background focus:outline-hidden focus:ring-2 focus:ring-ring text-sm"
+          />
+        </div>
+      </div>
+      <p className="text-xs text-muted-foreground max-w-sm">Per single donation. {hint}</p>
     </div>
   )
 }

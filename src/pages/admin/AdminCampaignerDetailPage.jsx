@@ -1,11 +1,10 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from '@tanstack/react-router'
-import { ChevronLeft, Building2, ShieldCheck, ShieldOff } from 'lucide-react'
+import { ChevronLeft, ShieldCheck, ShieldOff } from 'lucide-react'
 import { useUser } from '@/hooks/useUsers'
 import { useMe } from '@/hooks/useAuth'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
 import { EmptyState } from '@/components/custom/EmptyState'
-import { ACCOUNT_TYPES } from '@/constants'
 import { Resource, hasResourceAccess } from '@/utils/permissions'
 import { cn } from '@/utils/cn'
 import { TABS } from './CampaignerDetail/shared'
@@ -52,8 +51,6 @@ export function AdminCampaignerDetailPage() {
     )
   }
 
-  const isOrg = user.account_type === ACCOUNT_TYPES.ORGANIZATION
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -77,11 +74,6 @@ export function AdminCampaignerDetailPage() {
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-xl sm:text-2xl font-bold leading-snug truncate">{user.full_name || user.email}</h1>
-                {isOrg && (
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
-                    <Building2 className="w-3 h-3" /> Organization
-                  </span>
-                )}
               </div>
               <p className="text-sm text-muted-foreground mt-1 truncate">{user.email}</p>
             </div>

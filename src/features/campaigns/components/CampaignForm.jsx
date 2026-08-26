@@ -1,9 +1,12 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import { AlertCircle, CheckCircle2, ChevronRight, ChevronLeft, Info, ImagePlus, X, Loader2 } from 'lucide-react'
+import {
+  AlertCircle, CheckCircle2, ChevronRight, ChevronLeft, Info, ImagePlus, X, Loader2,
+  Building2, User as UserIcon, ShieldAlert,
+} from 'lucide-react'
 import { useCategories, useCreateCampaign, useUpdateCampaignMedia } from '@/hooks/useCampaigns'
 import { usePlatformSettings } from '@/hooks/usePayments'
-import { GAMBIA_REGIONS, ROUTES } from '@/constants'
+import { GAMBIA_REGIONS, ROUTES, OrganizationPermission } from '@/constants'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { MarkdownEditor } from '@/components/custom/MarkdownEditor'
 import { DatePicker } from '@/components/custom/DatePicker'
@@ -13,6 +16,7 @@ import { Select } from '@/components/custom/Select'
 import { compressImage } from '@/utils/imageCompression'
 import { getCategoryIcon } from '@/utils/categoryIcons'
 import { useMe } from '@/hooks/useAuth'
+import { useActiveProfile } from '@/hooks/useActiveProfile'
 import { cn } from '@/utils/cn'
 
 const VERIFY_PROMPT_DISMISSED_KEY = 'campaign_verify_prompt_dismissed'
@@ -233,6 +237,7 @@ const RELATIONSHIPS = ['Self', 'Spouse', 'Child', 'Parent', 'Sibling', 'Friend',
 export function CampaignForm() {
   const navigate = useNavigate()
   const { data: me } = useMe()
+  const { isOrg, organization, hasPermission } = useActiveProfile()
   const { categories } = useCategories()
   const createCampaign = useCreateCampaign()
   const { data: platformSettings } = usePlatformSettings()
@@ -375,6 +380,7 @@ export function CampaignForm() {
       deadline: form.deadline,
       is_anonymous: form.is_anonymous,
       is_urgent: form.is_urgent,
+      ...(isOrg ? { organization_id: organization.id } : {}),
     }
     createCampaign.mutate(payload, {
       onSuccess: async (res) => {
@@ -418,6 +424,8 @@ export function CampaignForm() {
     )
   }
 
+  const canCreate = hasPermission(OrganizationPermission.CREATE_CAMPAIGN)
+
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
       <PageHeader
@@ -425,6 +433,24 @@ export function CampaignForm() {
         description="Tell your story and start raising funds in minutes."
       />
 
+      <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 border rounded-lg px-3 py-2 mb-6">
+        {isOrg ? <Building2 className="w-4 h-4 flex-shrink-0" /> : <UserIcon className="w-4 h-4 flex-shrink-0" />}
+        Creating as{' '}
+        <span className="font-semibold text-foreground">{isOrg ? organization.organization_name : 'yourself'}</span>
+        <span className="text-xs">— switch profiles from the sidebar to create as someone else</span>
+      </div>
+
+      {!canCreate ? (
+        <div className="border rounded-2xl p-8 text-center space-y-3">
+          <ShieldAlert className="w-8 h-8 mx-auto text-muted-foreground" />
+          <p className="font-semibold">You can't create campaigns for {organization.organization_name}</p>
+          <p className="text-sm text-muted-foreground">
+            Ask an organization manager to grant you the "Create Campaign" permission, or switch to your personal
+            profile from the sidebar.
+          </p>
+        </div>
+      ) : (
+        <>
       <StepIndicator current={step} />
 
       {/* Step 0: Campaign Info */}
@@ -648,6 +674,8 @@ export function CampaignForm() {
           </button>
         )}
       </div>
+        </>
+      )}
 
       <VerifyPromptModal isOpen={showVerifyPrompt} onClose={dismissVerifyPrompt} />
     </div>

@@ -183,19 +183,20 @@ export function useReviewVerification() {
 
 // ── Organization verification ─────────────────────────────────────────────────
 
-export function useMyOrganizationVerification() {
+export function useMyOrganizationVerification(organizationId) {
   return useQuery({
-    queryKey: queryKeys.organizationVerification.mine(),
-    queryFn: () => userApi.getMyOrganizationVerification().then((r) => r.data.verification),
+    queryKey: queryKeys.organizationVerification.mine(organizationId),
+    queryFn: () => userApi.getMyOrganizationVerification(organizationId).then((r) => r.data.verification),
+    enabled: Boolean(organizationId),
   })
 }
 
-export function useSubmitOrganizationVerification() {
+export function useSubmitOrganizationVerification(organizationId) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (data) => userApi.submitOrganizationVerification(data),
+    mutationFn: (data) => userApi.submitOrganizationVerification({ ...data, organization_id: organizationId }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.organizationVerification.mine() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.organizationVerification.mine(organizationId) })
     },
   })
 }
@@ -209,12 +210,18 @@ export function useAdminOrganizationVerifications(params = {}, { enabled = true 
   })
 }
 
-export function useUserOrganizationVerification(userId, { enabled = true } = {}) {
+// Latest verification submission for one specific organization -- the
+// admin org detail page's Verification tab. organization_id is the only
+// filter get_all_organization_verifications() actually understands (see
+// AdminOrganizationVerificationListView) -- there's no per-user filter,
+// since a verification now belongs to an org, not whichever member happened
+// to submit it.
+export function useOrganizationVerificationHistory(organizationId, { enabled = true } = {}) {
   return useQuery({
-    queryKey: queryKeys.organizationVerification.adminList({ user_id: userId }),
-    queryFn: () => userApi.getOrganizationVerifications({ user_id: userId, page_size: 1 }),
+    queryKey: queryKeys.organizationVerification.adminList({ organization_id: organizationId }),
+    queryFn: () => userApi.getOrganizationVerifications({ organization_id: organizationId, page_size: 1 }),
     select: (res) => res?.results?.[0] ?? null,
-    enabled: enabled && Boolean(userId),
+    enabled: enabled && Boolean(organizationId),
   })
 }
 
@@ -239,10 +246,10 @@ export function useMyOrganizationChangeRequests({ enabled = true } = {}) {
   })
 }
 
-export function useSubmitOrganizationChangeRequest() {
+export function useSubmitOrganizationChangeRequest(organizationId) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (data) => userApi.submitOrganizationChangeRequest(data),
+    mutationFn: (data) => userApi.submitOrganizationChangeRequest({ ...data, organization_id: organizationId }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.organizationChangeRequest.mine() })
     },

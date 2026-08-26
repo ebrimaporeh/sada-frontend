@@ -19,10 +19,23 @@ export function useGateways() {
 
 function useEligibleMethods(methodsKey) {
   const { gateways, isLoading } = useGateways()
-  const methods = PAYMENT_METHODS.filter((method) => {
-    const gateway = gateways.find((g) => g.code === method.gateway)
-    return Boolean(gateway) && gateway[methodsKey].includes(method.id)
-  })
+  const methods = PAYMENT_METHODS
+    .filter((method) => {
+      const gateway = gateways.find((g) => g.code === method.gateway)
+      return Boolean(gateway) && gateway[methodsKey].includes(method.id)
+    })
+    // Admin-configurable per-gateway donation min/max (PlatformSettings) --
+    // carried onto the method so a donation form can validate against the
+    // real, current limit instead of a hardcoded frontend constant. Not
+    // meaningful for payout methods, but harmless to carry through.
+    .map((method) => {
+      const gateway = gateways.find((g) => g.code === method.gateway)
+      return {
+        ...method,
+        minDonationAmount: Number(gateway?.min_donation_amount ?? 0) || undefined,
+        maxDonationAmount: Number(gateway?.max_donation_amount ?? 0) || undefined,
+      }
+    })
   return { methods, isLoading }
 }
 

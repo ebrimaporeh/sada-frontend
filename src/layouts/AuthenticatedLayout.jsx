@@ -1,31 +1,71 @@
 import { useState } from 'react'
-import { Outlet, Link, useRouter, Navigate } from '@tanstack/react-router'
+import { Outlet, Link, Navigate } from '@tanstack/react-router'
 import { useMe, useLogout } from '@/hooks/useAuth'
+import { useActiveProfile } from '@/hooks/useActiveProfile'
 import { ROUTES } from '@/constants'
 import { cn } from '@/utils/cn'
 import { isAdminAreaRole } from '@/utils/permissions'
 import {
   LayoutDashboard, PlusCircle, User, Settings,
-  LogOut, Menu, X, Megaphone, Bell, Home, ShieldCheck, Loader2,
+  LogOut, Menu, X, Megaphone, Bell, Home, ShieldCheck, Loader2, Building2,
+  Users, KeyRound,
 } from 'lucide-react'
 import { NotificationBell } from '@/components/custom/NotificationBell'
 import { Logo } from '@/components/custom/Logo'
+import { ProfileSwitcher } from '@/components/custom/ProfileSwitcher'
+import { ProfileSwitchOverlay } from '@/components/custom/ProfileSwitchOverlay'
 
-const navItems = [
+// Verification/Notifications are contextual -- they already render
+// different content for whichever profile is active (see VerificationPage/
+// useActiveProfile) without needing a different nav entry. Overview/
+// Members/Roles/Org Settings only appear while acting as an organization --
+// see buildNavItems below.
+const BASE_NAV_ITEMS = [
   { label: 'Dashboard', to: ROUTES.DASHBOARD, icon: LayoutDashboard },
   { label: 'My Campaigns', to: ROUTES.MY_CAMPAIGNS, icon: Megaphone },
   { label: 'Start Campaign', to: ROUTES.CAMPAIGN_NEW, icon: PlusCircle },
+]
+
+// The org list only makes sense while acting as yourself -- once an org
+// profile is active, Overview/Members/Roles/Org Settings (below) already
+// are that org's own navigation, and switching to a *different* org goes
+// through ProfileSwitcher's dropdown, not this list.
+const ORGANIZATIONS_LIST_ITEM = { label: 'Organizations', to: ROUTES.ORGANIZATIONS, icon: Building2 }
+
+const TRAILING_NAV_ITEMS = [
   { label: 'Notifications', to: ROUTES.NOTIFICATIONS, icon: Bell },
   { label: 'Verification', to: ROUTES.VERIFICATION, icon: ShieldCheck },
   { label: 'Profile', to: ROUTES.PROFILE, icon: User },
   { label: 'Settings', to: ROUTES.SETTINGS, icon: Settings },
 ]
 
+// Overview/Members/Roles/Settings used to be tabs on one org page -- now
+// they're their own nav items/routes (see rootRoute.jsx's organization*Route
+// entries), only shown while that org is the active profile, and linked
+// against its own id since these routes are org-scoped.
+function orgNavItems(organizationId) {
+  const params = { id: organizationId }
+  return [
+    { label: 'Overview', to: ROUTES.ORGANIZATION_OVERVIEW, params, icon: Building2 },
+    { label: 'Members', to: ROUTES.ORGANIZATION_MEMBERS, params, icon: Users },
+    { label: 'Roles', to: ROUTES.ORGANIZATION_ROLES, params, icon: KeyRound },
+    { label: 'Org Settings', to: ROUTES.ORGANIZATION_SETTINGS, params, icon: Settings },
+  ]
+}
+
+function buildNavItems(isOrg, organizationId) {
+  const items = [...BASE_NAV_ITEMS]
+  items.push(...(isOrg ? orgNavItems(organizationId) : [ORGANIZATIONS_LIST_ITEM]))
+  items.push(...TRAILING_NAV_ITEMS)
+  return items
+}
+
 export function AuthenticatedLayout() {
   const { data: user, isLoading } = useMe()
+  const { isOrg, organization } = useActiveProfile()
   const logout = useLogout()
-  const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const navItems = buildNavItems(isOrg, organization?.id)
 
   // Redirect admin-area roles (admin, moderator, finance officer) to the admin layout
   if (!isLoading && isAdminAreaRole(user)) {
@@ -42,6 +82,8 @@ export function AuthenticatedLayout() {
 
   return (
     <div className="min-h-screen bg-muted/30 flex">
+      <ProfileSwitchOverlay />
+
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
@@ -67,12 +109,21 @@ export function AuthenticatedLayout() {
           </button>
         </div>
 
+        <ProfileSwitcher />
+
         {/* Nav */}
         <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-          {navItems.map(({ label, to, icon: Icon }) => (
+          {navItems.map(({ label, to, params, icon: Icon }) => (
             <Link
               key={label}
               to={to}
+              params={params}
+              // Without this, "Organizations" (a literal path prefix of
+              // /organizations/$id/overview etc.) matched active on every
+              // org-scoped page too, alongside whichever org nav item was
+              // actually current -- none of these nav destinations should
+              // ever show two of them active at once.
+              activeOptions={{ exact: true }}
               onClick={() => setSidebarOpen(false)}
               className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors [&.active]:bg-primary/10 [&.active]:text-primary"
             >

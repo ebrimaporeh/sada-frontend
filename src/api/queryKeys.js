@@ -16,8 +16,21 @@ export const queryKeys = {
     adminList: (params) => ['verification', 'admin', params],
   },
   organizationVerification: {
-    mine: () => ['organization-verification', 'mine'],
+    mine: (organizationId) => ['organization-verification', 'mine', organizationId],
     adminList: (params) => ['organization-verification', 'admin', params],
+  },
+  organizations: {
+    types: () => ['organizations', 'types'],
+    mine: () => ['organizations', 'mine'],
+    detail: (id) => ['organizations', 'detail', id],
+    roles: (id) => ['organizations', 'detail', id, 'roles'],
+    members: (id) => ['organizations', 'detail', id, 'members'],
+    invitations: (id) => ['organizations', 'detail', id, 'invitations'],
+    myInvitations: () => ['organizations', 'invitations', 'mine'],
+    invitationPreview: (token) => ['organizations', 'invitations', 'preview', token],
+    adminList: (params) => ['organizations', 'admin', params],
+    adminDetail: (id) => ['organizations', 'admin', 'detail', id],
+    adminMembers: (id) => ['organizations', 'admin', 'detail', id, 'members'],
   },
   organizationChangeRequest: {
     mine: () => ['organization-change-request', 'mine'],

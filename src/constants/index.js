@@ -10,11 +10,26 @@ export const ROLES = {
   CAMPAIGN_OWNER: 'campaign_owner',
 }
 
+// Vestigial as of the individual+organization-membership redesign -- every
+// account registers (and stays) INDIVIDUAL now; an organization is a
+// separate multi-member entity a person creates/joins afterward (see
+// src/features/organizations), not a type of account. Kept only because a
+// few admin-side pages (Users/Campaigners "Organizations" tab, the org
+// verification review flow) still read it pending their own rebuild against
+// the new Organization-backed endpoints -- don't use ACCOUNT_TYPES.ORGANIZATION
+// to gate new UI, it's never actually set by anything anymore.
 export const ACCOUNT_TYPES = {
   INDIVIDUAL: 'individual',
   ORGANIZATION: 'organization',
 }
 
+// Stale placeholder list from before OrganizationType became DB-backed (see
+// sada-backend apps.organizations.models.OrganizationType) -- kept only for
+// the same not-yet-rebuilt admin pages ACCOUNT_TYPES above is. New
+// organization-type-aware UI must fetch the live, launch-visible catalog via
+// useOrganizationTypes() (src/hooks/useOrganizations.js) instead of this list,
+// since the real set (NGO/CSO/etc., with Company/Government Agency seeded but
+// hidden this launch) no longer matches what's written here.
 export const ORGANIZATION_TYPES = [
   { value: 'religious', label: 'Religious Organization' },
   { value: 'student_union', label: 'Student Union' },
@@ -22,6 +37,30 @@ export const ORGANIZATION_TYPES = [
   { value: 'national_agency', label: 'National Agency' },
   { value: 'media', label: 'Media Organization' },
   { value: 'other', label: 'Other' },
+]
+
+// Mirrors sada-backend apps.organizations.permissions.OrganizationPermission
+// -- see the root .claude/CLAUDE.md "one rule that spans both repos" note,
+// there is no shared schema between the two stacks.
+export const OrganizationPermission = {
+  CREATE_CAMPAIGN: 'create_campaign',
+  EDIT_CAMPAIGN: 'edit_campaign',
+  DELETE_CAMPAIGN: 'delete_campaign',
+  PAUSE_RESUME_CAMPAIGN: 'pause_resume_campaign',
+  WITHDRAW_FUNDS: 'withdraw_funds',
+  MANAGE_MEMBERS: 'manage_members',
+  MANAGE_ORGANIZATION: 'manage_organization',
+}
+
+// Labeled, ordered list for permission-checklist UI (role create/edit forms).
+export const ORGANIZATION_PERMISSIONS = [
+  { value: 'create_campaign', label: 'Create Campaign' },
+  { value: 'edit_campaign', label: 'Edit Campaign' },
+  { value: 'delete_campaign', label: 'Delete Campaign' },
+  { value: 'pause_resume_campaign', label: 'Pause/Resume Campaign' },
+  { value: 'withdraw_funds', label: 'Withdraw Funds' },
+  { value: 'manage_members', label: 'Manage Members' },
+  { value: 'manage_organization', label: 'Manage Organization' },
 ]
 
 export const ROUTES = {
@@ -53,10 +92,20 @@ export const ROUTES = {
   VERIFICATION: '/verification',
   DONATE: '/donate/$slug',
   DONATE_SUCCESS: '/donate/$slug/success',
+  ORGANIZATIONS: '/organizations',
+  ORGANIZATION_NEW: '/organizations/new',
+  // Overview/Members/Roles/Settings are real nav items/routes, not tabs on
+  // one page -- see AuthenticatedLayout's org-context nav.
+  ORGANIZATION_OVERVIEW: '/organizations/$id/overview',
+  ORGANIZATION_MEMBERS: '/organizations/$id/members',
+  ORGANIZATION_ROLES: '/organizations/$id/roles',
+  ORGANIZATION_SETTINGS: '/organizations/$id/settings',
+  INVITATIONS: '/invitations',
 
   // Admin routes
   ADMIN_USERS: '/admin/users',
   ADMIN_USER_DETAIL: '/admin/users/$id',
+  ADMIN_ORGANIZATION_DETAIL: '/admin/organizations/$id',
   ADMIN_STAFF: '/admin/staff',
   ADMIN_CAMPAIGNS: '/admin/campaigns',
   ADMIN_DONATIONS: '/admin/donations',
@@ -126,6 +175,10 @@ export const GAMBIA_REGIONS = [
   { value: 'janjanbureh', label: 'Janjanbureh' },
   { value: 'basse',       label: 'Basse' },
 ]
+
+// Bridges an interrupted "accept invitation" flow across a login/register
+// detour -- see InvitationPage and useAuth.js's postAuthDestination().
+export const PENDING_INVITATION_STORAGE_KEY = 'pending_invitation_token'
 
 export const QUERY_STALE_TIME = {
   SHORT: 1000 * 30,

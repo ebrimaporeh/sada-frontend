@@ -1,17 +1,16 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import { Search, ShieldCheck, ShieldOff, User, Building2 } from 'lucide-react'
+import { Search, ShieldCheck, ShieldOff, User, Building2, Users } from 'lucide-react'
 import { useUsers } from '@/hooks/useUsers'
+import { useAdminOrganizations } from '@/hooks/useOrganizations'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
 import { EmptyState } from '@/components/custom/EmptyState'
 import { AdminPagination } from '@/components/custom/AdminPagination'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
-import { ORGANIZATION_TYPES, ACCOUNT_TYPES } from '@/constants'
+import { ROUTES } from '@/constants'
 import { formatDate } from '@/utils/formatters'
 import { cn } from '@/utils/cn'
-
-const ORG_TYPE_LABELS = Object.fromEntries(ORGANIZATION_TYPES.map((t) => [t.value, t.label]))
 
 export function UsersPage() {
   const navigate = useNavigate()
@@ -19,6 +18,7 @@ export function UsersPage() {
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
   const limit = 10
+  const isOrg = type === 'organization'
 
   const debouncedSearch = useDebouncedValue(search)
 
@@ -26,15 +26,22 @@ export function UsersPage() {
     setPage(1)
   }, [type, debouncedSearch])
 
-  const { data, isLoading } = useUsers({ account_type: type, page, page_size: limit, search: debouncedSearch || undefined })
+  const usersQuery = useUsers({ page, page_size: limit, search: debouncedSearch || undefined })
+  const orgsQuery = useAdminOrganizations({ page, page_size: limit, search: debouncedSearch || undefined })
+
+  const users = usersQuery.data?.results || []
+  const organizations = orgsQuery.data?.organizations || []
+  const isLoading = isOrg ? orgsQuery.isLoading : usersQuery.isLoading
+  const count = isOrg ? orgsQuery.data?.count : usersQuery.data?.count
+  const totalPages = isOrg ? orgsQuery.data?.totalPages : (usersQuery.data?.total_pages || Math.ceil((usersQuery.data?.count || 0) / limit))
+  const rows = isOrg ? organizations : users
 
   const handleSelectUser = (user) => {
-    navigate({ to: '/admin/users/$id', params: { id: user.id } })
+    navigate({ to: ROUTES.ADMIN_USER_DETAIL, params: { id: user.id } })
   }
-
-  const users = data?.results || []
-  const totalPages = data?.total_pages || Math.ceil((data?.count || 0) / limit)
-  const isOrg = type === 'organization'
+  const handleSelectOrg = (org) => {
+    navigate({ to: ROUTES.ADMIN_ORGANIZATION_DETAIL, params: { id: org.id } })
+  }
 
   return (
     <div className="min-h-full flex flex-col">
@@ -43,7 +50,7 @@ export function UsersPage() {
       <div>
         <PageHeader
           title="Campaigners"
-          description={`${data?.count || 0} total ${isOrg ? 'organizations' : 'users'}`}
+          description={`${count || 0} total ${isOrg ? 'organizations' : 'users'}`}
         />
       </div>
 
@@ -78,8 +85,8 @@ export function UsersPage() {
         </div>
       </div>
 
-      {/* Users Table */}
-      {!isLoading && users.length === 0 ? (
+      {/* Table */}
+      {!isLoading && rows.length === 0 ? (
         <EmptyState title={`No ${isOrg ? 'organizations' : 'users'} found`} />
       ) : (
         <div className="border rounded-lg overflow-hidden bg-card">
@@ -88,7 +95,7 @@ export function UsersPage() {
               <thead className="border-b bg-muted">
                 <tr>
                   {(isOrg
-                    ? ['Organization', 'Email', 'Type', 'Status', 'Verification', 'Joined']
+                    ? ['Organization', 'Type', 'Members', 'Verification', 'Created']
                     : ['Name', 'Email', 'Status', 'Verification', 'Joined']
                   ).map((h) => (
                     <th key={h} className="px-4 py-3 text-left font-medium">{h}</th>
@@ -98,10 +105,38 @@ export function UsersPage() {
               <tbody className="divide-y">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={isOrg ? 6 : 5} className="px-4 py-8 text-center">
+                    <td colSpan={5} className="px-4 py-8 text-center">
                       <LoadingSpinner />
                     </td>
                   </tr>
+                ) : isOrg ? (
+                  organizations.map((org) => (
+                    <tr
+                      key={org.id}
+                      onClick={() => handleSelectOrg(org)}
+                      className="hover:bg-muted/50 cursor-pointer transition-colors"
+                    >
+                      <td className="px-4 py-3 font-medium">{org.organization_name}</td>
+                      <td className="px-4 py-3">{org.organization_type_name || '—'}</td>
+                      <td className="px-4 py-3">
+                        <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                          <Users className="w-3 h-3" /> {org.member_count}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={cn(
+                            'inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full',
+                            org.is_verified ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700',
+                          )}
+                        >
+                          {org.is_verified ? <ShieldCheck className="w-3 h-3" /> : <ShieldOff className="w-3 h-3" />}
+                          {org.is_verified ? 'Verified' : 'Not Verified'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">{formatDate(org.created_at)}</td>
+                    </tr>
+                  ))
                 ) : (
                   users.map((user) => (
                     <tr
@@ -111,11 +146,6 @@ export function UsersPage() {
                     >
                       <td className="px-4 py-3">{user.full_name || '—'}</td>
                       <td className="px-4 py-3">{user.email}</td>
-                      {isOrg && (
-                        <td className="px-4 py-3 capitalize">
-                          {ORG_TYPE_LABELS[user.organization_type] || '—'}
-                        </td>
-                      )}
                       <td className="px-4 py-3">
                         <span
                           className={cn(
@@ -148,8 +178,8 @@ export function UsersPage() {
       )}
       </div>
 
-      {users.length > 0 && (
-        <AdminPagination page={page} totalPages={totalPages} onPageChange={setPage} totalCount={data?.count} limit={limit} />
+      {rows.length > 0 && (
+        <AdminPagination page={page} totalPages={totalPages} onPageChange={setPage} totalCount={count} limit={limit} />
       )}
     </div>
   )

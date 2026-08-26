@@ -35,7 +35,8 @@ export const userApi = {
   reviewVerification: (id, action, reason) =>
     apiClient.post(`/users/admin/verifications/${id}/${action}/`, reason ? { reason } : {}).then((r) => r.data),
 
-  getMyOrganizationVerification: () => apiClient.get('/users/organization-verification/me/').then((r) => r.data),
+  getMyOrganizationVerification: (organizationId) =>
+    apiClient.get('/users/organization-verification/me/', { params: { organization_id: organizationId } }).then((r) => r.data),
   submitOrganizationVerification: (data) => {
     const form = new FormData()
     Object.entries(data).forEach(([k, v]) => {
