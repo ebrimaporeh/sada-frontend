@@ -200,7 +200,9 @@ export function CampaignDetailView({ campaign }) {
               <span>Beneficiary: <strong className="text-foreground">{campaign.beneficiary}</strong></span>
               <span className="flex items-center gap-1">
                 By:{' '}
-                {campaign.owner_id ? (
+                {campaign.organization_name ? (
+                  <strong className="text-foreground">{campaign.organization_name}</strong>
+                ) : campaign.owner_id ? (
                   <Link
                     to="/campaigners/$id"
                     params={{ id: campaign.owner_id }}
@@ -211,7 +213,7 @@ export function CampaignDetailView({ campaign }) {
                 ) : (
                   <strong className="text-foreground">{campaign.owner_name || campaign.owner?.name}</strong>
                 )}
-                {campaign.owner_is_verified && <VerifiedTick />}
+                {!campaign.organization_name && campaign.owner_is_verified && <VerifiedTick />}
               </span>
             </div>
           </div>
