@@ -139,7 +139,7 @@ function VerificationDetails({ verification }) {
 // (has is_verified, same shape OrganizationSerializer returns) -- this
 // section no longer assumes "the org" the way it did when Organization was
 // 1:1 with User; it's always scoped to one specific organization the
-// caller currently has open (see OrganizationDetail/SettingsTab).
+// caller currently has open (see OrganizationDetail/OrganizationSettings).
 //
 // Verifies the organization's own registration -- a certificate/number, not
 // any individual member's personal ID (that's IdentityVerification, a

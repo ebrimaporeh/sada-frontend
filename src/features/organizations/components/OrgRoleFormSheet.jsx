@@ -8,7 +8,7 @@ import { ORGANIZATION_PERMISSIONS } from '@/constants'
 const EMPTY_SELECTION = new Set()
 
 // `role` is null for "create," or an existing role object for "edit" --
-// Owner/Member are never passed in here (see RolesTab, both are excluded
+// Owner/Member are never passed in here (see OrganizationRoles, both are excluded
 // from the editable list entirely, matching the backend's protection).
 export function OrgRoleFormSheet({ isOpen, onClose, organizationId, role }) {
   const isEdit = Boolean(role)

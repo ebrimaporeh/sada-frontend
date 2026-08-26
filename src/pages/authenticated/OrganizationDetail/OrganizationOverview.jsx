@@ -12,7 +12,7 @@ function InfoField({ label, value }) {
   )
 }
 
-export function OverviewTab({ organization }) {
+export function OrganizationOverview({ organization }) {
   return (
     <div className="space-y-6">
       <div className="border rounded-2xl bg-card p-6 flex flex-col sm:flex-row items-center sm:items-start gap-6">

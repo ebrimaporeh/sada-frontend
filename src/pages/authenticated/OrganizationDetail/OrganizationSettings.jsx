@@ -113,7 +113,7 @@ function ChangeableField({ organizationId, fieldName, label, currentValue, pendi
   )
 }
 
-// Contact persons are real members (see MembersTab for adding/removing the
+// Contact persons are real members (see OrganizationMembers for adding/removing the
 // flag) -- this is a read-only summary, each one's own name/email/phone
 // straight from their User account, not a free-text field that can drift
 // from who's actually reachable.
@@ -138,7 +138,7 @@ function ContactPersonsList({ contactPersons }) {
   )
 }
 
-export function SettingsTab({ organization }) {
+export function OrganizationSettings({ organization }) {
   const { data: changeRequests } = useMyOrganizationChangeRequests()
   const myMembership = useMyOrganizationMembership(organization.id)
   const canManage = myMembership?.permissions?.includes(OrganizationPermission.MANAGE_ORGANIZATION)

@@ -149,7 +149,7 @@ function InvitationRow({ invitation, organizationId, canManage }) {
   )
 }
 
-export function MembersTab({ organization }) {
+export function OrganizationMembers({ organization }) {
   const { data: me } = useMe()
   const { data: members = [], isLoading: membersLoading } = useOrganizationMembers(organization.id)
   const { data: roles = [] } = useOrganizationRoles(organization.id)

@@ -7,9 +7,11 @@ import { ROUTES } from '@/constants'
 
 // Overview/Members/Roles/Settings used to be tabs on one page -- they're
 // real nav items/routes now (see AuthenticatedLayout's org-context nav and
-// rootRoute.jsx's organization*Route entries), so each of those pages
-// fetches its own org data and renders this header, instead of one shell
-// switching between tab bodies.
+// rootRoute.jsx's organization*Route entries; the sibling OrganizationOverview/
+// OrganizationMembers/OrganizationRoles/OrganizationSettings components are
+// named accordingly, not "*Tab"), so each of those pages fetches its own
+// org data and renders this header, instead of one shell switching between
+// tab bodies.
 export function OrganizationHeader({ organization }) {
   return (
     <div>
@@ -37,9 +39,10 @@ export function OrganizationHeader({ organization }) {
 }
 
 // Fetches the org from the $id route param, renders the header, then hands
-// the org to `Tab` -- the shared shape all 4 org detail pages
-// (Overview/Members/Roles/Settings) need around their one differing piece.
-export function OrganizationDetailPage({ Tab }) {
+// the org to `Content` -- the shared shape all 4 org detail pages
+// (OrganizationOverview/Members/Roles/Settings) need around their one
+// differing piece.
+export function OrganizationDetailPage({ Content }) {
   const { id } = useParams({ strict: false })
   const { data: organization, isLoading, isError } = useOrganization(id)
 
@@ -56,7 +59,7 @@ export function OrganizationDetailPage({ Tab }) {
   return (
     <div className="space-y-6">
       <OrganizationHeader organization={organization} />
-      <Tab organization={organization} />
+      <Content organization={organization} />
     </div>
   )
 }

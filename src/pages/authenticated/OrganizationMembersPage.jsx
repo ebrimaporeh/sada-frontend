@@ -1,6 +1,6 @@
 import { OrganizationDetailPage } from './OrganizationDetail/shared'
-import { MembersTab } from './OrganizationDetail/MembersTab'
+import { OrganizationMembers } from './OrganizationDetail/OrganizationMembers'
 
 export function OrganizationMembersPage() {
-  return <OrganizationDetailPage Tab={MembersTab} />
+  return <OrganizationDetailPage Content={OrganizationMembers} />
 }

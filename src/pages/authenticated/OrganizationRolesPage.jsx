@@ -1,6 +1,6 @@
 import { OrganizationDetailPage } from './OrganizationDetail/shared'
-import { RolesTab } from './OrganizationDetail/RolesTab'
+import { OrganizationRoles } from './OrganizationDetail/OrganizationRoles'
 
 export function OrganizationRolesPage() {
-  return <OrganizationDetailPage Tab={RolesTab} />
+  return <OrganizationDetailPage Content={OrganizationRoles} />
 }

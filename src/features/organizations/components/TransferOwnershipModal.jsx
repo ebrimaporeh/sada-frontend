@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { ConfirmModal } from '@/components/custom/ConfirmModal'
 import { useTransferOwnership } from '@/hooks/useOrganizations'
 
-// Only ever opened by the current Owner (see MembersTab) -- picking a
+// Only ever opened by the current Owner (see OrganizationMembers) -- picking a
 // target from the org's other members, then a final confirm step since
 // this immediately gives up the acting user's own Owner role (they fall
 // back to the org's Member role, see organization_service.transfer_ownership).

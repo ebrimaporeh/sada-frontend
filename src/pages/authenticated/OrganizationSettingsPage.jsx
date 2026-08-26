@@ -1,6 +1,6 @@
 import { OrganizationDetailPage } from './OrganizationDetail/shared'
-import { SettingsTab } from './OrganizationDetail/SettingsTab'
+import { OrganizationSettings } from './OrganizationDetail/OrganizationSettings'
 
 export function OrganizationSettingsPage() {
-  return <OrganizationDetailPage Tab={SettingsTab} />
+  return <OrganizationDetailPage Content={OrganizationSettings} />
 }

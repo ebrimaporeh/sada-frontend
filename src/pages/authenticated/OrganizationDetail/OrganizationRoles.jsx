@@ -77,7 +77,7 @@ function RoleCard({ role, organizationId, canManage }) {
   )
 }
 
-export function RolesTab({ organization }) {
+export function OrganizationRoles({ organization }) {
   const { data: roles = [], isLoading } = useOrganizationRoles(organization.id)
   const myMembership = useMyOrganizationMembership(organization.id)
   const canManage = myMembership?.permissions?.includes(OrganizationPermission.MANAGE_MEMBERS)
