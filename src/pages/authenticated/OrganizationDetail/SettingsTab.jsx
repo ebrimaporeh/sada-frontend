@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { AlertCircle, Clock, Mail, UserCheck } from 'lucide-react'
 import { useMyOrganizationChangeRequests, useSubmitOrganizationChangeRequest } from '@/hooks/useUsers'
 import { useMyOrganizationMembership } from '@/hooks/useOrganizations'
-import { OrganizationVerificationSection } from '@/features/users/components/OrganizationVerificationSection'
 import { OrganizationPermission } from '@/constants'
 import { initials } from '@/utils/formatters'
 
@@ -220,8 +219,6 @@ export function SettingsTab({ organization }) {
           />
         </div>
       </div>
-
-      <OrganizationVerificationSection organization={organization} />
     </div>
   )
 }
