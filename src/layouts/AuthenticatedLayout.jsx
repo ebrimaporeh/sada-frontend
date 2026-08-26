@@ -39,14 +39,19 @@ const TRAILING_NAV_ITEMS = [
   { label: 'Settings', to: ROUTES.SETTINGS, icon: Settings },
 ]
 
-// Overview/Members/Roles/Settings used to be tabs on one org page -- now
-// they're their own nav items/routes (see rootRoute.jsx's organization*Route
-// entries), only shown while that org is the active profile, and linked
-// against its own id since these routes are org-scoped.
+// Members/Roles/Settings used to be tabs on one org page (along with
+// Overview) -- now they're their own nav items/routes (see rootRoute.jsx's
+// organization*Route entries), only shown while that org is the active
+// profile, and linked against its own id since these routes are org-scoped.
+// Overview isn't listed here -- "Profile" (TRAILING_NAV_ITEMS) already
+// shows that exact content for whichever org is active (see ProfilePage),
+// so a separate Overview nav item was pure duplication. The route/page
+// itself still exists for OrganizationsPage's org cards and
+// ProfileSwitcher's "Manage" link, which let you peek at an org's info
+// without making it your active profile.
 function orgNavItems(organizationId) {
   const params = { id: organizationId }
   return [
-    { label: 'Overview', to: ROUTES.ORGANIZATION_OVERVIEW, params, icon: Building2 },
     { label: 'Members', to: ROUTES.ORGANIZATION_MEMBERS, params, icon: Users },
     { label: 'Roles', to: ROUTES.ORGANIZATION_ROLES, params, icon: KeyRound },
     { label: 'Org Settings', to: ROUTES.ORGANIZATION_SETTINGS, params, icon: Settings },
