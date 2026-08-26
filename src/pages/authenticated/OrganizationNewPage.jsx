@@ -15,8 +15,6 @@ const INITIAL_FORM = {
   organization_type_slug: '',
   phone: '',
   phone_2: '',
-  recovery_email_1: '',
-  recovery_email_2: '',
 }
 
 export function OrganizationNewPage() {
@@ -98,17 +96,6 @@ export function OrganizationNewPage() {
           <div>
             <label className={labelClass}>Second Phone Number</label>
             <input type="tel" value={form.phone_2} onChange={set('phone_2')} placeholder="Optional" className={inputClass} />
-          </div>
-        </div>
-
-        <div className="grid sm:grid-cols-2 gap-4">
-          <div>
-            <label className={labelClass}>Recovery Email 1</label>
-            <input type="email" value={form.recovery_email_1} onChange={set('recovery_email_1')} placeholder="Optional" className={inputClass} />
-          </div>
-          <div>
-            <label className={labelClass}>Recovery Email 2</label>
-            <input type="email" value={form.recovery_email_2} onChange={set('recovery_email_2')} placeholder="Optional" className={inputClass} />
           </div>
         </div>
 
