@@ -162,16 +162,13 @@ export function CampaignDetailView({ campaign }) {
             {mainImage && (
               <img src={mainImage} alt={campaign.title} className="w-full h-full object-cover" />
             )}
-            <div className="absolute top-4 left-4 right-4 flex items-start justify-between">
-              <span className="bg-black/40 backdrop-blur-sm text-white text-sm font-medium px-3 py-1.5 rounded-full">
-                {campaign.category?.name ?? campaign.category}
-              </span>
-              {campaign.is_urgent && (
+            {campaign.is_urgent && (
+              <div className="absolute top-4 right-4">
                 <span className="bg-red-500 text-white text-sm font-bold px-3 py-1.5 rounded-full animate-pulse">
                   URGENT
                 </span>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           {/* Thumbnail gallery strip */}
