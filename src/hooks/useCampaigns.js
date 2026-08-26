@@ -5,6 +5,7 @@ import { campaignApi } from '@/api/campaignApi'
 import { donationApi } from '@/api/donationApi'
 import { paymentApi } from '@/api/paymentApi'
 import { useMe } from '@/hooks/useAuth'
+import { useActiveProfile } from '@/hooks/useActiveProfile'
 
 // ── Categories ───────────────────────────────────────────────────────────────
 
@@ -166,11 +167,25 @@ export function useCampaignFilters() {
 
 // ── Owner: my campaigns ───────────────────────────────────────────────────────
 
+// The backend returns every campaign this user can manage -- their own
+// individual campaigns plus every org they belong to's, all mixed
+// together (get_owner_campaigns() deliberately doesn't take a profile
+// param, since "active profile" is a pure client-side concept with no
+// backend session -- see useActiveProfile). Dashboard/MyCampaignsPage are
+// meant to be scoped to whichever profile is currently active, though, so
+// this is where that scoping actually happens: filtered here (not
+// server-side) since the endpoint is unpaginated and already returns the
+// full list. Without this, switching to Org A's profile still showed Org
+// B's (and your own individual) campaigns mixed into "your" list.
 export function useMyMissions() {
+  const { isOrg, organization } = useActiveProfile()
   return useQuery({
     queryKey: queryKeys.campaigns.mine(),
     queryFn: campaignApi.getMyCampaigns,
-    select: (res) => res?.data?.campaigns ?? [],
+    select: (res) => {
+      const campaigns = res?.data?.campaigns ?? []
+      return campaigns.filter((c) => (isOrg ? c.organization_id === organization?.id : !c.organization_id))
+    },
   })
 }
 
