@@ -5,6 +5,7 @@ import { Eye, EyeOff } from 'lucide-react'
 import { useLogin, useGoogleOAuth, useResendVerification } from '@/hooks/useAuth'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
 import { ROUTES } from '@/constants'
+import { cn } from '@/utils/cn'
 
 // Standard resend-cooldown window (Discord/Slack-style magic-link resends
 // commonly sit in the 30-60s range) -- long enough that the first email has
@@ -35,6 +36,10 @@ export function LoginForm() {
   // (InvitationPage sends the invited email along) so the person doesn't
   // have to retype the exact address the invitation was sent to.
   const search = useSearch({ strict: false })
+  // Locked, not just prefilled -- editing it away from the invited address
+  // would only end in the accept-invitation step's "sent to a different
+  // email" rejection after an account already got created/logged into.
+  const emailLocked = Boolean(search?.email)
   const [email, setEmail] = useState(search?.email || '')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -192,9 +197,16 @@ export function LoginForm() {
             value={email}
             onChange={(e) => { setEmail(e.target.value); setActiveDemo(null) }}
             required
+            readOnly={emailLocked}
             placeholder="you@example.com"
-            className="w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-ring"
+            className={cn(
+              'w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-ring',
+              emailLocked && 'bg-muted text-muted-foreground cursor-not-allowed',
+            )}
           />
+          {emailLocked && (
+            <p className="text-xs text-muted-foreground">This invitation was sent to this address.</p>
+          )}
         </div>
 
         <div className="space-y-1">

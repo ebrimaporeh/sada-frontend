@@ -20,8 +20,12 @@ const INITIAL_FORM = {
 
 export function RegisterForm() {
   // Prefilled when arriving from an organization invitation link
-  // (InvitationPage sends the invited email along).
+  // (InvitationPage sends the invited email along) -- locked, not just
+  // prefilled, since editing it away from the invited address would only
+  // end in the accept-invitation step's "sent to a different email"
+  // rejection after an account already got created.
   const search = useSearch({ strict: false })
+  const emailLocked = Boolean(search?.email)
   const [form, setForm] = useState({ ...INITIAL_FORM, email: search?.email || '' })
   const [visiblePasswords, setVisiblePasswords] = useState({ password: false, password_confirm: false })
   const register = useRegister()
@@ -108,6 +112,7 @@ export function RegisterForm() {
         ].map(({ name, type, label, required, autoComplete }) => {
           const isPasswordField = type === 'password'
           const isVisible = visiblePasswords[name]
+          const isLockedEmail = name === 'email' && emailLocked
           return (
             <div key={name} className="space-y-1">
               <label className="text-sm font-medium">{label}</label>
@@ -119,9 +124,11 @@ export function RegisterForm() {
                   onChange={handleChange}
                   required={required}
                   autoComplete={autoComplete}
+                  readOnly={isLockedEmail}
                   className={cn(
                     'w-full px-3 py-2 border rounded-md text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring',
                     isPasswordField && 'pr-10',
+                    isLockedEmail && 'bg-muted text-muted-foreground cursor-not-allowed',
                   )}
                 />
                 {isPasswordField && (
@@ -135,6 +142,9 @@ export function RegisterForm() {
                   </button>
                 )}
               </div>
+              {isLockedEmail && (
+                <p className="text-xs text-muted-foreground">This invitation was sent to this address.</p>
+              )}
             </div>
           )
         })}
