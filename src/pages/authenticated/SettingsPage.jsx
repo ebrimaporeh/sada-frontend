@@ -4,6 +4,7 @@ import { CheckCircle2, AlertCircle, Eye, EyeOff, Bell, Shield, Trash2, Loader2, 
 import { PageHeader } from '@/components/custom/PageHeader'
 import { useChangePassword, useSetPassword, useLinkGoogleAccount, useLogout, useDeleteAccount, useMe, useUpdateMe } from '@/hooks/useAuth'
 import { usePayoutMethods } from '@/hooks/usePayments'
+import { useActiveProfile } from '@/hooks/useActiveProfile'
 import { cn } from '@/utils/cn'
 
 function Section({ title, description, children, className }) {
@@ -55,6 +56,11 @@ export function SettingsPage() {
   const { data: me } = useMe()
   const updateMe = useUpdateMe()
   const { methods: PAYOUT_METHODS } = usePayoutMethods()
+  // This whole page is about the logged-in individual's own account -- an
+  // organization has no login/password of its own (see the org
+  // verification/clarification notes), so password management specifically
+  // makes no sense to show while acting as one.
+  const { isOrg } = useActiveProfile()
 
   // Delete account
   const [isDeleteMode, setIsDeleteMode] = useState(false)
@@ -315,62 +321,65 @@ export function SettingsPage() {
         </form>
       </Section>
 
-      {/* Change / set password */}
-      <Section
-        title={hasPassword ? 'Change Password' : 'Set a Password'}
-        description={
-          hasPassword
-            ? 'Use a strong password with at least 8 characters.'
-            : 'You signed up with Google and have no password yet. Set one to also be able to log in with your email.'
-        }
-        className="flex-1 min-w-[360px]"
-      >
-        <form onSubmit={handlePasswordSubmit} className="space-y-4">
-          {hasPassword && (
+      {/* Change / set password -- your own login, not the active org's (it
+          has none of its own), so this makes no sense while acting as one */}
+      {!isOrg && (
+        <Section
+          title={hasPassword ? 'Change Password' : 'Set a Password'}
+          description={
+            hasPassword
+              ? 'Use a strong password with at least 8 characters.'
+              : 'You signed up with Google and have no password yet. Set one to also be able to log in with your email.'
+          }
+          className="flex-1 min-w-[360px]"
+        >
+          <form onSubmit={handlePasswordSubmit} className="space-y-4">
+            {hasPassword && (
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium">Current Password</label>
+                <PasswordInput field="current_password" placeholder="Enter current password" />
+              </div>
+            )}
             <div className="space-y-1.5">
-              <label className="text-sm font-medium">Current Password</label>
-              <PasswordInput field="current_password" placeholder="Enter current password" />
+              <label className="text-sm font-medium">New Password</label>
+              <PasswordInput field="new_password" placeholder="At least 8 characters" />
             </div>
-          )}
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium">New Password</label>
-            <PasswordInput field="new_password" placeholder="At least 8 characters" />
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium">Confirm New Password</label>
-            <PasswordInput field="confirm_password" placeholder="Repeat new password" />
-          </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Confirm New Password</label>
+              <PasswordInput field="confirm_password" placeholder="Repeat new password" />
+            </div>
 
-          {pwError && (
-            <p className="text-sm text-destructive flex items-center gap-1.5">
-              <AlertCircle className="w-4 h-4" /> {pwError}
-            </p>
-          )}
+            {pwError && (
+              <p className="text-sm text-destructive flex items-center gap-1.5">
+                <AlertCircle className="w-4 h-4" /> {pwError}
+              </p>
+            )}
 
-          <div className="flex items-center justify-between gap-4">
-            {pwSaved ? (
-              <span className="text-sm text-green-600 flex items-center gap-1.5 font-medium">
-                <CheckCircle2 className="w-4 h-4" /> Password {hasPassword ? 'updated' : 'set'}
-              </span>
-            ) : <span />}
-            <button
-              type="submit"
-              disabled={
-                (hasPassword ? changePassword.isPending : setPassword.isPending) ||
-                (hasPassword && !pwForm.current_password) ||
-                !pwForm.new_password ||
-                !pwForm.confirm_password
-              }
-              className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold px-5 py-2 rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50 text-sm"
-            >
-              <Shield className="w-4 h-4" />
-              {(hasPassword ? changePassword.isPending : setPassword.isPending)
-                ? 'Saving…'
-                : hasPassword ? 'Update Password' : 'Set Password'}
-            </button>
-          </div>
-        </form>
-      </Section>
+            <div className="flex items-center justify-between gap-4">
+              {pwSaved ? (
+                <span className="text-sm text-green-600 flex items-center gap-1.5 font-medium">
+                  <CheckCircle2 className="w-4 h-4" /> Password {hasPassword ? 'updated' : 'set'}
+                </span>
+              ) : <span />}
+              <button
+                type="submit"
+                disabled={
+                  (hasPassword ? changePassword.isPending : setPassword.isPending) ||
+                  (hasPassword && !pwForm.current_password) ||
+                  !pwForm.new_password ||
+                  !pwForm.confirm_password
+                }
+                className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold px-5 py-2 rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50 text-sm"
+              >
+                <Shield className="w-4 h-4" />
+                {(hasPassword ? changePassword.isPending : setPassword.isPending)
+                  ? 'Saving…'
+                  : hasPassword ? 'Update Password' : 'Set Password'}
+              </button>
+            </div>
+          </form>
+        </Section>
+      )}
 
       {/* Connected accounts */}
       <Section
