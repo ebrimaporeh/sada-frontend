@@ -133,6 +133,7 @@ export const CAMPAIGN_STATUS = {
   APPROVED: 'approved',
   ACTIVE: 'active',
   COMPLETED: 'completed',
+  EXPIRED: 'expired',
   REJECTED: 'rejected',
   SUSPENDED: 'suspended',
 }
