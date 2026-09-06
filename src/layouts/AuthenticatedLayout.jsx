@@ -8,7 +8,7 @@ import { isAdminAreaRole } from '@/utils/permissions'
 import {
   LayoutDashboard, PlusCircle, User, Settings,
   LogOut, Menu, X, Megaphone, Bell, Home, ShieldCheck, Loader2, Building2,
-  Users, KeyRound,
+  Users, KeyRound, LayoutTemplate,
 } from 'lucide-react'
 import { NotificationBell } from '@/components/custom/NotificationBell'
 import { Logo } from '@/components/custom/Logo'
@@ -24,6 +24,14 @@ const BASE_NAV_ITEMS = [
   { label: 'Dashboard', to: ROUTES.DASHBOARD, icon: LayoutDashboard },
   { label: 'My Campaigns', to: ROUTES.MY_CAMPAIGNS, icon: Megaphone },
   { label: 'Start Campaign', to: ROUTES.CAMPAIGN_NEW, icon: PlusCircle },
+  // Available regardless of active profile -- an individual campaign owner
+  // and an org-context user both reach the same hub, which then scopes
+  // Posters/Embeds to whichever destinations they actually have access to
+  // (see fundraising_destination.check_destination_manage_access on the
+  // backend). Not split into two top-level entries here to keep the
+  // sidebar as lean as the rest of this nav -- Posters/Embeds are
+  // sub-navigation on the hub page itself.
+  { label: 'Fundraising Studio', to: ROUTES.FUNDRAISING_STUDIO, icon: LayoutTemplate },
 ]
 
 // The org list only makes sense while acting as yourself -- once an org

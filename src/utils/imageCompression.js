@@ -14,6 +14,7 @@ const PROFILES = {
   category: { maxWidthOrHeight: 800, initialQuality: 0.82 },
   document: { maxWidthOrHeight: 2000, initialQuality: 0.9 },
   logo: { maxWidthOrHeight: 1600, initialQuality: 0.95 },
+  poster_image: { maxWidthOrHeight: 1920, initialQuality: 0.9 },
 }
 
 // Compresses `file` to WebP client-side before upload. Falls back to the
