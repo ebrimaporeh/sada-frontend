@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useParams } from '@tanstack/react-router'
-import { ChevronLeft, Eye } from 'lucide-react'
+import { ChevronLeft, Eye, Image, Code2 } from 'lucide-react'
 import { useMyCampaign, useCampaignPermission } from '@/hooks/useCampaigns'
 import { ProgressBar } from '@/components/custom/ProgressBar'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
@@ -85,6 +85,24 @@ export function MyCampaignDetailPage() {
                   url={campaignShareUrl(campaign.slug)}
                   buttonClassName="inline-flex items-center gap-1.5 text-xs border font-medium px-3 py-1.5 rounded-full hover:bg-accent transition-colors"
                 />
+                {canEdit && (
+                  <>
+                    <Link
+                      to={ROUTES.FUNDRAISING_POSTER_NEW}
+                      search={{ destinationType: 'campaign', destinationId: campaign.id }}
+                      className="inline-flex items-center gap-1.5 text-xs border font-medium px-3 py-1.5 rounded-full hover:bg-accent transition-colors"
+                    >
+                      <Image className="w-3.5 h-3.5" /> Design Poster
+                    </Link>
+                    <Link
+                      to={ROUTES.FUNDRAISING_EMBED_NEW}
+                      search={{ destinationType: 'campaign', destinationId: campaign.id }}
+                      className="inline-flex items-center gap-1.5 text-xs border font-medium px-3 py-1.5 rounded-full hover:bg-accent transition-colors"
+                    >
+                      <Code2 className="w-3.5 h-3.5" /> Create Embed
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
 

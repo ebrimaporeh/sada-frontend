@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useNavigate } from '@tanstack/react-router'
+import { useEffect, useState } from 'react'
+import { useNavigate, useSearch } from '@tanstack/react-router'
 import { Loader2 } from 'lucide-react'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
@@ -13,11 +13,23 @@ import { useCreatePoster } from '@/hooks/usePosters'
 
 export function PosterNewPage() {
   const navigate = useNavigate()
+  // Set when arriving via a "Design Poster" button on a campaign/
+  // organization page (see MyCampaignDetailPage.jsx / OrganizationOverview.jsx)
+  // -- pre-selects that destination below instead of making the user pick
+  // it again from a list they just came from.
+  const search = useSearch({ strict: false })
   const { campaignDestinations, organizationDestinations, isLoading } = useFundraisingDestinations()
   const createPoster = useCreatePoster()
 
   const [destination, setDestination] = useState(null)
   const [template, setTemplate] = useState(null)
+
+  useEffect(() => {
+    if (destination || isLoading || !search?.destinationType || !search?.destinationId) return
+    const list = search.destinationType === 'campaign' ? campaignDestinations : organizationDestinations
+    const match = list.find((d) => d.id === search.destinationId)
+    if (match) setDestination(match)
+  }, [destination, isLoading, search?.destinationType, search?.destinationId, campaignDestinations, organizationDestinations])
 
   function handleCreate() {
     if (!destination || !template) return

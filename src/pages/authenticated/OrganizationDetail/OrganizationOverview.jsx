@@ -1,7 +1,8 @@
 import { Link } from '@tanstack/react-router'
-import { Building2, ShieldCheck, ShieldQuestion, Users, Megaphone, Calendar, Wallet } from 'lucide-react'
+import { Building2, ShieldCheck, ShieldQuestion, Users, Megaphone, Calendar, Wallet, Image, Code2 } from 'lucide-react'
 import { formatDate } from '@/utils/formatters'
-import { ROUTES } from '@/constants'
+import { ROUTES, OrganizationPermission } from '@/constants'
+import { useMyOrganizationMembership } from '@/hooks/useOrganizations'
 
 function InfoField({ label, value }) {
   return (
@@ -13,6 +14,9 @@ function InfoField({ label, value }) {
 }
 
 export function OrganizationOverview({ organization }) {
+  const membership = useMyOrganizationMembership(organization.id)
+  const canManageOrg = Boolean(membership?.permissions?.includes(OrganizationPermission.MANAGE_ORGANIZATION))
+
   return (
     <div className="space-y-6">
       <div className="border rounded-2xl bg-card p-6 flex flex-col sm:flex-row items-center sm:items-start gap-6">
@@ -73,6 +77,24 @@ export function OrganizationOverview({ organization }) {
         >
           <Wallet className="w-4 h-4" /> View donations
         </Link>
+        {canManageOrg && (
+          <>
+            <Link
+              to={ROUTES.FUNDRAISING_POSTER_NEW}
+              search={{ destinationType: 'organization', destinationId: organization.id }}
+              className="flex items-center justify-center gap-2 border-2 border-dashed rounded-xl p-4 text-sm font-medium text-muted-foreground hover:text-primary hover:border-primary transition-colors"
+            >
+              <Image className="w-4 h-4" /> Design Poster
+            </Link>
+            <Link
+              to={ROUTES.FUNDRAISING_EMBED_NEW}
+              search={{ destinationType: 'organization', destinationId: organization.id }}
+              className="flex items-center justify-center gap-2 border-2 border-dashed rounded-xl p-4 text-sm font-medium text-muted-foreground hover:text-primary hover:border-primary transition-colors"
+            >
+              <Code2 className="w-4 h-4" /> Create Embed
+            </Link>
+          </>
+        )}
       </div>
     </div>
   )

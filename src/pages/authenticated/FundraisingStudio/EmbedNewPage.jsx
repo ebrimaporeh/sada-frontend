@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useNavigate } from '@tanstack/react-router'
+import { useEffect, useState } from 'react'
+import { useNavigate, useSearch } from '@tanstack/react-router'
 import { Loader2 } from 'lucide-react'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
@@ -12,11 +12,23 @@ import { useCreateEmbed } from '@/hooks/useEmbeds'
 
 export function EmbedNewPage() {
   const navigate = useNavigate()
+  // Set when arriving via a "Create Embed" button on a campaign/
+  // organization page (see MyCampaignDetailPage.jsx / OrganizationOverview.jsx)
+  // -- pre-selects that destination below instead of making the user pick
+  // it again from a list they just came from.
+  const search = useSearch({ strict: false })
   const { campaignDestinations, organizationDestinations, isLoading } = useFundraisingDestinations()
   const createEmbed = useCreateEmbed()
 
   const [destination, setDestination] = useState(null)
   const [layout, setLayout] = useState('card')
+
+  useEffect(() => {
+    if (destination || isLoading || !search?.destinationType || !search?.destinationId) return
+    const list = search.destinationType === 'campaign' ? campaignDestinations : organizationDestinations
+    const match = list.find((d) => d.id === search.destinationId)
+    if (match) setDestination(match)
+  }, [destination, isLoading, search?.destinationType, search?.destinationId, campaignDestinations, organizationDestinations])
 
   function handleCreate() {
     if (!destination) return
