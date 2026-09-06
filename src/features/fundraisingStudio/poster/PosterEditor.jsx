@@ -15,9 +15,25 @@ const AUTOSAVE_DEBOUNCE_MS = 1200
 export function PosterEditor({ poster }) {
   const updatePoster = useUpdatePoster()
   const stageRef = useRef(null)
+  const exportMenuRef = useRef(null)
   const [selectedId, setSelectedId] = useState(null)
   const [saveState, setSaveState] = useState('saved') // 'saved' | 'unsaved' | 'saving'
   const [isExporting, setIsExporting] = useState(false)
+  const [isExportMenuOpen, setIsExportMenuOpen] = useState(false)
+
+  // Click-to-toggle, not hover -- a hover-only dropdown (`group-hover`)
+  // closes the instant the cursor leaves the trigger, so moving diagonally
+  // toward the menu items easily loses hover partway and the menu
+  // disappears before you can click anything. Same click-outside pattern
+  // as ShareCampaign.jsx's own share menu.
+  useEffect(() => {
+    if (!isExportMenuOpen) return
+    function handleClickOutside(e) {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(e.target)) setIsExportMenuOpen(false)
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [isExportMenuOpen])
 
   const { design, commit, undo, redo, canUndo, canRedo } = useDesignHistory(
     poster.design?.elements ? poster.design : emptyDesign(),
@@ -78,6 +94,7 @@ export function PosterEditor({ poster }) {
 
   function handleExport(pixelRatio) {
     if (!stageRef.current) return
+    setIsExportMenuOpen(false)
     setIsExporting(true)
     setSelectedId(null)
     // Wait a tick for the Transformer's selection handles to actually
@@ -90,7 +107,7 @@ export function PosterEditor({ poster }) {
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-4">
+    <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-4">
       <div className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border bg-card px-3 py-2">
           <div className="flex items-center gap-1">
@@ -109,26 +126,34 @@ export function PosterEditor({ poster }) {
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="relative group">
+            <div className="relative" ref={exportMenuRef}>
               <button
                 type="button"
                 disabled={isExporting}
+                onClick={() => setIsExportMenuOpen((v) => !v)}
                 className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-md border hover:bg-accent transition-colors disabled:opacity-50"
               >
                 {isExporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
                 Export
               </button>
-              <div className="absolute right-0 mt-1 w-40 bg-card border rounded-lg shadow-lg py-1 hidden group-hover:block z-20">
-                <button type="button" onClick={() => handleExport(1)} className="w-full text-left px-3 py-1.5 text-xs hover:bg-accent">
-                  Standard (1080px)
-                </button>
-                <button type="button" onClick={() => handleExport(2)} className="w-full text-left px-3 py-1.5 text-xs hover:bg-accent">
-                  High-res (2160px)
-                </button>
-              </div>
+              {isExportMenuOpen && (
+                <div className="absolute right-0 mt-1 w-40 bg-card border rounded-lg shadow-lg py-1 z-20">
+                  <button type="button" onClick={() => handleExport(1)} className="w-full text-left px-3 py-1.5 text-xs hover:bg-accent">
+                    Standard (1080px)
+                  </button>
+                  <button type="button" onClick={() => handleExport(2)} className="w-full text-left px-3 py-1.5 text-xs hover:bg-accent">
+                    High-res (2160px)
+                  </button>
+                </div>
+              )}
             </div>
             {poster.share_url && (
-              <ShareCampaign title={poster.name} url={poster.share_url} buttonLabel="Share" />
+              <ShareCampaign
+                title={poster.name}
+                url={poster.share_url}
+                buttonLabel="Share"
+                buttonClassName="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-md border hover:bg-accent transition-colors whitespace-nowrap"
+              />
             )}
           </div>
         </div>
