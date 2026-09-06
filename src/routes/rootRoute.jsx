@@ -32,6 +32,7 @@ import { PrivacyPage } from '@/pages/public/PrivacyPage'
 import { TermsPage } from '@/pages/public/TermsPage'
 import { VisionIndexPage } from '@/pages/public/VisionIndexPage'
 import { VisionTopicPage } from '@/pages/public/VisionTopicPage'
+import { EmbedWidgetPage } from '@/pages/public/EmbedWidgetPage'
 
 // Pages — authenticated
 import { DashboardPage } from '@/pages/authenticated/DashboardPage'
@@ -48,6 +49,13 @@ import { OrganizationOverviewPage } from '@/pages/authenticated/OrganizationOver
 import { OrganizationMembersPage } from '@/pages/authenticated/OrganizationMembersPage'
 import { OrganizationRolesPage } from '@/pages/authenticated/OrganizationRolesPage'
 import { OrganizationSettingsPage } from '@/pages/authenticated/OrganizationSettingsPage'
+import { FundraisingStudioHomePage } from '@/pages/authenticated/FundraisingStudio/FundraisingStudioHomePage'
+import { PostersListPage } from '@/pages/authenticated/FundraisingStudio/PostersListPage'
+import { PosterNewPage } from '@/pages/authenticated/FundraisingStudio/PosterNewPage'
+import { PosterDetailPage } from '@/pages/authenticated/FundraisingStudio/PosterDetailPage'
+import { EmbedsListPage } from '@/pages/authenticated/FundraisingStudio/EmbedsListPage'
+import { EmbedNewPage } from '@/pages/authenticated/FundraisingStudio/EmbedNewPage'
+import { EmbedDetailPage } from '@/pages/authenticated/FundraisingStudio/EmbedDetailPage'
 
 // Pages — admin
 import { AdminDashboardPage } from '@/pages/admin/DashboardPage'
@@ -255,6 +263,17 @@ const visionTopicRoute = createRoute({
   component: VisionTopicPage,
 })
 
+// ─── Public embed widget (no layout) ───────────────────────────────────────────
+// Deliberately a direct child of rootRoute, not publicLayout -- an embed
+// installed on a third-party site must not carry this app's header/footer/
+// nav chrome into someone else's page. See EmbedWidgetPage's own comment.
+
+const embedWidgetRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: ROUTES.EMBED_WIDGET,
+  component: EmbedWidgetPage,
+})
+
 // ─── Authenticated Layout ─────────────────────────────────────────────────────
 
 const authLayout = createRoute({
@@ -340,6 +359,50 @@ const organizationRolesRoute = createRoute({
   getParentRoute: () => authLayout,
   path: ROUTES.ORGANIZATION_ROLES,
   component: OrganizationRolesPage,
+})
+
+// ─── Fundraising Studio ───────────────────────────────────────────────────────
+
+const fundraisingStudioRoute = createRoute({
+  getParentRoute: () => authLayout,
+  path: ROUTES.FUNDRAISING_STUDIO,
+  component: FundraisingStudioHomePage,
+})
+
+const fundraisingPostersRoute = createRoute({
+  getParentRoute: () => authLayout,
+  path: ROUTES.FUNDRAISING_POSTERS,
+  component: PostersListPage,
+})
+
+const fundraisingPosterNewRoute = createRoute({
+  getParentRoute: () => authLayout,
+  path: ROUTES.FUNDRAISING_POSTER_NEW,
+  component: PosterNewPage,
+})
+
+const fundraisingPosterDetailRoute = createRoute({
+  getParentRoute: () => authLayout,
+  path: ROUTES.FUNDRAISING_POSTER_DETAIL,
+  component: PosterDetailPage,
+})
+
+const fundraisingEmbedsRoute = createRoute({
+  getParentRoute: () => authLayout,
+  path: ROUTES.FUNDRAISING_EMBEDS,
+  component: EmbedsListPage,
+})
+
+const fundraisingEmbedNewRoute = createRoute({
+  getParentRoute: () => authLayout,
+  path: ROUTES.FUNDRAISING_EMBED_NEW,
+  component: EmbedNewPage,
+})
+
+const fundraisingEmbedDetailRoute = createRoute({
+  getParentRoute: () => authLayout,
+  path: ROUTES.FUNDRAISING_EMBED_DETAIL,
+  component: EmbedDetailPage,
 })
 
 const organizationSettingsRoute = createRoute({
@@ -517,7 +580,15 @@ const routeTree = rootRoute.addChildren([
     organizationMembersRoute,
     organizationRolesRoute,
     organizationSettingsRoute,
+    fundraisingStudioRoute,
+    fundraisingPostersRoute,
+    fundraisingPosterNewRoute,
+    fundraisingPosterDetailRoute,
+    fundraisingEmbedsRoute,
+    fundraisingEmbedNewRoute,
+    fundraisingEmbedDetailRoute,
   ]),
+  embedWidgetRoute,
   adminLayout.addChildren([
     adminDashboardRoute,
     adminUsersRoute,

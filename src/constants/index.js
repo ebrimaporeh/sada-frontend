@@ -102,6 +102,22 @@ export const ROUTES = {
   ORGANIZATION_SETTINGS: '/organizations/$id/settings',
   INVITATIONS: '/invitations',
 
+  // Fundraising Studio -- Poster Studio and Embed Studio, two independent
+  // submodules under one authenticated area. See sada-backend
+  // .claude/backend/fundraising.md (or apps.fundraising) for the API this
+  // talks to.
+  FUNDRAISING_STUDIO: '/fundraising-studio',
+  FUNDRAISING_POSTERS: '/fundraising-studio/posters',
+  FUNDRAISING_POSTER_NEW: '/fundraising-studio/posters/new',
+  FUNDRAISING_POSTER_DETAIL: '/fundraising-studio/posters/$id',
+  FUNDRAISING_EMBEDS: '/fundraising-studio/embeds',
+  FUNDRAISING_EMBED_NEW: '/fundraising-studio/embeds/new',
+  FUNDRAISING_EMBED_DETAIL: '/fundraising-studio/embeds/$id',
+  // Public, unauthenticated iframe target -- not under publicLayout (no
+  // header/footer/nav chrome, see rootRoute.jsx), since this is meant to be
+  // embedded on a third-party site, not browsed directly.
+  EMBED_WIDGET: '/embed/$id',
+
   // Admin routes
   ADMIN_USERS: '/admin/users',
   ADMIN_USER_DETAIL: '/admin/users/$id',

@@ -106,4 +106,13 @@ export const queryKeys = {
   permissions: {
     roles: () => ['permissions', 'roles'],
   },
+  posters: {
+    mine: () => ['posters', 'mine'],
+    detail: (id) => ['posters', 'detail', id],
+  },
+  embeds: {
+    mine: () => ['embeds', 'mine'],
+    detail: (id) => ['embeds', 'detail', id],
+    public: (id) => ['embeds', 'public', id],
+  },
 }
