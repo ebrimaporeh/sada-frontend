@@ -2,13 +2,14 @@ import { useState } from 'react'
 import { Outlet, Link, Navigate } from '@tanstack/react-router'
 import { useMe, useLogout } from '@/hooks/useAuth'
 import { useActiveProfile } from '@/hooks/useActiveProfile'
+import { useSidebarCollapsed } from '@/hooks/useSidebarCollapsed'
 import { ROUTES } from '@/constants'
 import { cn } from '@/utils/cn'
 import { isAdminAreaRole } from '@/utils/permissions'
 import {
   LayoutDashboard, PlusCircle, User, Settings,
   LogOut, Menu, X, Megaphone, Bell, Home, ShieldCheck, Loader2, Building2,
-  Users, KeyRound, Wallet, LayoutTemplate,
+  Users, KeyRound, Wallet, LayoutTemplate, ChevronLeft, ChevronRight,
 } from 'lucide-react'
 import { NotificationBell } from '@/components/custom/NotificationBell'
 import { Logo } from '@/components/custom/Logo'
@@ -79,6 +80,7 @@ export function AuthenticatedLayout() {
   const { isOrg, organization } = useActiveProfile()
   const logout = useLogout()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [collapsed, setCollapsed] = useSidebarCollapsed()
   const navItems = buildNavItems(isOrg, organization?.id)
 
   // Redirect admin-area roles (admin, moderator, finance officer) to the admin layout
@@ -108,22 +110,30 @@ export function AuthenticatedLayout() {
 
       {/* Sidebar */}
       <aside
-        className={[
-          'fixed md:sticky top-0 left-0 h-screen z-30 w-64 bg-card border-r flex flex-col transition-transform duration-200',
+        className={cn(
+          'fixed md:sticky top-0 left-0 h-screen z-30 bg-card border-r flex flex-col transition-all duration-200',
           sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
-        ].join(' ')}
+          collapsed ? 'w-64 md:w-[76px]' : 'w-64',
+        )}
       >
         {/* Logo */}
-        <div className="h-16 px-5 border-b flex items-center justify-between">
-          <Link to={ROUTES.HOME} onClick={() => setSidebarOpen(false)}>
+        <div className={cn('h-16 px-5 border-b flex items-center justify-between', collapsed && 'md:justify-center md:px-0')}>
+          <Link to={ROUTES.HOME} onClick={() => setSidebarOpen(false)} className={collapsed ? 'md:hidden' : undefined}>
             <Logo imgClassName="h-7 w-auto" />
           </Link>
           <button className="md:hidden p-1" onClick={() => setSidebarOpen(false)}>
             <X className="w-4 h-4" />
           </button>
+          <button
+            className="hidden md:flex p-1.5 rounded-md hover:bg-accent text-muted-foreground transition-colors"
+            onClick={() => setCollapsed((c) => !c)}
+            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          </button>
         </div>
 
-        <ProfileSwitcher />
+        <ProfileSwitcher collapsed={collapsed} />
 
         {/* Nav */}
         <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
@@ -139,10 +149,14 @@ export function AuthenticatedLayout() {
               // ever show two of them active at once.
               activeOptions={{ exact: true }}
               onClick={() => setSidebarOpen(false)}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors [&.active]:bg-primary/10 [&.active]:text-primary"
+              title={collapsed ? label : undefined}
+              className={cn(
+                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors [&.active]:bg-primary/10 [&.active]:text-primary',
+                collapsed && 'md:justify-center md:px-2',
+              )}
             >
               <Icon className="w-4 h-4 flex-shrink-0" />
-              {label}
+              <span className={collapsed ? 'md:hidden' : undefined}>{label}</span>
             </Link>
           ))}
         </nav>
@@ -152,10 +166,14 @@ export function AuthenticatedLayout() {
           <Link
             to={ROUTES.HOME}
             onClick={() => setSidebarOpen(false)}
-            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+            title={collapsed ? 'Public view' : undefined}
+            className={cn(
+              'flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors',
+              collapsed && 'md:justify-center md:px-2',
+            )}
           >
-            <Home className="w-4 h-4" />
-            Public view
+            <Home className="w-4 h-4 flex-shrink-0" />
+            <span className={collapsed ? 'md:hidden' : undefined}>Public view</span>
           </Link>
         </div>
       </aside>
