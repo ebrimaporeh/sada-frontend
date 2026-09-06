@@ -74,6 +74,30 @@ export function useVerifyDonation(reference, slug) {
   return query
 }
 
+// Organization-donation counterpart to useVerifyDonation above -- same
+// reconciliation call, different cache keys invalidated on success (the
+// org's donation-stats/direct-donations queries instead of a campaign's).
+export function useVerifyOrganizationDonation(reference, organizationId) {
+  const queryClient = useQueryClient()
+  const query = useQuery({
+    queryKey: ['donations', 'verify', reference],
+    queryFn: () => donationApi.verifyDonation(reference),
+    enabled: Boolean(reference),
+    retry: false,
+    staleTime: 0,
+  })
+
+  useEffect(() => {
+    if (query.data && organizationId) {
+      queryClient.invalidateQueries({ queryKey: queryKeys.organizations.donationStats(organizationId) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.organizations.directDonations(organizationId) })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query.data, organizationId])
+
+  return query
+}
+
 export function useDonateToCampaign() {
   const queryClient = useQueryClient()
   return useMutation({
@@ -83,6 +107,23 @@ export function useDonateToCampaign() {
       if (slug) {
         queryClient.invalidateQueries({ queryKey: queryKeys.donations.campaign(slug) })
         queryClient.invalidateQueries({ queryKey: queryKeys.donations.publicCampaign(slug) })
+      }
+    },
+  })
+}
+
+// Direct donation to an organization -- same createDonation call as
+// useDonateToCampaign (the backend distinguishes by campaign_id vs
+// organization_id in the payload, see apps/donations/serializers.py), just
+// invalidating organization-scoped query keys instead of campaign ones.
+export function useDonateToOrganization() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data) => donationApi.createDonation(data),
+    onSuccess: (_, { organization_id }) => {
+      if (organization_id) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.organizations.donationStats(organization_id) })
+        queryClient.invalidateQueries({ queryKey: queryKeys.organizations.directDonations(organization_id) })
       }
     },
   })

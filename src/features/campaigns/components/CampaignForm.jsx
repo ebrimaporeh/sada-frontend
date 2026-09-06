@@ -108,6 +108,10 @@ const INITIAL = {
   story: '',
   goal: '',
   deadline: '',
+  // Defaults to a fixed deadline (existing behavior, unchanged) -- flipping
+  // this off is what makes the campaign open-ended (deadline=null on the
+  // backend), see project.md's campaign-without-a-deadline notes.
+  hasDeadline: true,
   is_anonymous: false,
   is_urgent: false,
 }
@@ -346,11 +350,13 @@ export function CampaignForm() {
     }
     if (s === 2) {
       if (!form.goal || Number(form.goal) < 100) errs.goal = 'Minimum goal is D 100'
-      if (!form.deadline) errs.deadline = 'Deadline is required'
-      else {
-        const days = Math.ceil((new Date(form.deadline) - new Date()) / 86400000)
-        if (days < 1) errs.deadline = 'Deadline must be in the future'
-        if (days > 365) errs.deadline = 'Deadline cannot be more than 1 year away'
+      if (form.hasDeadline) {
+        if (!form.deadline) errs.deadline = 'Deadline is required'
+        else {
+          const days = Math.ceil((new Date(form.deadline) - new Date()) / 86400000)
+          if (days < 1) errs.deadline = 'Deadline must be in the future'
+          if (days > 365) errs.deadline = 'Deadline cannot be more than 1 year away'
+        }
       }
     }
     return errs
@@ -377,7 +383,9 @@ export function CampaignForm() {
       short_description: form.short_description.trim(),
       story: form.story.trim(),
       goal: Number(form.goal),
-      deadline: form.deadline,
+      // Explicit null, not an empty string -- a genuinely optional/null
+      // field on the backend (Campaign.deadline), not "unset" text input.
+      deadline: form.hasDeadline ? form.deadline : null,
       is_anonymous: form.is_anonymous,
       is_urgent: form.is_urgent,
       ...(isOrg ? { organization_id: organization.id } : {}),
@@ -554,15 +562,27 @@ export function CampaignForm() {
               )}
             </FieldGroup>
 
-            <FieldGroup label="Campaign Deadline *" hint="When do you need the funds by? (max 1 year)" error={errors.deadline}>
+            <FieldGroup
+              label={form.hasDeadline ? 'Campaign Deadline *' : 'Campaign Deadline'}
+              hint={form.hasDeadline ? 'When do you need the funds by? (max 1 year)' : 'No end date — see the toggle below.'}
+              error={errors.deadline}
+            >
               <DatePicker
                 value={form.deadline}
                 onChange={set('deadline')}
                 min={minDeadline}
                 placeholder="Select a deadline"
+                disabled={!form.hasDeadline}
               />
             </FieldGroup>
           </div>
+
+          <Toggle
+            checked={!form.hasDeadline}
+            onChange={(v) => setForm((f) => ({ ...f, hasDeadline: !v, deadline: v ? '' : f.deadline }))}
+            label="This campaign has no end date"
+            description="It stays open-ended and remains active until you manually complete it, or it reaches its fundraising goal — see Platform Terms below."
+          />
 
           <div className="border rounded-xl p-4 bg-card space-y-3">
             <p className="text-sm font-semibold">Platform Terms</p>
@@ -624,7 +644,11 @@ export function CampaignForm() {
               </div>
               <div>
                 <p className="text-xs text-muted-foreground mb-1">Deadline</p>
-                <p className="text-sm font-medium">{form.deadline ? new Date(form.deadline).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '—'}</p>
+                <p className="text-sm font-medium">
+                  {form.hasDeadline && form.deadline
+                    ? new Date(form.deadline).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+                    : 'No end date — ongoing campaign'}
+                </p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground mb-1">Urgent</p>

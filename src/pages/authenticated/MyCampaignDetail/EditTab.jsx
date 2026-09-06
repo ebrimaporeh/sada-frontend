@@ -160,6 +160,9 @@ export function EditTab({ campaign }) {
     story: campaign.story || '',
     goal: String(campaign.goal || ''),
     deadline: campaign.deadline || '',
+    // Seeded from whether the campaign currently has one -- see the
+    // toggle below (project.md's open-ended-campaign notes).
+    hasDeadline: Boolean(campaign.deadline),
     category: campaign.category?.slug || campaign.category_slug || '',
     region: campaign.region || '',
     beneficiary: campaign.beneficiary || '',
@@ -186,7 +189,7 @@ export function EditTab({ campaign }) {
         short_description: form.short_description,
         story: form.story,
         goal: Number(form.goal),
-        deadline: form.deadline,
+        deadline: form.hasDeadline ? form.deadline : null,
         category: form.category,
         region: form.region,
         beneficiary: form.beneficiary,
@@ -285,9 +288,19 @@ export function EditTab({ campaign }) {
           </div>
           <div className="space-y-1.5">
             <label className={labelClass}>Deadline</label>
-            <DatePicker value={form.deadline} onChange={set('deadline')} className="rounded-xl" />
+            <DatePicker value={form.deadline} onChange={set('deadline')} className="rounded-xl" disabled={!form.hasDeadline} />
           </div>
         </div>
+
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={!form.hasDeadline}
+            onChange={(e) => setForm((f) => ({ ...f, hasDeadline: !e.target.checked, deadline: e.target.checked ? '' : f.deadline }))}
+            className="rounded"
+          />
+          <span className="text-sm">This campaign has no end date (ongoing until you complete it or it reaches its goal)</span>
+        </label>
       </div>
 
       <div className="flex items-center justify-between gap-4 pb-4">

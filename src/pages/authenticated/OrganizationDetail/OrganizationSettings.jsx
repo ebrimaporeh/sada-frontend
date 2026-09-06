@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { AlertCircle, Clock, Mail, UserCheck } from 'lucide-react'
+import { AlertCircle, Clock, Mail, UserCheck, ImageIcon, Loader2 } from 'lucide-react'
 import { useMyOrganizationChangeRequests, useSubmitOrganizationChangeRequest } from '@/hooks/useUsers'
-import { useMyOrganizationMembership } from '@/hooks/useOrganizations'
+import { useMyOrganizationMembership, useUpdateOrganization, useUploadOrganizationCover } from '@/hooks/useOrganizations'
 import { OrganizationPermission } from '@/constants'
 import { initials } from '@/utils/formatters'
 
@@ -138,6 +138,101 @@ function ContactPersonsList({ contactPersons }) {
   )
 }
 
+// What shows on the public /give/<slug> donation page -- description and
+// cover image, both directly editable (unlike phone/recovery email above)
+// since neither is account-recovery-critical, see
+// organization_service.update_organization/upload_cover_image.
+function DonationPageSettings({ organization, canManage }) {
+  const [description, setDescription] = useState(organization.description || '')
+  const [error, setError] = useState('')
+  const updateOrganization = useUpdateOrganization(organization.id)
+  const uploadCover = useUploadOrganizationCover(organization.id)
+
+  function handleSaveDescription(e) {
+    e.preventDefault()
+    setError('')
+    updateOrganization.mutate(
+      { description },
+      { onError: (err) => setError(err?.response?.data?.message || 'Failed to save.') },
+    )
+  }
+
+  function handleCoverChange(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setError('')
+    uploadCover.mutate(file, {
+      onError: (err) => setError(err?.response?.data?.message || 'Failed to upload cover image.'),
+    })
+  }
+
+  return (
+    <div className="border rounded-2xl p-6 bg-card space-y-4">
+      <div>
+        <h2 className="font-semibold text-base">Donation Page</h2>
+        <p className="text-xs text-muted-foreground mt-1">
+          What donors see at your public donation link (see the Donations tab for that URL) — a short description and
+          a cover image.
+        </p>
+      </div>
+
+      <div>
+        <label className="text-xs text-muted-foreground block mb-1.5">Description</label>
+        {canManage ? (
+          <form onSubmit={handleSaveDescription} className="space-y-2">
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              maxLength={2000}
+              rows={3}
+              placeholder="Tell donors what their contribution supports…"
+              className="w-full px-3 py-2 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring resize-none"
+            />
+            <div className="flex items-center gap-2">
+              <button
+                type="submit"
+                disabled={updateOrganization.isPending}
+                className="text-xs bg-primary text-primary-foreground font-medium px-3 py-1.5 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
+              >
+                {updateOrganization.isPending ? 'Saving…' : 'Save'}
+              </button>
+              {updateOrganization.isSuccess && <span className="text-xs text-green-700">Saved</span>}
+            </div>
+          </form>
+        ) : (
+          <p className="text-sm">{organization.description || '—'}</p>
+        )}
+      </div>
+
+      {canManage && (
+        <div>
+          <label className="text-xs text-muted-foreground block mb-1.5">Cover image</label>
+          <div className="flex items-center gap-3">
+            <div className="w-24 h-16 rounded-lg bg-muted overflow-hidden flex items-center justify-center flex-shrink-0">
+              {organization.cover_image ? (
+                <img src={organization.cover_image} alt="Cover" className="w-full h-full object-cover" />
+              ) : (
+                <ImageIcon className="w-5 h-5 text-muted-foreground" />
+              )}
+            </div>
+            <label className="text-xs font-medium text-primary hover:underline cursor-pointer inline-flex items-center gap-1.5">
+              {uploadCover.isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+              {uploadCover.isPending ? 'Uploading…' : 'Upload new cover'}
+              <input type="file" accept="image/*" className="hidden" onChange={handleCoverChange} disabled={uploadCover.isPending} />
+            </label>
+          </div>
+        </div>
+      )}
+
+      {error && (
+        <p className="text-xs text-destructive flex items-center gap-1">
+          <AlertCircle className="w-3 h-3 flex-shrink-0" /> {error}
+        </p>
+      )}
+    </div>
+  )
+}
+
 export function OrganizationSettings({ organization }) {
   const { data: changeRequests } = useMyOrganizationChangeRequests()
   const myMembership = useMyOrganizationMembership(organization.id)
@@ -159,6 +254,8 @@ export function OrganizationSettings({ organization }) {
         </div>
         <ContactPersonsList contactPersons={organization.contact_persons} />
       </div>
+
+      <DonationPageSettings organization={organization} canManage={canManage} />
 
       <div className="border rounded-2xl p-6 bg-card space-y-4">
         <div>

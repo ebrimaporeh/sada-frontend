@@ -45,7 +45,7 @@ export function OverviewTab({ campaign }) {
             <div className="flex justify-between"><span className="text-muted-foreground">Category</span><span className="font-medium">{campaign.category_name}</span></div>
             <div className="flex justify-between"><span className="text-muted-foreground">Region</span><span className="font-medium capitalize">{campaign.region}</span></div>
             <div className="flex justify-between"><span className="text-muted-foreground">Created</span><span className="font-medium">{formatDate(campaign.created_at)}</span></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">Deadline</span><span className="font-medium">{campaign.deadline ? formatDate(campaign.deadline) : '—'}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Deadline</span><span className="font-medium">{campaign.deadline ? formatDate(campaign.deadline) : 'No end date'}</span></div>
             {campaign.approved_at && (
               <div className="flex justify-between"><span className="text-muted-foreground">Approved</span><span className="font-medium">{formatDate(campaign.approved_at)}</span></div>
             )}

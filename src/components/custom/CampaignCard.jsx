@@ -1,13 +1,14 @@
 import { Link } from '@tanstack/react-router'
-import { MapPin, Users, Clock, CheckCircle2 } from 'lucide-react'
+import { MapPin, Users, Clock, CheckCircle2, Infinity as InfinityIcon } from 'lucide-react'
 import { ProgressBar } from '@/components/custom/ProgressBar'
-import { formatGMD, progressPercent, daysLeft } from '@/utils/formatters'
+import { formatGMD, progressPercent, daysLeft, isOngoingCampaign } from '@/utils/formatters'
 import { cn } from '@/utils/cn'
 
 export function CampaignCard({ campaign, className }) {
   const pct = progressPercent(campaign.raised, campaign.goal)
+  const ongoing = isOngoingCampaign(campaign.deadline)
   const days = daysLeft(campaign.deadline)
-  const isAlmostDone = days <= 7 && days > 0
+  const isAlmostDone = !ongoing && days <= 7 && days > 0
   const isGoalMet = pct >= 100
 
   return (
@@ -77,8 +78,8 @@ export function CampaignCard({ campaign, className }) {
             {campaign.donors_count.toLocaleString()} donors
           </span>
           <span className={cn('flex items-center gap-1', isAlmostDone && 'text-donate font-medium')}>
-            <Clock className="w-3 h-3" />
-            {days === 0 ? 'Ended' : `${days} days left`}
+            {ongoing ? <InfinityIcon className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+            {ongoing ? 'Ongoing' : days === 0 ? 'Ended' : `${days} days left`}
           </span>
         </div>
       </div>

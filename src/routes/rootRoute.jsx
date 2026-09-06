@@ -24,6 +24,8 @@ import { FundraisersPage } from '@/pages/public/FundraisersPage'
 import { FundraiserDetailPage } from '@/pages/public/FundraiserDetailPage'
 import { DonatePage } from '@/pages/public/DonatePage'
 import { DonateSuccessPage } from '@/pages/public/DonateSuccessPage'
+import { OrganizationDonatePage } from '@/pages/public/OrganizationDonatePage'
+import { OrganizationDonateSuccessPage } from '@/pages/public/OrganizationDonateSuccessPage'
 import { ZakatPage } from '@/pages/public/ZakatPage'
 import { AboutPage } from '@/pages/public/AboutPage'
 import { HelpPage } from '@/pages/public/HelpPage'
@@ -48,6 +50,7 @@ import { OrganizationNewPage } from '@/pages/authenticated/OrganizationNewPage'
 import { OrganizationOverviewPage } from '@/pages/authenticated/OrganizationOverviewPage'
 import { OrganizationMembersPage } from '@/pages/authenticated/OrganizationMembersPage'
 import { OrganizationRolesPage } from '@/pages/authenticated/OrganizationRolesPage'
+import { OrganizationDonationsPage } from '@/pages/authenticated/OrganizationDonationsPage'
 import { OrganizationSettingsPage } from '@/pages/authenticated/OrganizationSettingsPage'
 import { FundraisingStudioHomePage } from '@/pages/authenticated/FundraisingStudio/FundraisingStudioHomePage'
 import { PostersListPage } from '@/pages/authenticated/FundraisingStudio/PostersListPage'
@@ -215,6 +218,18 @@ const donateSuccessRoute = createRoute({
   component: DonateSuccessPage,
 })
 
+const giveRoute = createRoute({
+  getParentRoute: () => publicLayout,
+  path: '/give/$slug',
+  component: OrganizationDonatePage,
+})
+
+const giveSuccessRoute = createRoute({
+  getParentRoute: () => publicLayout,
+  path: '/give/$slug/success',
+  component: OrganizationDonateSuccessPage,
+})
+
 const zakatRoute = createRoute({
   getParentRoute: () => publicLayout,
   path: ROUTES.ZAKAT,
@@ -361,6 +376,18 @@ const organizationRolesRoute = createRoute({
   component: OrganizationRolesPage,
 })
 
+const organizationDonationsRoute = createRoute({
+  getParentRoute: () => authLayout,
+  path: ROUTES.ORGANIZATION_DONATIONS,
+  component: OrganizationDonationsPage,
+})
+
+const organizationSettingsRoute = createRoute({
+  getParentRoute: () => authLayout,
+  path: ROUTES.ORGANIZATION_SETTINGS,
+  component: OrganizationSettingsPage,
+})
+
 // ─── Fundraising Studio ───────────────────────────────────────────────────────
 
 const fundraisingStudioRoute = createRoute({
@@ -403,12 +430,6 @@ const fundraisingEmbedDetailRoute = createRoute({
   getParentRoute: () => authLayout,
   path: ROUTES.FUNDRAISING_EMBED_DETAIL,
   component: EmbedDetailPage,
-})
-
-const organizationSettingsRoute = createRoute({
-  getParentRoute: () => authLayout,
-  path: ROUTES.ORGANIZATION_SETTINGS,
-  component: OrganizationSettingsPage,
 })
 
 // ─── Admin Layout ─────────────────────────────────────────────────────────────
@@ -555,6 +576,8 @@ const routeTree = rootRoute.addChildren([
     fundraiserDetailRoute,
     donateRoute,
     donateSuccessRoute,
+    giveRoute,
+    giveSuccessRoute,
     invitationRoute,
     zakatRoute,
     aboutRoute,
@@ -579,6 +602,7 @@ const routeTree = rootRoute.addChildren([
     organizationOverviewRoute,
     organizationMembersRoute,
     organizationRolesRoute,
+    organizationDonationsRoute,
     organizationSettingsRoute,
     fundraisingStudioRoute,
     fundraisingPostersRoute,

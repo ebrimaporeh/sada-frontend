@@ -179,7 +179,7 @@ export function CampaignsPage() {
                           {c.status}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-xs text-muted-foreground">{formatDate(c.deadline)}</td>
+                      <td className="px-4 py-3 text-xs text-muted-foreground">{c.deadline ? formatDate(c.deadline) : 'Ongoing'}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1">
                           <Link

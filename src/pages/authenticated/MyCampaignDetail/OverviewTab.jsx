@@ -2,11 +2,12 @@ import { Link } from '@tanstack/react-router'
 import { TrendingUp, Users, Clock, Eye, ExternalLink } from 'lucide-react'
 import { StatCard, SectionCard } from './shared'
 import { ProgressBar } from '@/components/custom/ProgressBar'
-import { formatGMD, formatDate, progressPercent, daysLeft } from '@/utils/formatters'
+import { formatGMD, formatDate, progressPercent, daysLeft, isOngoingCampaign } from '@/utils/formatters'
 import { cn } from '@/utils/cn'
 
 export function OverviewTab({ campaign, donors, payouts, totalPaidOut, availableBalance }) {
   const pct = progressPercent(campaign.raised, campaign.goal)
+  const ongoing = isOngoingCampaign(campaign.deadline)
   const days = daysLeft(campaign.deadline)
 
   const topDonors = [...donors].sort((a, b) => b.amount - a.amount).slice(0, 5)
@@ -17,7 +18,13 @@ export function OverviewTab({ campaign, donors, payouts, totalPaidOut, available
         <StatCard label="Total Raised" value={formatGMD(campaign.raised)} sub="GMD" icon={TrendingUp} color="bg-primary/10 text-primary" />
         <StatCard label="Donors" value={campaign.donors_count.toLocaleString()} sub="generous supporters" icon={Users} color="bg-blue-100 text-blue-700" />
         <StatCard label="Views" value={(campaign.views_count ?? 0).toLocaleString()} sub="page visits" icon={Eye} color="bg-purple-100 text-purple-700" />
-        <StatCard label="Days Left" value={days > 0 ? days : 'Ended'} sub={days > 0 ? `until ${formatDate(campaign.deadline)}` : 'campaign ended'} icon={Clock} color="bg-amber-100 text-amber-700" />
+        <StatCard
+          label={ongoing ? 'Duration' : 'Days Left'}
+          value={ongoing ? 'Ongoing' : days > 0 ? days : 'Ended'}
+          sub={ongoing ? 'no end date' : days > 0 ? `until ${formatDate(campaign.deadline)}` : 'campaign ended'}
+          icon={Clock}
+          color="bg-amber-100 text-amber-700"
+        />
         <StatCard label="Funded" value={`${pct}%`} sub={`of ${formatGMD(campaign.goal)} goal`} icon={TrendingUp} color="bg-green-100 text-green-700" />
       </div>
 
@@ -113,7 +120,7 @@ export function OverviewTab({ campaign, donors, payouts, totalPaidOut, available
             ['Beneficiary', campaign.beneficiary],
             ['Relationship', campaign.beneficiary_relationship],
             ['Created', formatDate(campaign.created_at)],
-            ['Deadline', formatDate(campaign.deadline)],
+            ['Deadline', ongoing ? 'No end date' : formatDate(campaign.deadline)],
           ].map(([label, value]) => (
             <div key={label}>
               <p className="text-xs text-muted-foreground mb-0.5">{label}</p>

@@ -45,4 +45,10 @@ describe('CampaignCard', () => {
     render(<CampaignCard campaign={{ ...baseCampaign, deadline: '2000-01-01' }} />)
     expect(screen.getByText('Ended')).toBeInTheDocument()
   })
+
+  it('shows "Ongoing" instead of "Ended" for a campaign with no deadline', () => {
+    render(<CampaignCard campaign={{ ...baseCampaign, deadline: null }} />)
+    expect(screen.getByText('Ongoing')).toBeInTheDocument()
+    expect(screen.queryByText('Ended')).not.toBeInTheDocument()
+  })
 })

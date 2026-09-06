@@ -2,7 +2,7 @@ import { Link } from '@tanstack/react-router'
 import { PlusCircle, Eye, ArrowRight, Loader2, Megaphone, Building2 } from 'lucide-react'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { ProgressBar } from '@/components/custom/ProgressBar'
-import { formatGMD, formatDate, progressPercent, daysLeft } from '@/utils/formatters'
+import { formatGMD, formatDate, progressPercent, daysLeft, isOngoingCampaign } from '@/utils/formatters'
 import { useMyMissions } from '@/hooks/useCampaigns'
 import { ROUTES, CAMPAIGN_STATUS } from '@/constants'
 import { cn } from '@/utils/cn'
@@ -51,7 +51,11 @@ function CampaignCard({ campaign }) {
         </div>
 
         <div className="flex items-center justify-between text-xs text-muted-foreground border-t pt-3">
-          <span>{days > 0 ? `${days} days left` : 'Ended'} · ends {formatDate(campaign.deadline)}</span>
+          <span>
+            {isOngoingCampaign(campaign.deadline)
+              ? 'Ongoing campaign · no end date'
+              : `${days > 0 ? `${days} days left` : 'Ended'} · ends ${formatDate(campaign.deadline)}`}
+          </span>
           <Link
             to="/my-campaigns/$slug"
             params={{ slug: campaign.slug }}

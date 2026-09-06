@@ -31,6 +31,9 @@ export const queryKeys = {
     adminList: (params) => ['organizations', 'admin', params],
     adminDetail: (id) => ['organizations', 'admin', 'detail', id],
     adminMembers: (id) => ['organizations', 'admin', 'detail', id, 'members'],
+    publicDonate: (slug) => ['organizations', 'public-donate', slug],
+    donationStats: (id) => ['organizations', 'detail', id, 'donation-stats'],
+    directDonations: (id, params) => ['organizations', 'detail', id, 'direct-donations', params],
   },
   organizationChangeRequest: {
     mine: () => ['organization-change-request', 'mine'],

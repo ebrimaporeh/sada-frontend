@@ -6,8 +6,24 @@ export const organizationsApi = {
   create: (data) => apiClient.post('/organizations/', data).then((r) => r.data),
   getMine: () => apiClient.get('/organizations/mine/').then((r) => r.data),
   getDetail: (id) => apiClient.get(`/organizations/${id}/`).then((r) => r.data),
+  updateDetail: (id, data) => apiClient.patch(`/organizations/${id}/`, data).then((r) => r.data),
+  uploadCover: (id, file) => {
+    const form = new FormData()
+    form.append('cover_image', file)
+    return apiClient
+      .post(`/organizations/${id}/cover/`, form, { headers: { 'Content-Type': 'multipart/form-data' } })
+      .then((r) => r.data)
+  },
   transferOwnership: (id, userId) =>
     apiClient.post(`/organizations/${id}/transfer-ownership/`, { user_id: userId }).then((r) => r.data),
+
+  // ── Public donation page (/give/<slug>) -- no auth, distinct from every
+  // uuid-addressed endpoint above ─────────────────────────────────────────
+  getPublicDonate: (slug) => apiClient.get(`/organizations/give/${slug}/`).then((r) => r.data),
+
+  // ── Direct-donation dashboard (any current member can view) ─────────────
+  getDonationStats: (id) => apiClient.get(`/organizations/${id}/donations/stats/`).then((r) => r.data),
+  getDirectDonations: (id, params) => apiClient.get(`/organizations/${id}/donations/`, { params }).then((r) => r.data),
 
   getRoles: (id) => apiClient.get(`/organizations/${id}/roles/`).then((r) => r.data),
   createRole: (id, data) => apiClient.post(`/organizations/${id}/roles/`, data).then((r) => r.data),

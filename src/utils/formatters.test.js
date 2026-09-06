@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatGMD, progressPercent, daysLeft, truncate, initials, compactNumber } from './formatters'
+import { formatGMD, progressPercent, daysLeft, isOngoingCampaign, truncate, initials, compactNumber } from './formatters'
 
 describe('formatGMD', () => {
   it('formats a positive amount with the D prefix and thousands separators', () => {
@@ -46,6 +46,19 @@ describe('daysLeft', () => {
     future.setDate(future.getDate() + 10)
     expect(daysLeft(future.toISOString())).toBeGreaterThanOrEqual(9)
     expect(daysLeft(future.toISOString())).toBeLessThanOrEqual(10)
+  })
+})
+
+describe('isOngoingCampaign', () => {
+  it('is true for a null/missing deadline', () => {
+    expect(isOngoingCampaign(null)).toBe(true)
+    expect(isOngoingCampaign(undefined)).toBe(true)
+    expect(isOngoingCampaign('')).toBe(true)
+  })
+
+  it('is false for any real deadline, past or future', () => {
+    expect(isOngoingCampaign('2000-01-01')).toBe(false)
+    expect(isOngoingCampaign('2099-01-01')).toBe(false)
   })
 })
 

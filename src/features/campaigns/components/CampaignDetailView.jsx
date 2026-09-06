@@ -7,7 +7,7 @@ import { VerifiedTick } from '@/components/custom/VerifiedTick'
 import { Breadcrumbs } from '@/components/custom/Breadcrumbs'
 import { Select } from '@/components/custom/Select'
 import { MarkdownContent } from '@/components/custom/MarkdownEditor'
-import { formatGMD, formatDate, progressPercent, daysLeft, timeAgo } from '@/utils/formatters'
+import { formatGMD, formatDate, progressPercent, daysLeft, isOngoingCampaign, timeAgo } from '@/utils/formatters'
 import { useCampaignDonors } from '@/hooks/useDonations'
 import { useReportCampaign } from '@/hooks/useCampaigns'
 import { useMe } from '@/hooks/useAuth'
@@ -513,8 +513,8 @@ function ProgressProgress({ campaign, pct, days }) {
           <p className="text-xs text-muted-foreground">donors</p>
         </div>
         <div>
-          <p className="text-lg font-bold">{days}</p>
-          <p className="text-xs text-muted-foreground">days left</p>
+          <p className="text-lg font-bold">{isOngoingCampaign(campaign.deadline) ? '∞' : days}</p>
+          <p className="text-xs text-muted-foreground">{isOngoingCampaign(campaign.deadline) ? 'ongoing' : 'days left'}</p>
         </div>
       </div>
     </div>

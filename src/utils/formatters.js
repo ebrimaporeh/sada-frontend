@@ -57,6 +57,16 @@ export function daysLeft(deadline) {
   return diff > 0 ? diff : 0
 }
 
+// A campaign with no deadline (Campaign.deadline=None on the backend) is
+// "open-ended"/"ongoing" -- never "Ended" (daysLeft(null) === 0 alone can't
+// tell those apart, so every "days left"/"Ended" display site needs to
+// check this first). See architecture notes on campaigns without a
+// deadline -- absence of a deadline is a real, deliberate campaign type,
+// not missing data.
+export function isOngoingCampaign(deadline) {
+  return !deadline
+}
+
 export function timeAgo(dateString) {
   if (!dateString) return ''
   const now = new Date()

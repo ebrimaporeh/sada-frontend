@@ -92,13 +92,19 @@ export const ROUTES = {
   VERIFICATION: '/verification',
   DONATE: '/donate/$slug',
   DONATE_SUCCESS: '/donate/$slug/success',
+  // Public, campaign-independent organization donation page -- see
+  // backend/organizations.md's direct-organization-donation notes. Distinct
+  // from ORGANIZATION_OVERVIEW etc below (uuid-addressed, membership-gated).
+  GIVE: '/give/$slug',
+  GIVE_SUCCESS: '/give/$slug/success',
   ORGANIZATIONS: '/organizations',
   ORGANIZATION_NEW: '/organizations/new',
-  // Overview/Members/Roles/Settings are real nav items/routes, not tabs on
-  // one page -- see AuthenticatedLayout's org-context nav.
+  // Overview/Members/Roles/Donations/Settings are real nav items/routes,
+  // not tabs on one page -- see AuthenticatedLayout's org-context nav.
   ORGANIZATION_OVERVIEW: '/organizations/$id/overview',
   ORGANIZATION_MEMBERS: '/organizations/$id/members',
   ORGANIZATION_ROLES: '/organizations/$id/roles',
+  ORGANIZATION_DONATIONS: '/organizations/$id/donations',
   ORGANIZATION_SETTINGS: '/organizations/$id/settings',
   INVITATIONS: '/invitations',
 

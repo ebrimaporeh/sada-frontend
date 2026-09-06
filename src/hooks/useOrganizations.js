@@ -45,6 +45,63 @@ export function useOrganization(id) {
   })
 }
 
+// Public /give/<slug> donation page -- no auth required, distinct from
+// useOrganization(id) above (uuid-addressed, membership-gated).
+export function usePublicOrganization(slug) {
+  return useQuery({
+    queryKey: queryKeys.organizations.publicDonate(slug),
+    queryFn: () => organizationsApi.getPublicDonate(slug),
+    select: (res) => res?.data?.organization,
+    enabled: Boolean(slug),
+  })
+}
+
+export function useUpdateOrganization(id) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data) => organizationsApi.updateDetail(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.organizations.detail(id) })
+    },
+  })
+}
+
+export function useUploadOrganizationCover(id) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (file) => organizationsApi.uploadCover(id, file),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.organizations.detail(id) })
+    },
+  })
+}
+
+// Direct-donation totals (direct + campaign, kept separate -- see
+// backend/services.md's get_organization_donation_stats).
+export function useOrganizationDonationStats(id) {
+  return useQuery({
+    queryKey: queryKeys.organizations.donationStats(id),
+    queryFn: () => organizationsApi.getDonationStats(id),
+    select: (res) => res?.data,
+    enabled: Boolean(id),
+  })
+}
+
+// Direct (non-campaign) donations made straight to the organization.
+export function useOrganizationDirectDonations(id, { page = 1 } = {}) {
+  return useQuery({
+    queryKey: queryKeys.organizations.directDonations(id, { page }),
+    queryFn: () => organizationsApi.getDirectDonations(id, { page }),
+    select: (res) => ({
+      donations: res?.results ?? [],
+      count: res?.count ?? 0,
+      totalPages: res?.total_pages ?? 1,
+    }),
+    enabled: Boolean(id),
+    placeholderData: (previousData) => previousData,
+  })
+}
+
 export function useCreateOrganization() {
   const queryClient = useQueryClient()
   return useMutation({

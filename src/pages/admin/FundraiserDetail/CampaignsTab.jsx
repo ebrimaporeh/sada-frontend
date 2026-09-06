@@ -63,7 +63,7 @@ export function CampaignsTab({ user }) {
                   {c.status}
                 </span>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">{c.category_name} · {formatDate(c.deadline)}</p>
+              <p className="text-xs text-muted-foreground mt-1">{c.category_name} · {c.deadline ? formatDate(c.deadline) : 'Ongoing'}</p>
               <div className="mt-2 max-w-xs">
                 <ProgressBar value={progressPercent(c.raised, c.goal)} />
               </div>

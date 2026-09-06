@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { Building2, ShieldCheck, ShieldQuestion, Users, Megaphone, Calendar } from 'lucide-react'
+import { Building2, ShieldCheck, ShieldQuestion, Users, Megaphone, Calendar, Wallet } from 'lucide-react'
 import { formatDate } from '@/utils/formatters'
 import { ROUTES } from '@/constants'
 
@@ -59,12 +59,21 @@ export function OrganizationOverview({ organization }) {
         </div>
       </div>
 
-      <Link
-        to={ROUTES.MY_CAMPAIGNS}
-        className="flex items-center justify-center gap-2 border-2 border-dashed rounded-xl p-4 text-sm font-medium text-muted-foreground hover:text-primary hover:border-primary transition-colors"
-      >
-        <Megaphone className="w-4 h-4" /> View campaigns
-      </Link>
+      <div className="grid sm:grid-cols-2 gap-3">
+        <Link
+          to={ROUTES.MY_CAMPAIGNS}
+          className="flex items-center justify-center gap-2 border-2 border-dashed rounded-xl p-4 text-sm font-medium text-muted-foreground hover:text-primary hover:border-primary transition-colors"
+        >
+          <Megaphone className="w-4 h-4" /> View campaigns
+        </Link>
+        <Link
+          to={ROUTES.ORGANIZATION_DONATIONS}
+          params={{ id: organization.id }}
+          className="flex items-center justify-center gap-2 border-2 border-dashed rounded-xl p-4 text-sm font-medium text-muted-foreground hover:text-primary hover:border-primary transition-colors"
+        >
+          <Wallet className="w-4 h-4" /> View donations
+        </Link>
+      </div>
     </div>
   )
 }

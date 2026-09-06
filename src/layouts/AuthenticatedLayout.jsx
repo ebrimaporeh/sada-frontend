@@ -8,7 +8,7 @@ import { isAdminAreaRole } from '@/utils/permissions'
 import {
   LayoutDashboard, PlusCircle, User, Settings,
   LogOut, Menu, X, Megaphone, Bell, Home, ShieldCheck, Loader2, Building2,
-  Users, KeyRound, LayoutTemplate,
+  Users, KeyRound, Wallet, LayoutTemplate,
 } from 'lucide-react'
 import { NotificationBell } from '@/components/custom/NotificationBell'
 import { Logo } from '@/components/custom/Logo'
@@ -60,6 +60,7 @@ const TRAILING_NAV_ITEMS = [
 function orgNavItems(organizationId) {
   const params = { id: organizationId }
   return [
+    { label: 'Donations', to: ROUTES.ORGANIZATION_DONATIONS, params, icon: Wallet },
     { label: 'Members', to: ROUTES.ORGANIZATION_MEMBERS, params, icon: Users },
     { label: 'Roles', to: ROUTES.ORGANIZATION_ROLES, params, icon: KeyRound },
     { label: 'Org Settings', to: ROUTES.ORGANIZATION_SETTINGS, params, icon: Settings },
