@@ -7,6 +7,10 @@ import { createImageElement, createQrElement, createShapeElement, createTextElem
 // Click-to-add, not drag-and-drop -- see the architecture doc's "why not
 // @dnd-kit" note. Konva's own drag handling already covers moving an
 // element once it's on the canvas.
+//
+// Rendered as a horizontal bar above the canvas (not a side column) --
+// PosterEditor.jsx places this in its own row, so the canvas/properties
+// area only needs two columns, not three.
 export function ElementsPanel({ posterId, onAdd }) {
   const fileInputRef = useRef(null)
   const uploadImage = useUploadPosterImage()
@@ -27,8 +31,7 @@ export function ElementsPanel({ posterId, onAdd }) {
   }
 
   return (
-    <div className="space-y-1">
-      <p className="section-label mb-2">Elements</p>
+    <div className="flex flex-wrap items-center gap-1.5">
       <PanelButton icon={Type} label="Text" onClick={() => onAdd(createTextElement())} />
       <PanelButton
         icon={isUploading ? Loader2 : ImageIcon}
@@ -41,7 +44,7 @@ export function ElementsPanel({ posterId, onAdd }) {
       <PanelButton icon={Square} label="Rectangle" onClick={() => onAdd(createShapeElement({ shapeType: 'rect' }))} />
       <PanelButton
         icon={Square}
-        label="Rounded Rectangle"
+        label="Rounded Rect"
         onClick={() => onAdd(createShapeElement({ shapeType: 'rect', cornerRadius: 24 }))}
       />
       <PanelButton icon={CircleIcon} label="Circle" onClick={() => onAdd(createShapeElement({ shapeType: 'circle', width: 160, height: 160 }))} />
@@ -57,10 +60,11 @@ function PanelButton({ icon: Icon, label, onClick, disabled, iconClassName }) {
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm hover:bg-accent transition-colors disabled:opacity-50"
+      title={label}
+      className="flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-xs hover:bg-accent transition-colors disabled:opacity-50 min-w-[64px]"
     >
       <Icon className={`w-4 h-4 text-muted-foreground ${iconClassName || ''}`} />
-      {label}
+      <span className="whitespace-nowrap">{label}</span>
     </button>
   )
 }

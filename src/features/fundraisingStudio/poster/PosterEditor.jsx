@@ -90,12 +90,7 @@ export function PosterEditor({ poster }) {
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[200px_1fr_260px] gap-4">
-      <div className="lg:hidden" />
-      <aside className="hidden lg:block rounded-xl border bg-card p-3 h-fit">
-        <ElementsPanel posterId={poster.id} onAdd={handleAdd} />
-      </aside>
-
+    <div className="grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-4">
       <div className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border bg-card px-3 py-2">
           <div className="flex items-center gap-1">
@@ -138,6 +133,10 @@ export function PosterEditor({ poster }) {
           </div>
         </div>
 
+        <div className="rounded-xl border bg-card px-2 py-1.5 overflow-x-auto">
+          <ElementsPanel posterId={poster.id} onAdd={handleAdd} />
+        </div>
+
         <div className="rounded-xl border bg-muted/30 p-4">
           <PosterCanvas
             design={design}
@@ -147,10 +146,6 @@ export function PosterEditor({ poster }) {
             onElementChange={handleElementsChange}
             stageRef={stageRef}
           />
-        </div>
-
-        <div className="lg:hidden rounded-xl border bg-card p-3">
-          <ElementsPanel posterId={poster.id} onAdd={handleAdd} />
         </div>
       </div>
 
