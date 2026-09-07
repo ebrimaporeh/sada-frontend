@@ -6,10 +6,33 @@ import { ROUTES } from '@/constants'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useEmbed, useSetEmbedActive, useUpdateEmbed } from '@/hooks/useEmbeds'
 import { EmbedLayoutPicker } from '@/features/fundraisingStudio/embed/EmbedLayoutPicker'
+import { EmbedLayoutDropdown } from '@/features/fundraisingStudio/embed/EmbedLayoutDropdown'
 import { EmbedConfigForm } from '@/features/fundraisingStudio/embed/EmbedConfigForm'
 import { EmbedPreview } from '@/features/fundraisingStudio/embed/EmbedPreview'
 
 const AUTOSAVE_DEBOUNCE_MS = 1000
+
+function EmbedCodePanel({ snippet, copied, onCopy }) {
+  return (
+    <div className="rounded-xl border bg-card p-4">
+      <label className="text-sm font-medium block mb-2">Embed code</label>
+      <div className="flex items-start gap-2">
+        <code className="flex-1 text-xs bg-muted rounded-lg p-3 overflow-x-auto whitespace-pre-wrap break-all">{snippet}</code>
+        <button
+          type="button"
+          onClick={onCopy}
+          className="shrink-0 inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-md border hover:bg-accent transition-colors"
+        >
+          {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+          {copied ? 'Copied' : 'Copy'}
+        </button>
+      </div>
+      <p className="text-xs text-muted-foreground mt-2">
+        Paste this into your website's HTML. It stays live -- content updates here without needing to change the code again.
+      </p>
+    </div>
+  )
+}
 
 export function EmbedDetailPage() {
   const { id } = useParams({ strict: false })
@@ -118,35 +141,36 @@ export function EmbedDetailPage() {
         </div>
       </div>
 
-      {/* Three columns on large screens -- layout | preview + embed code |
-          content/appearance/return-url -- instead of cramming every
-          control into one narrow sidebar, which left the rest of a wide
-          screen unused next to a small preview card. */}
-      <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr_340px] gap-4 items-start">
+      {/* Mobile/tablet (<lg): a compact layout dropdown up top instead of
+          the full card list (which alone can run 400+px tall and push
+          everything else below a scroll before it's even visible), then
+          the preview, then the editing controls right below it -- so a
+          change and its effect stay close together -- with the copy-paste
+          embed code (more a one-time final step than something tweaked
+          alongside the preview) pushed to the very bottom. */}
+      <div className="lg:hidden space-y-4">
+        <EmbedLayoutDropdown layout={layout} onLayoutChange={setLayout} />
+        <EmbedPreview embed={previewEmbed} />
+        <div className="rounded-xl border bg-card p-4">
+          <EmbedConfigForm
+            embed={{ configuration, return_url: returnUrl }}
+            onConfigurationChange={setConfiguration}
+            onReturnUrlChange={setReturnUrl}
+          />
+        </div>
+        <EmbedCodePanel snippet={snippet} copied={copied} onCopy={() => handleCopy(snippet)} />
+      </div>
+
+      {/* Desktop (lg+): three columns side by side -- layout | preview +
+          embed code | content/appearance/return-url. */}
+      <div className="hidden lg:grid lg:grid-cols-[240px_1fr_340px] gap-4 items-start">
         <aside className="rounded-xl border bg-card p-4 h-fit">
           <EmbedLayoutPicker layout={layout} onLayoutChange={setLayout} />
         </aside>
 
         <div className="space-y-4">
           <EmbedPreview embed={previewEmbed} />
-
-          <div className="rounded-xl border bg-card p-4">
-            <label className="text-sm font-medium block mb-2">Embed code</label>
-            <div className="flex items-start gap-2">
-              <code className="flex-1 text-xs bg-muted rounded-lg p-3 overflow-x-auto whitespace-pre-wrap break-all">{snippet}</code>
-              <button
-                type="button"
-                onClick={() => handleCopy(snippet)}
-                className="shrink-0 inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-md border hover:bg-accent transition-colors"
-              >
-                {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                {copied ? 'Copied' : 'Copy'}
-              </button>
-            </div>
-            <p className="text-xs text-muted-foreground mt-2">
-              Paste this into your website's HTML. It stays live -- content updates here without needing to change the code again.
-            </p>
-          </div>
+          <EmbedCodePanel snippet={snippet} copied={copied} onCopy={() => handleCopy(snippet)} />
         </div>
 
         <aside className="rounded-xl border bg-card p-4 h-fit">
