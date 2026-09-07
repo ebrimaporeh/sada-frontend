@@ -13,7 +13,12 @@ function noopShapeRef() {}
 // Stage and Layer are non-listening) -- this is a picture, not the editor;
 // PosterCanvas.jsx is the interactive version this shares element
 // rendering with via PosterElementNode.
-export function PosterThumbnail({ design, destination }) {
+//
+// `stageRef` (optional) exposes the underlying Konva Stage so a caller can
+// rasterize it directly -- see PostersListPage.jsx's Download button, which
+// reuses exportPoster.js's exportPosterAsPng on this same live thumbnail
+// stage rather than requiring a trip into the full editor first.
+export function PosterThumbnail({ design, destination, stageRef }) {
   const containerRef = useRef(null)
   const [scale, setScale] = useState(0)
 
@@ -31,7 +36,7 @@ export function PosterThumbnail({ design, destination }) {
   return (
     <div ref={containerRef} className="w-full h-full flex items-center justify-center">
       {scale > 0 && (
-        <Stage width={design.width * scale} height={design.height * scale} scaleX={scale} scaleY={scale} listening={false}>
+        <Stage ref={stageRef} width={design.width * scale} height={design.height * scale} scaleX={scale} scaleY={scale} listening={false}>
           <Layer listening={false}>
             <Rect x={0} y={0} width={design.width} height={design.height} fill={design.background} />
             {design.elements.map((element) => (
