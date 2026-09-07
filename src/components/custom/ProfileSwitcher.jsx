@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link } from '@tanstack/react-router'
+import { Link, useLocation, useNavigate } from '@tanstack/react-router'
 import { ChevronsUpDown, User, Building2, Check, Plus, Settings } from 'lucide-react'
 import { useActiveProfile, INDIVIDUAL_PROFILE_ID } from '@/hooks/useActiveProfile'
 import { ROUTES } from '@/constants'
@@ -15,6 +15,20 @@ export function ProfileSwitcher({ collapsed = false }) {
   const { profileId, isOrg, organization, organizations, setProfile } = useActiveProfile()
   const [open, setOpen] = useState(false)
   const containerRef = useRef(null)
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  // Fundraising Studio's destinations aren't scoped by active profile (see
+  // useFundraisingDestinations), so switching profile there has no visible
+  // effect on the page you're already on -- send the user to the dashboard
+  // instead so the new profile's context is immediately obvious.
+  function selectProfile(id) {
+    setProfile(id)
+    setOpen(false)
+    if (location.pathname.startsWith(ROUTES.FUNDRAISING_STUDIO)) {
+      navigate({ to: ROUTES.DASHBOARD })
+    }
+  }
 
   useEffect(() => {
     if (!open) return
@@ -64,7 +78,7 @@ export function ProfileSwitcher({ collapsed = false }) {
         >
           <button
             type="button"
-            onClick={() => { setProfile(INDIVIDUAL_PROFILE_ID); setOpen(false) }}
+            onClick={() => selectProfile(INDIVIDUAL_PROFILE_ID)}
             className={cn(
               'w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-accent transition-colors',
               profileId === INDIVIDUAL_PROFILE_ID && 'bg-primary/5',
@@ -83,7 +97,7 @@ export function ProfileSwitcher({ collapsed = false }) {
             <button
               key={org.id}
               type="button"
-              onClick={() => { setProfile(org.id); setOpen(false) }}
+              onClick={() => selectProfile(org.id)}
               className={cn(
                 'w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-accent transition-colors',
                 profileId === org.id && 'bg-primary/5',
