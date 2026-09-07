@@ -75,7 +75,7 @@ function MethodBadge({ method, size = 'w-10 h-10' }) {
   )
 }
 
-export function DonateCheckout({ campaign }) {
+export function DonateCheckout({ campaign, embedded = false, onCancel, embedId }) {
   const { data: me } = useMe()
   const search = useSearch({ strict: false })
   // Checkout pages aren't content worth ranking, and indexing them just
@@ -174,6 +174,7 @@ export function DonateCheckout({ campaign }) {
         is_anonymous: anonymous,
         message: message.trim() || undefined,
         donor_name: anonymous ? '' : donorName.trim(),
+        embed_id: embedId || undefined,
       },
       {
         onSuccess: (response) => {
@@ -192,13 +193,175 @@ export function DonateCheckout({ campaign }) {
           // is a full page redirect, not an in-app route change. For Stripe
           // this lands on Stripe's own hosted card-entry page; for
           // Wave/APS it lands on ModemPay's mobile-money payment prompt.
-          window.location.href = paymentLink
+          // `window.top` (not `window`) so this still breaks all the way
+          // out when this component is running inside the embed widget's
+          // iframe (DonateModal) -- on a normal top-level page window.top
+          // is just window itself, so this is a no-op change there.
+          window.top.location.href = paymentLink
         },
         onError: (err) => {
           setError(err?.response?.data?.message || 'Payment failed. Please try again.')
           setProcessing(false)
         },
       },
+    )
+  }
+
+  // Built once from the state/handlers above and reused by both the
+  // standalone full-page layout and the compact `embedded` one below --
+  // same fields, same validation, same submit button either way.
+  const formFields = (
+    <div className="space-y-5">
+      {/* Amount */}
+      <div>
+        <p className="text-sm font-medium mb-3">Choose an amount to donate</p>
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-muted-foreground">D</span>
+          <input
+            type="number"
+            value={amount}
+            onChange={(e) => { setAmount(e.target.value); setError('') }}
+            placeholder="Amount"
+            min={minAmount}
+            max={maxAmount}
+            className="w-full pl-8 pr-4 py-2.5 border rounded-lg bg-background focus:outline-hidden focus:ring-2 focus:ring-ring text-lg font-bold"
+          />
+        </div>
+      </div>
+
+      {/* Donor name / anonymous */}
+      <div className="space-y-3">
+        <div>
+          <label className="text-sm font-medium block mb-1.5">Your name</label>
+          <input
+            type="text"
+            value={donorName}
+            onChange={(e) => setDonorName(e.target.value)}
+            placeholder="Full name"
+            disabled={anonymous}
+            className="w-full px-3 py-2 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring disabled:opacity-50"
+          />
+        </div>
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" checked={anonymous} onChange={(e) => setAnonymous(e.target.checked)} className="rounded" />
+          <span className="text-sm">Donate anonymously</span>
+        </label>
+      </div>
+
+      {/* Payment method cards */}
+      <div>
+        <p className="text-sm font-medium mb-3">Pay with</p>
+        {methodsLoading ? (
+          <div className="grid grid-cols-3 gap-2">
+            {[0, 1, 2].map((i) => <div key={i} className="h-[84px] rounded-xl border bg-muted/30 animate-pulse" />)}
+          </div>
+        ) : PROVIDERS.length === 0 ? (
+          <p className="text-sm text-muted-foreground border rounded-xl p-3.5">
+            No payment methods are available right now. Please try again shortly.
+          </p>
+        ) : (
+          <div className="grid grid-cols-3 gap-2">
+            {PROVIDERS.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => { setProvider(p.id); setError('') }}
+                className={cn(
+                  'relative flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-colors text-center',
+                  provider === p.id ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'hover:border-border/80 hover:bg-muted/30',
+                )}
+              >
+                {provider === p.id && <CheckCircle2 className="w-4 h-4 text-primary absolute top-1.5 right-1.5" />}
+                <MethodBadge method={p} size="w-9 h-9" />
+                <span className="text-xs font-semibold">{p.name}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Phone number — mobile money only; card donors go straight to Stripe's own card entry page instead */}
+      {requiresPhone && (
+        <div>
+          <label className="text-sm font-medium block mb-1.5">
+            <Smartphone className="w-4 h-4 inline mr-1" />
+            Your phone number
+          </label>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">+220</span>
+            <input
+              type="tel"
+              value={phone}
+              onChange={(e) => { setPhone(e.target.value); setError('') }}
+              placeholder="7XXXXXXX"
+              className="w-full pl-14 pr-4 py-2.5 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
+            />
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">You'll receive a payment prompt on this number</p>
+        </div>
+      )}
+
+      {/* Message */}
+      <div>
+        <label className="text-sm font-medium block mb-1.5">Leave a message (optional)</label>
+        <textarea
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder="Words of encouragement for the campaign owner..."
+          rows={3}
+          maxLength={280}
+          className="w-full px-3 py-2 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring resize-none"
+        />
+      </div>
+
+      {error && (
+        <p className="text-sm text-destructive flex items-center gap-1.5">
+          <AlertCircle className="w-4 h-4" /> {error}
+        </p>
+      )}
+
+      <button
+        onClick={handleDonate}
+        disabled={processing || donateToCampaign.isPending}
+        className="w-full bg-donate text-donate-foreground font-bold py-3.5 rounded-xl hover:bg-donate/90 transition-colors flex items-center justify-center gap-2 text-base shadow-lg shadow-donate/20 disabled:opacity-70"
+      >
+        {processing ? (
+          <>
+            <div className="w-5 h-5 border-2 border-donate-foreground/30 border-t-donate-foreground rounded-full animate-spin" />
+            Processing…
+          </>
+        ) : (
+          <>
+            <Heart className="w-5 h-5 fill-donate-foreground" />
+            Donate {numAmount > 0 ? formatGMD(numAmount) : 'Now'}
+          </>
+        )}
+      </button>
+
+      <p className="text-xs text-center text-muted-foreground flex items-center justify-center gap-1">
+        <Lock className="w-3 h-3" /> Payments are processed securely — you'll be taken to {selectedMethod?.gateway === 'stripe' ? "Stripe's" : 'your provider\'s'} page to complete it
+      </p>
+    </div>
+  )
+
+  if (embedded) {
+    return (
+      <div className="space-y-4">
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ChevronLeft className="w-4 h-4" /> Close
+          </button>
+        )}
+        <div>
+          <h2 className="text-lg font-bold">Make a Donation</h2>
+          <p className="text-muted-foreground text-xs mt-1">Your support makes a real difference.</p>
+        </div>
+        {formFields}
+      </div>
     )
   }
 
@@ -219,138 +382,7 @@ export function DonateCheckout({ campaign }) {
             <h1 className="text-2xl font-bold">Make a Donation</h1>
             <p className="text-muted-foreground text-sm mt-1">Your support makes a real difference.</p>
           </div>
-
-          <div className="space-y-5">
-            {/* Amount */}
-            <div>
-              <p className="text-sm font-medium mb-3">Choose an amount to donate</p>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-muted-foreground">D</span>
-                <input
-                  type="number"
-                  value={amount}
-                  onChange={(e) => { setAmount(e.target.value); setError('') }}
-                  placeholder="Amount"
-                  min={minAmount}
-                  max={maxAmount}
-                  className="w-full pl-8 pr-4 py-2.5 border rounded-lg bg-background focus:outline-hidden focus:ring-2 focus:ring-ring text-lg font-bold"
-                />
-              </div>
-            </div>
-
-            {/* Donor name / anonymous */}
-            <div className="space-y-3">
-              <div>
-                <label className="text-sm font-medium block mb-1.5">Your name</label>
-                <input
-                  type="text"
-                  value={donorName}
-                  onChange={(e) => setDonorName(e.target.value)}
-                  placeholder="Full name"
-                  disabled={anonymous}
-                  className="w-full px-3 py-2 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring disabled:opacity-50"
-                />
-              </div>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={anonymous} onChange={(e) => setAnonymous(e.target.checked)} className="rounded" />
-                <span className="text-sm">Donate anonymously</span>
-              </label>
-            </div>
-
-            {/* Payment method cards */}
-            <div>
-              <p className="text-sm font-medium mb-3">Pay with</p>
-              {methodsLoading ? (
-                <div className="grid grid-cols-3 gap-2">
-                  {[0, 1, 2].map((i) => <div key={i} className="h-[84px] rounded-xl border bg-muted/30 animate-pulse" />)}
-                </div>
-              ) : PROVIDERS.length === 0 ? (
-                <p className="text-sm text-muted-foreground border rounded-xl p-3.5">
-                  No payment methods are available right now. Please try again shortly.
-                </p>
-              ) : (
-                <div className="grid grid-cols-3 gap-2">
-                  {PROVIDERS.map((p) => (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => { setProvider(p.id); setError('') }}
-                      className={cn(
-                        'relative flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-colors text-center',
-                        provider === p.id ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'hover:border-border/80 hover:bg-muted/30',
-                      )}
-                    >
-                      {provider === p.id && <CheckCircle2 className="w-4 h-4 text-primary absolute top-1.5 right-1.5" />}
-                      <MethodBadge method={p} size="w-9 h-9" />
-                      <span className="text-xs font-semibold">{p.name}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Phone number — mobile money only; card donors go straight to Stripe's own card entry page instead */}
-            {requiresPhone && (
-              <div>
-                <label className="text-sm font-medium block mb-1.5">
-                  <Smartphone className="w-4 h-4 inline mr-1" />
-                  Your phone number
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">+220</span>
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => { setPhone(e.target.value); setError('') }}
-                    placeholder="7XXXXXXX"
-                    className="w-full pl-14 pr-4 py-2.5 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">You'll receive a payment prompt on this number</p>
-              </div>
-            )}
-
-            {/* Message */}
-            <div>
-              <label className="text-sm font-medium block mb-1.5">Leave a message (optional)</label>
-              <textarea
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="Words of encouragement for the campaign owner..."
-                rows={3}
-                maxLength={280}
-                className="w-full px-3 py-2 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring resize-none"
-              />
-            </div>
-
-            {error && (
-              <p className="text-sm text-destructive flex items-center gap-1.5">
-                <AlertCircle className="w-4 h-4" /> {error}
-              </p>
-            )}
-
-            <button
-              onClick={handleDonate}
-              disabled={processing || donateToCampaign.isPending}
-              className="w-full bg-donate text-donate-foreground font-bold py-3.5 rounded-xl hover:bg-donate/90 transition-colors flex items-center justify-center gap-2 text-base shadow-lg shadow-donate/20 disabled:opacity-70"
-            >
-              {processing ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-donate-foreground/30 border-t-donate-foreground rounded-full animate-spin" />
-                  Processing…
-                </>
-              ) : (
-                <>
-                  <Heart className="w-5 h-5 fill-donate-foreground" />
-                  Donate {numAmount > 0 ? formatGMD(numAmount) : 'Now'}
-                </>
-              )}
-            </button>
-
-            <p className="text-xs text-center text-muted-foreground flex items-center justify-center gap-1">
-              <Lock className="w-3 h-3" /> Payments are processed securely — you'll be taken to {selectedMethod?.gateway === 'stripe' ? "Stripe's" : 'your provider\'s'} page to complete it
-            </p>
-          </div>
+          {formFields}
         </div>
 
         {/* Right: campaign summary */}

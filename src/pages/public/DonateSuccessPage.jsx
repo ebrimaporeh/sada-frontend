@@ -6,6 +6,7 @@ import { formatGMD } from '@/utils/formatters'
 import { usePageMeta } from '@/hooks/usePageMeta'
 import { campaignShareUrl } from '@/utils/shareUrls'
 import { ROUTES } from '@/constants'
+import { ReturnToSitePanel } from '@/components/custom/ReturnToSitePanel'
 
 export function DonateSuccessPage() {
   const { slug } = useParams({ strict: false })
@@ -76,6 +77,8 @@ export function DonateSuccessPage() {
           </p>
         )}
       </div>
+
+      {donation?.source_url && <ReturnToSitePanel url={donation.source_url} />}
 
       {donationStatus === 'failed' ? (
         <div className="bg-destructive/5 border border-destructive/20 rounded-xl p-5 space-y-2 text-sm text-left">

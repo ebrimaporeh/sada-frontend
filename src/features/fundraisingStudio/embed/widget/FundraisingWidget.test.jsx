@@ -1,6 +1,34 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { FundraisingWidget } from './FundraisingWidget'
+
+// Clicking Donate now renders the real DonateCheckout/OrganizationDonateCheckout
+// (see DonateModal.jsx) instead of navigating away, so their dependencies
+// need the same mocks DonateCheckout.test.jsx uses -- this suite only cares
+// that the modal opens with the right content, not the donation form's own
+// validation (already covered there).
+vi.mock('@tanstack/react-router', () => ({
+  useSearch: () => ({}),
+  Link: ({ children }) => <a>{children}</a>,
+}))
+
+vi.mock('@/hooks/useAuth', () => ({
+  useMe: () => ({ data: undefined }),
+}))
+
+vi.mock('@/hooks/usePageMeta', () => ({
+  usePageMeta: () => {},
+}))
+
+vi.mock('@/hooks/useDonations', () => ({
+  useDonateToCampaign: () => ({ mutate: vi.fn(), isPending: false }),
+  useDonateToOrganization: () => ({ mutate: vi.fn(), isPending: false }),
+}))
+
+vi.mock('@/hooks/usePayments', () => ({
+  useDonationMethods: () => ({ methods: [], isLoading: false }),
+}))
 
 function makeEmbed({ destination, configuration, ...rest } = {}) {
   return {
@@ -48,14 +76,27 @@ describe('FundraisingWidget', () => {
   it('shows an inactive message and no Donate control when the embed is inactive', () => {
     render(<FundraisingWidget embed={makeEmbed({ is_active: false })} />)
     expect(screen.getByText(/no longer active/)).toBeInTheDocument()
-    expect(screen.queryByRole('link')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
 
-  it('renders a real link with target="_top" when interactive (the public page)', () => {
+  it('opens the in-place donate modal when interactive (the public page)', async () => {
+    const user = userEvent.setup()
     render(<FundraisingWidget embed={makeEmbed()} interactive />)
-    const link = screen.getByRole('link', { name: 'Donate' })
-    expect(link).toHaveAttribute('href', 'https://dolelma.org/donate/flood-relief')
-    expect(link).toHaveAttribute('target', '_top')
+    expect(screen.queryByText('Make a Donation')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Donate' }))
+    expect(await screen.findByText('Make a Donation')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /close/i }))
+    expect(screen.queryByText('Make a Donation')).not.toBeInTheDocument()
+  })
+
+  it('opens the organization donate modal for an organization destination', async () => {
+    const user = userEvent.setup()
+    render(<FundraisingWidget embed={makeEmbed({ destination: { type: 'organization', raised: null, goal: null } })} interactive />)
+
+    await user.click(screen.getByRole('button', { name: 'Donate' }))
+    expect(await screen.findByText(/Support Flood Relief Fund/)).toBeInTheDocument()
   })
 
   it('renders a non-navigating look-alike when not interactive (Studio preview)', () => {
@@ -74,6 +115,6 @@ describe('FundraisingWidget', () => {
 
   it('uses the custom donate button label when configured', () => {
     render(<FundraisingWidget embed={makeEmbed({ configuration: { content: { donateButtonText: 'Give Now' } } })} />)
-    expect(screen.getByRole('link', { name: 'Give Now' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Give Now' })).toBeInTheDocument()
   })
 })

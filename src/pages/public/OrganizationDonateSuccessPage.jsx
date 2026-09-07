@@ -5,6 +5,7 @@ import { useVerifyOrganizationDonation } from '@/hooks/useDonations'
 import { formatGMD } from '@/utils/formatters'
 import { usePageMeta } from '@/hooks/usePageMeta'
 import { ROUTES } from '@/constants'
+import { ReturnToSitePanel } from '@/components/custom/ReturnToSitePanel'
 
 // Organization-donation counterpart to DonateSuccessPage -- no campaign
 // progress/goal to reference, and shares back to the org's own /give page.
@@ -63,6 +64,8 @@ export function OrganizationDonateSuccessPage() {
           </p>
         )}
       </div>
+
+      {donation?.source_url && <ReturnToSitePanel url={donation.source_url} />}
 
       {donationStatus === 'failed' ? (
         <div className="bg-destructive/5 border border-destructive/20 rounded-xl p-5 space-y-2 text-sm text-left">

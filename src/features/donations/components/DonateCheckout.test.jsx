@@ -135,4 +135,41 @@ describe('DonateCheckout', () => {
       gateway: 'modempay',
     })
   })
+
+  it('renders a compact layout with a Close button instead of a back link when embedded', async () => {
+    const user = userEvent.setup()
+    const onCancel = vi.fn()
+    render(<DonateCheckout campaign={campaign} embedded onCancel={onCancel} />)
+
+    expect(screen.queryByText('Back to campaign')).not.toBeInTheDocument()
+    expect(screen.queryByText("You're supporting")).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /close/i }))
+    expect(onCancel).toHaveBeenCalledTimes(1)
+  })
+
+  it('includes embed_id in the submitted payload when embedded via a widget', async () => {
+    const user = userEvent.setup()
+    render(<DonateCheckout campaign={campaign} embedded onCancel={() => {}} embedId="embed-123" />)
+
+    await user.type(screen.getByPlaceholderText('Amount'), '500')
+    await user.click(screen.getByText('Donate anonymously'))
+    await user.type(screen.getByPlaceholderText('7XXXXXXX'), '7123456')
+    await user.click(screen.getByRole('button', { name: /donate/i }))
+
+    expect(mutate).toHaveBeenCalledTimes(1)
+    expect(mutate.mock.calls[0][0]).toMatchObject({ embed_id: 'embed-123' })
+  })
+
+  it('omits embed_id when not embedded', async () => {
+    const user = userEvent.setup()
+    render(<DonateCheckout campaign={campaign} />)
+
+    await user.type(screen.getByPlaceholderText('Amount'), '500')
+    await user.click(screen.getByText('Donate anonymously'))
+    await user.type(screen.getByPlaceholderText('7XXXXXXX'), '7123456')
+    await user.click(screen.getByRole('button', { name: /donate/i }))
+
+    expect(mutate.mock.calls[0][0].embed_id).toBeUndefined()
+  })
 })
