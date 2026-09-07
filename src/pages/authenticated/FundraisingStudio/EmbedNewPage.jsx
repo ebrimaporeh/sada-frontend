@@ -3,11 +3,9 @@ import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { ChevronLeft, Loader2 } from 'lucide-react'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
-import { cn } from '@/utils/cn'
 import { ROUTES } from '@/constants'
 import { useFundraisingDestinations } from '@/features/fundraisingStudio/shared/useFundraisingDestinations'
 import { DestinationPicker } from '@/features/fundraisingStudio/shared/DestinationPicker'
-import { EMBED_LAYOUTS } from '@/features/fundraisingStudio/shared/embedLayouts'
 import { useCreateEmbed } from '@/hooks/useEmbeds'
 
 export function EmbedNewPage() {
@@ -21,7 +19,6 @@ export function EmbedNewPage() {
   const createEmbed = useCreateEmbed()
 
   const [destination, setDestination] = useState(null)
-  const [layout, setLayout] = useState('card')
   const [returnUrl, setReturnUrl] = useState('')
 
   useEffect(() => {
@@ -40,7 +37,11 @@ export function EmbedNewPage() {
         destination_type: destination.type,
         ...(destination.type === 'campaign' ? { campaign_id: destination.id } : { organization_id: destination.id }),
         name: `${destination.title} Widget`,
-        layout,
+        // Layout is chosen later, in the editor (EmbedLayoutPicker/
+        // EmbedLayoutDropdown) -- omitted here so the backend's own
+        // default (Embed.Layout.CARD) applies; not asking for it up front
+        // keeps this form to exactly the one thing that's actually
+        // required before creating an embed.
         return_url: returnUrl.trim(),
       },
       { onSuccess: (res) => navigate({ to: ROUTES.FUNDRAISING_EMBED_DETAIL, params: { id: res.data.embed.id } }) },
@@ -57,7 +58,7 @@ export function EmbedNewPage() {
       >
         <ChevronLeft className="w-4 h-4" /> Embeds
       </Link>
-      <PageHeader title="Create Embed" description="Choose what you're promoting, then a layout." />
+      <PageHeader title="Create Embed" description="Choose what you're promoting, then where to send donors back to." />
 
       <div className="space-y-8">
         <section>
@@ -72,29 +73,7 @@ export function EmbedNewPage() {
 
         {destination && (
           <section>
-            <p className="font-medium mb-3">2. Choose a layout</p>
-            <div className="grid sm:grid-cols-2 gap-3">
-              {EMBED_LAYOUTS.map((l) => (
-                <button
-                  key={l.value}
-                  type="button"
-                  onClick={() => setLayout(l.value)}
-                  className={cn(
-                    'text-left rounded-lg border p-3 transition-colors',
-                    layout === l.value ? 'border-primary bg-primary/5' : 'hover:bg-accent',
-                  )}
-                >
-                  <p className="text-sm font-medium">{l.label}</p>
-                  <p className="text-xs text-muted-foreground">{l.description}</p>
-                </button>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {destination && (
-          <section>
-            <p className="font-medium mb-3">3. Where should donors go back to?</p>
+            <p className="font-medium mb-3">2. Where should donors go back to?</p>
             <input
               type="url"
               value={returnUrl}
