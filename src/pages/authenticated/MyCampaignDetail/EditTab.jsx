@@ -16,7 +16,7 @@ const RELATIONSHIPS = ['Self', 'Spouse', 'Child', 'Parent', 'Sibling', 'Friend',
 const inputClass = 'w-full px-3 py-2.5 border rounded-xl text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring'
 const labelClass = 'text-sm font-medium block mb-1.5'
 
-function CampaignPhotosCard({ campaign }) {
+export function CampaignPhotosCard({ campaign }) {
   const updateMedia = useUpdateCampaignMedia()
   const deleteImage = useDeleteGalleryImage()
   const coverRef = useRef()

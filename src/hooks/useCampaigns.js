@@ -333,6 +333,17 @@ export function useTogglePauseCampaign() {
   })
 }
 
+export function useLaunchCampaign() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (slug) => campaignApi.launchCampaign(slug),
+    onSuccess: (_, slug) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.myDetail(slug) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.mine() })
+    },
+  })
+}
+
 // Whether the signed-in user can perform `permission` on this specific
 // campaign, independent of which profile is currently "active" in the
 // switcher (see useActiveProfile's docstring for why those are deliberately

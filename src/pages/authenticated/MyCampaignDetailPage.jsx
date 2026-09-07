@@ -8,7 +8,7 @@ import { EmptyState } from '@/components/custom/EmptyState'
 import { ShareCampaign } from '@/components/custom/ShareCampaign'
 import { formatGMD, progressPercent } from '@/utils/formatters'
 import { campaignShareUrl } from '@/utils/shareUrls'
-import { ROUTES, OrganizationPermission } from '@/constants'
+import { ROUTES, OrganizationPermission, CAMPAIGN_STATUS } from '@/constants'
 import { cn } from '@/utils/cn'
 import { TABS, STATUS_BADGE } from './MyCampaignDetail/shared'
 import { OverviewTab } from './MyCampaignDetail/OverviewTab'
@@ -16,11 +16,14 @@ import { DonorsTab } from './MyCampaignDetail/DonorsTab'
 import { UpdatesTab } from './MyCampaignDetail/UpdatesTab'
 import { EditTab } from './MyCampaignDetail/EditTab'
 import { WithdrawTab } from './MyCampaignDetail/WithdrawTab'
+import { CampaignSetupStepper } from '@/features/campaigns/components/CampaignSetupStepper'
+import { CampaignLaunchedScreen } from '@/features/campaigns/components/CampaignLaunchedScreen'
 
 export function MyCampaignDetailPage() {
   const { slug } = useParams({ strict: false })
   const { campaign, donors, payouts, totalPaidOut, availableBalance, isLoading } = useMyCampaign(slug)
   const [activeTab, setActiveTab] = useState('overview')
+  const [justLaunched, setJustLaunched] = useState(null)
   const canEdit = useCampaignPermission(campaign, OrganizationPermission.EDIT_CAMPAIGN)
   const canWithdraw = useCampaignPermission(campaign, OrganizationPermission.WITHDRAW_FUNDS)
 
@@ -33,6 +36,12 @@ export function MyCampaignDetailPage() {
       />
     )
   }
+
+  const isDraft = campaign.status === CAMPAIGN_STATUS.DRAFT
+  // Public view/Share/Poster/Embed all assume a live, shareable campaign --
+  // hide them until launch (the launched screen offers its own versions of
+  // these right after the user clicks Launch, see CampaignLaunchedScreen).
+  const showHeaderActions = !isDraft && !justLaunched
 
   const pct = progressPercent(campaign.raised, campaign.goal)
   // Overview/Donors/Updates stay open to any member with read access to
@@ -73,94 +82,108 @@ export function MyCampaignDetailPage() {
                 <span className={cn('text-xs font-semibold px-3 py-1.5 rounded-full border capitalize', STATUS_BADGE[campaign.status] || 'bg-gray-100 text-gray-600 border-gray-200')}>
                   {campaign.status}
                 </span>
-                <Link
-                  to="/campaigns/$slug"
-                  params={{ slug: campaign.slug }}
-                  className="inline-flex items-center gap-1.5 text-xs border font-medium px-3 py-1.5 rounded-full hover:bg-accent transition-colors"
-                >
-                  <Eye className="w-3.5 h-3.5" /> Public view
-                </Link>
-                <ShareCampaign
-                  title={campaign.title}
-                  url={campaignShareUrl(campaign.slug)}
-                  buttonClassName="inline-flex items-center gap-1.5 text-xs border font-medium px-3 py-1.5 rounded-full hover:bg-accent transition-colors"
-                />
-                {canEdit && (
+                {showHeaderActions && (
                   <>
                     <Link
-                      to={ROUTES.FUNDRAISING_POSTER_NEW}
-                      search={{ destinationType: 'campaign', destinationId: campaign.id }}
+                      to="/campaigns/$slug"
+                      params={{ slug: campaign.slug }}
                       className="inline-flex items-center gap-1.5 text-xs border font-medium px-3 py-1.5 rounded-full hover:bg-accent transition-colors"
                     >
-                      <Image className="w-3.5 h-3.5" /> Design Poster
+                      <Eye className="w-3.5 h-3.5" /> Public view
                     </Link>
-                    <Link
-                      to={ROUTES.FUNDRAISING_EMBED_NEW}
-                      search={{ destinationType: 'campaign', destinationId: campaign.id }}
-                      className="inline-flex items-center gap-1.5 text-xs border font-medium px-3 py-1.5 rounded-full hover:bg-accent transition-colors"
-                    >
-                      <Code2 className="w-3.5 h-3.5" /> Create Embed
-                    </Link>
+                    <ShareCampaign
+                      title={campaign.title}
+                      url={campaignShareUrl(campaign.slug)}
+                      buttonClassName="inline-flex items-center gap-1.5 text-xs border font-medium px-3 py-1.5 rounded-full hover:bg-accent transition-colors"
+                    />
+                    {canEdit && (
+                      <>
+                        <Link
+                          to={ROUTES.FUNDRAISING_POSTER_NEW}
+                          search={{ destinationType: 'campaign', destinationId: campaign.id }}
+                          className="inline-flex items-center gap-1.5 text-xs border font-medium px-3 py-1.5 rounded-full hover:bg-accent transition-colors"
+                        >
+                          <Image className="w-3.5 h-3.5" /> Design Poster
+                        </Link>
+                        <Link
+                          to={ROUTES.FUNDRAISING_EMBED_NEW}
+                          search={{ destinationType: 'campaign', destinationId: campaign.id }}
+                          className="inline-flex items-center gap-1.5 text-xs border font-medium px-3 py-1.5 rounded-full hover:bg-accent transition-colors"
+                        >
+                          <Code2 className="w-3.5 h-3.5" /> Create Embed
+                        </Link>
+                      </>
+                    )}
                   </>
                 )}
               </div>
             </div>
 
-            <div className="mt-3 flex items-center gap-3">
-              <div className="flex-1">
-                <ProgressBar value={campaign.raised} max={campaign.goal} />
+            {!isDraft && !justLaunched && (
+              <div className="mt-3 flex items-center gap-3">
+                <div className="flex-1">
+                  <ProgressBar value={campaign.raised} max={campaign.goal} />
+                </div>
+                <span className="text-sm font-bold text-primary flex-shrink-0">{pct}%</span>
+                <span className="text-xs text-muted-foreground flex-shrink-0">{formatGMD(campaign.raised)} raised</span>
               </div>
-              <span className="text-sm font-bold text-primary flex-shrink-0">{pct}%</span>
-              <span className="text-xs text-muted-foreground flex-shrink-0">{formatGMD(campaign.raised)} raised</span>
-            </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Tab bar */}
-      <div className="flex gap-1 border-b overflow-x-auto scrollbar-hide -mx-1 px-1">
-        {visibleTabs.map(({ id, label, icon: Icon }) => (
-          <button
-            key={id}
-            onClick={() => setActiveTab(id)}
-            className={cn(
-              'flex items-center gap-2 px-3 sm:px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 -mb-px transition-colors',
-              activeTab === id
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground',
-            )}
-          >
-            <Icon className="w-4 h-4 flex-shrink-0" />
-            <span>{label}</span>
-          </button>
-        ))}
-      </div>
+      {justLaunched ? (
+        <CampaignLaunchedScreen campaign={justLaunched} onManage={() => setJustLaunched(null)} />
+      ) : isDraft && canEdit ? (
+        <CampaignSetupStepper campaign={campaign} onLaunched={setJustLaunched} />
+      ) : (
+        <>
+          {/* Tab bar */}
+          <div className="flex gap-1 border-b overflow-x-auto scrollbar-hide -mx-1 px-1">
+            {visibleTabs.map(({ id, label, icon: Icon }) => (
+              <button
+                key={id}
+                onClick={() => setActiveTab(id)}
+                className={cn(
+                  'flex items-center gap-2 px-3 sm:px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 -mb-px transition-colors',
+                  activeTab === id
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground',
+                )}
+              >
+                <Icon className="w-4 h-4 flex-shrink-0" />
+                <span>{label}</span>
+              </button>
+            ))}
+          </div>
 
-      {/* Tab content */}
-      <div>
-        {activeTab === 'overview' && (
-          <OverviewTab
-            campaign={campaign}
-            donors={donors}
-            payouts={payouts}
-            totalPaidOut={totalPaidOut}
-            availableBalance={availableBalance}
-          />
-        )}
-        {activeTab === 'donors' && (
-          <DonorsTab slug={campaign.slug} donorsCount={campaign.donors_count} totalRaised={campaign.raised} />
-        )}
-        {activeTab === 'updates' && <UpdatesTab campaign={campaign} canEdit={canEdit} />}
-        {activeTab === 'edit' && canEdit && <EditTab campaign={campaign} />}
-        {activeTab === 'withdraw' && canWithdraw && (
-          <WithdrawTab
-            campaign={campaign}
-            payouts={payouts}
-            availableBalance={availableBalance}
-            totalPaidOut={totalPaidOut}
-          />
-        )}
-      </div>
+          {/* Tab content */}
+          <div>
+            {activeTab === 'overview' && (
+              <OverviewTab
+                campaign={campaign}
+                donors={donors}
+                payouts={payouts}
+                totalPaidOut={totalPaidOut}
+                availableBalance={availableBalance}
+              />
+            )}
+            {activeTab === 'donors' && (
+              <DonorsTab slug={campaign.slug} donorsCount={campaign.donors_count} totalRaised={campaign.raised} />
+            )}
+            {activeTab === 'updates' && <UpdatesTab campaign={campaign} canEdit={canEdit} />}
+            {activeTab === 'edit' && canEdit && <EditTab campaign={campaign} />}
+            {activeTab === 'withdraw' && canWithdraw && (
+              <WithdrawTab
+                campaign={campaign}
+                payouts={payouts}
+                availableBalance={availableBalance}
+                totalPaidOut={totalPaidOut}
+              />
+            )}
+          </div>
+        </>
+      )}
     </div>
   )
 }

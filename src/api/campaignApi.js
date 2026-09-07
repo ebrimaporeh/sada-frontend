@@ -82,6 +82,9 @@ export const campaignApi = {
   togglePause: (slug) =>
     apiClient.post(`/campaigns/my/${slug}/pause/`).then((r) => r.data),
 
+  launchCampaign: (slug) =>
+    apiClient.post(`/campaigns/my/${slug}/launch/`).then((r) => r.data),
+
   // ── Admin ────────────────────────────────────────────────────────────────
   getAdminCampaigns: (params) =>
     apiClient.get('/campaigns/admin/all/', { params }).then((r) => r.data),
