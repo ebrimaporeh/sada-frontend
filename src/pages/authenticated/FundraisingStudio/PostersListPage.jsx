@@ -7,6 +7,7 @@ import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
 import { ConfirmModal } from '@/components/custom/ConfirmModal'
 import { ROUTES } from '@/constants'
 import { usePosters, useDeletePoster, useDuplicatePoster } from '@/hooks/usePosters'
+import { PosterThumbnail } from '@/features/fundraisingStudio/poster/PosterThumbnail'
 
 export function PostersListPage() {
   const { posters, isLoading } = usePosters()
@@ -45,24 +46,24 @@ export function PostersListPage() {
           }
         />
       ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
           {posters.map((poster) => (
-            <div key={poster.id} className="rounded-xl border bg-card overflow-hidden flex flex-col">
-              <Link to={ROUTES.FUNDRAISING_POSTER_DETAIL} params={{ id: poster.id }} className="aspect-[4/5] bg-muted flex items-center justify-center">
-                {poster.destination?.cover_image_url
-                  ? <img src={poster.destination.cover_image_url} alt="" className="w-full h-full object-cover" />
-                  : <Image className="w-8 h-8 text-muted-foreground" />}
+            <div key={poster.id} className="rounded-lg border bg-card overflow-hidden flex flex-col">
+              <Link to={ROUTES.FUNDRAISING_POSTER_DETAIL} params={{ id: poster.id }} className="aspect-square bg-muted flex items-center justify-center overflow-hidden">
+                {poster.design?.elements?.length
+                  ? <PosterThumbnail design={poster.design} destination={poster.destination} />
+                  : <Image className="w-6 h-6 text-muted-foreground" />}
               </Link>
-              <div className="p-3 space-y-2">
+              <div className="p-2 space-y-1.5">
                 <div>
-                  <p className="font-medium truncate">{poster.name}</p>
-                  <p className="text-xs text-muted-foreground truncate">{poster.destination?.title}</p>
+                  <p className="text-xs font-medium truncate">{poster.name}</p>
+                  <p className="text-[11px] text-muted-foreground truncate">{poster.destination?.title}</p>
                 </div>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1">
                   <Link
                     to={ROUTES.FUNDRAISING_POSTER_DETAIL}
                     params={{ id: poster.id }}
-                    className="flex-1 text-center text-xs font-medium px-2 py-1.5 rounded-md border hover:bg-accent transition-colors"
+                    className="flex-1 text-center text-[11px] font-medium px-2 py-1 rounded-md border hover:bg-accent transition-colors"
                   >
                     Edit
                   </Link>
@@ -70,9 +71,9 @@ export function PostersListPage() {
                     type="button"
                     title="Duplicate"
                     onClick={() => duplicatePoster.mutate(poster.id)}
-                    className="p-1.5 rounded-md border hover:bg-accent transition-colors"
+                    className="p-1 rounded-md border hover:bg-accent transition-colors"
                   >
-                    <Copy className="w-3.5 h-3.5" />
+                    <Copy className="w-3 h-3" />
                   </button>
                   {poster.share_url && (
                     <a
@@ -80,18 +81,18 @@ export function PostersListPage() {
                       target="_blank"
                       rel="noopener noreferrer"
                       title="Open share link"
-                      className="p-1.5 rounded-md border hover:bg-accent transition-colors"
+                      className="p-1 rounded-md border hover:bg-accent transition-colors"
                     >
-                      <ExternalLink className="w-3.5 h-3.5" />
+                      <ExternalLink className="w-3 h-3" />
                     </a>
                   )}
                   <button
                     type="button"
                     title="Delete"
                     onClick={() => setPendingDeleteId(poster.id)}
-                    className="p-1.5 rounded-md border hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 transition-colors"
+                    className="p-1 rounded-md border hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 transition-colors"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Trash2 className="w-3 h-3" />
                   </button>
                 </div>
               </div>
