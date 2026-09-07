@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
-import { Image, PlusCircle, Copy, Trash2, ExternalLink } from 'lucide-react'
+import { ChevronLeft, Image, PlusCircle, Copy, Trash2, ExternalLink } from 'lucide-react'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { EmptyState } from '@/components/custom/EmptyState'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
@@ -18,6 +18,12 @@ export function PostersListPage() {
 
   return (
     <div>
+      <Link
+        to={ROUTES.FUNDRAISING_STUDIO}
+        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors"
+      >
+        <ChevronLeft className="w-4 h-4" /> Fundraising Studio
+      </Link>
       <PageHeader
         title="Posters"
         action={

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
-import { useParams } from '@tanstack/react-router'
+import { Link, useParams } from '@tanstack/react-router'
+import { ChevronLeft } from 'lucide-react'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
+import { ROUTES } from '@/constants'
 import { usePoster, useUpdatePoster } from '@/hooks/usePosters'
 import { PosterEditor } from '@/features/fundraisingStudio/poster/PosterEditor'
 
@@ -23,6 +25,12 @@ export function PosterDetailPage() {
 
   return (
     <div>
+      <Link
+        to={ROUTES.FUNDRAISING_POSTERS}
+        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors"
+      >
+        <ChevronLeft className="w-4 h-4" /> Posters
+      </Link>
       <div className="mb-4">
         <input
           value={name}

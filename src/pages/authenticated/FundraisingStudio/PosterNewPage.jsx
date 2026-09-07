@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useSearch } from '@tanstack/react-router'
-import { Loader2, Image as ImageIcon, QrCode } from 'lucide-react'
+import { Link, useNavigate, useSearch } from '@tanstack/react-router'
+import { ChevronLeft, Loader2, Image as ImageIcon, QrCode } from 'lucide-react'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
 import { cn } from '@/utils/cn'
@@ -83,6 +83,12 @@ export function PosterNewPage() {
 
   return (
     <div>
+      <Link
+        to={ROUTES.FUNDRAISING_POSTERS}
+        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors"
+      >
+        <ChevronLeft className="w-4 h-4" /> Posters
+      </Link>
       <PageHeader title="Create Poster" description="Choose what you're promoting, then a size." />
 
       <div className="grid lg:grid-cols-[320px_1fr] gap-8 items-start">

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { useParams } from '@tanstack/react-router'
-import { Check, Copy, Loader2 } from 'lucide-react'
+import { Link, useParams } from '@tanstack/react-router'
+import { Check, ChevronLeft, Copy, Loader2 } from 'lucide-react'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
+import { ROUTES } from '@/constants'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useEmbed, useSetEmbedActive, useUpdateEmbed } from '@/hooks/useEmbeds'
 import { EmbedConfigForm } from '@/features/fundraisingStudio/embed/EmbedConfigForm'
@@ -63,6 +64,12 @@ export function EmbedDetailPage() {
 
   return (
     <div>
+      <Link
+        to={ROUTES.FUNDRAISING_EMBEDS}
+        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors"
+      >
+        <ChevronLeft className="w-4 h-4" /> Embeds
+      </Link>
       <div className="mb-4 flex items-center justify-between flex-wrap gap-2">
         <div>
           <input
