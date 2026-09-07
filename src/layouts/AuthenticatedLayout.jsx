@@ -103,29 +103,32 @@ export function AuthenticatedLayout() {
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-20 bg-black/40 md:hidden"
+          className="fixed inset-0 z-20 bg-black/40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar -- the mobile drawer/bottom-nav treatment now covers
+          tablet too, only switching to the persistent desktop sidebar at
+          `lg:` (1024px) instead of `md:` (768px); see the bottom nav and
+          topbar hamburger below, which flip at the same breakpoint. */}
       <aside
         className={cn(
-          'fixed md:sticky top-0 left-0 h-screen z-30 bg-card border-r flex flex-col transition-all duration-200',
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
-          collapsed ? 'w-64 md:w-[76px]' : 'w-64',
+          'fixed lg:sticky top-0 left-0 h-screen z-30 bg-card border-r flex flex-col transition-all duration-200',
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
+          collapsed ? 'w-64 lg:w-[76px]' : 'w-64',
         )}
       >
         {/* Logo */}
-        <div className={cn('h-16 px-5 border-b flex items-center justify-between', collapsed && 'md:justify-center md:px-0')}>
-          <Link to={ROUTES.HOME} onClick={() => setSidebarOpen(false)} className={collapsed ? 'md:hidden' : undefined}>
+        <div className={cn('h-16 px-5 border-b flex items-center justify-between', collapsed && 'lg:justify-center lg:px-0')}>
+          <Link to={ROUTES.HOME} onClick={() => setSidebarOpen(false)} className={collapsed ? 'lg:hidden' : undefined}>
             <Logo imgClassName="h-7 w-auto" />
           </Link>
-          <button className="md:hidden p-1" onClick={() => setSidebarOpen(false)}>
+          <button className="lg:hidden p-1" onClick={() => setSidebarOpen(false)}>
             <X className="w-4 h-4" />
           </button>
           <button
-            className="hidden md:flex p-1.5 rounded-md hover:bg-accent text-muted-foreground transition-colors"
+            className="hidden lg:flex p-1.5 rounded-md hover:bg-accent text-muted-foreground transition-colors"
             onClick={() => setCollapsed((c) => !c)}
             title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
@@ -152,11 +155,11 @@ export function AuthenticatedLayout() {
               title={collapsed ? label : undefined}
               className={cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors [&.active]:bg-primary/10 [&.active]:text-primary',
-                collapsed && 'md:justify-center md:px-2',
+                collapsed && 'lg:justify-center lg:px-2',
               )}
             >
               <Icon className="w-4 h-4 flex-shrink-0" />
-              <span className={collapsed ? 'md:hidden' : undefined}>{label}</span>
+              <span className={collapsed ? 'lg:hidden' : undefined}>{label}</span>
             </Link>
           ))}
         </nav>
@@ -169,11 +172,11 @@ export function AuthenticatedLayout() {
             title={collapsed ? 'Public view' : undefined}
             className={cn(
               'flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors',
-              collapsed && 'md:justify-center md:px-2',
+              collapsed && 'lg:justify-center lg:px-2',
             )}
           >
             <Home className="w-4 h-4 flex-shrink-0" />
-            <span className={collapsed ? 'md:hidden' : undefined}>Public view</span>
+            <span className={collapsed ? 'lg:hidden' : undefined}>Public view</span>
           </Link>
         </div>
       </aside>
@@ -183,12 +186,12 @@ export function AuthenticatedLayout() {
         {/* Topbar */}
         <header className="h-16 bg-card border-b px-4 sm:px-6 flex items-center justify-between sticky top-0 z-10">
           <button
-            className="md:hidden p-2 rounded-md hover:bg-accent"
+            className="lg:hidden p-2 rounded-md hover:bg-accent"
             onClick={() => setSidebarOpen(true)}
           >
             <Menu className="w-5 h-5" />
           </button>
-          <div className="hidden md:block" />
+          <div className="hidden lg:block" />
 
           <div className="flex items-center gap-3">
             <Link
@@ -210,13 +213,14 @@ export function AuthenticatedLayout() {
           </div>
         </header>
 
-        <main className="flex-1 p-4 sm:p-6 overflow-auto pb-20 md:pb-6">
+        <main className="flex-1 p-4 sm:p-6 overflow-auto pb-20 lg:pb-6">
           <Outlet />
         </main>
       </div>
 
-      {/* Mobile bottom navigation */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-card border-t flex items-center safe-area-inset-bottom">
+      {/* Mobile/tablet bottom navigation -- shown up through the same `lg`
+          breakpoint the sidebar switches at above. */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-card border-t flex items-center safe-area-inset-bottom">
         {[
           { label: 'Home', to: ROUTES.DASHBOARD, icon: LayoutDashboard },
           { label: 'Campaigns', to: ROUTES.MY_CAMPAIGNS, icon: Megaphone },
