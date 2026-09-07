@@ -64,21 +64,26 @@ export function EmbedDetailPage() {
 
   return (
     <div>
-      <Link
-        to={ROUTES.FUNDRAISING_EMBEDS}
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors"
-      >
-        <ChevronLeft className="w-4 h-4" /> Embeds
-      </Link>
+      {/* Back button inline with the title (not its own row) -- keeps the
+          header compact, same treatment as PosterDetailPage.jsx. */}
       <div className="mb-4 flex items-center justify-between flex-wrap gap-2">
-        <div>
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            onBlur={handleNameBlur}
-            className="text-xl font-bold tracking-tight bg-transparent border-none focus:outline-none focus:ring-0 px-0"
-          />
-          <p className="text-sm text-muted-foreground">{embed.destination?.title}</p>
+        <div className="flex items-center gap-2 min-w-0">
+          <Link
+            to={ROUTES.FUNDRAISING_EMBEDS}
+            title="Back to Embeds"
+            className="shrink-0 p-1.5 -ml-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </Link>
+          <div className="min-w-0">
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              onBlur={handleNameBlur}
+              className="w-full text-lg font-bold tracking-tight bg-transparent border-none focus:outline-none focus:ring-0 px-0"
+            />
+            <p className="text-sm text-muted-foreground truncate">{embed.destination?.title}</p>
+          </div>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">

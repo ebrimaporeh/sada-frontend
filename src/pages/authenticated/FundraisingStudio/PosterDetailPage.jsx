@@ -25,20 +25,24 @@ export function PosterDetailPage() {
 
   return (
     <div>
-      <Link
-        to={ROUTES.FUNDRAISING_POSTERS}
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors"
-      >
-        <ChevronLeft className="w-4 h-4" /> Posters
-      </Link>
-      <div className="mb-4">
+      {/* Back button and title inline on one row (not stacked, each with
+          their own margin) -- keeps the header compact so the toolbar/
+          canvas below starts higher up the page. */}
+      <div className="mb-3 flex items-center gap-2">
+        <Link
+          to={ROUTES.FUNDRAISING_POSTERS}
+          title="Back to Posters"
+          className="shrink-0 p-1.5 -ml-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </Link>
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
           onBlur={handleBlur}
-          className="text-xl font-bold tracking-tight bg-transparent border-none focus:outline-none focus:ring-0 px-0 w-full"
+          className="min-w-0 flex-1 text-lg font-bold tracking-tight bg-transparent border-none focus:outline-none focus:ring-0 px-0"
         />
-        <p className="text-sm text-muted-foreground">{poster.destination?.title}</p>
+        <p className="shrink-0 max-w-[40%] truncate text-sm text-muted-foreground">{poster.destination?.title}</p>
       </div>
       <PosterEditor poster={poster} />
     </div>
