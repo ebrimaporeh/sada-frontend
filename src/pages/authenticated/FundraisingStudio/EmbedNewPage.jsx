@@ -22,6 +22,7 @@ export function EmbedNewPage() {
 
   const [destination, setDestination] = useState(null)
   const [layout, setLayout] = useState('card')
+  const [returnUrl, setReturnUrl] = useState('')
 
   useEffect(() => {
     if (destination || isLoading || !search?.destinationType || !search?.destinationId) return
@@ -30,14 +31,17 @@ export function EmbedNewPage() {
     if (match) setDestination(match)
   }, [destination, isLoading, search?.destinationType, search?.destinationId, campaignDestinations, organizationDestinations])
 
+  const canCreate = destination && returnUrl.trim()
+
   function handleCreate() {
-    if (!destination) return
+    if (!canCreate) return
     createEmbed.mutate(
       {
         destination_type: destination.type,
         ...(destination.type === 'campaign' ? { campaign_id: destination.id } : { organization_id: destination.id }),
         name: `${destination.title} Widget`,
         layout,
+        return_url: returnUrl.trim(),
       },
       { onSuccess: (res) => navigate({ to: ROUTES.FUNDRAISING_EMBED_DETAIL, params: { id: res.data.embed.id } }) },
     )
@@ -88,6 +92,23 @@ export function EmbedNewPage() {
           </section>
         )}
 
+        {destination && (
+          <section>
+            <p className="font-medium mb-3">3. Where should donors go back to?</p>
+            <input
+              type="url"
+              value={returnUrl}
+              onChange={(e) => setReturnUrl(e.target.value)}
+              placeholder="https://yoursite.com"
+              required
+              className="w-full px-3 py-2.5 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
+            />
+            <p className="text-xs text-muted-foreground mt-1.5">
+              After someone donates through this embed, we'll send them back here instead of leaving them on Dolelma.
+            </p>
+          </section>
+        )}
+
         {createEmbed.isError && (
           <p className="text-sm text-destructive">
             {createEmbed.error?.response?.data?.message ?? 'Could not create the embed. Please try again.'}
@@ -96,7 +117,7 @@ export function EmbedNewPage() {
 
         <button
           type="button"
-          disabled={!destination || createEmbed.isPending}
+          disabled={!canCreate || createEmbed.isPending}
           onClick={handleCreate}
           className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
         >

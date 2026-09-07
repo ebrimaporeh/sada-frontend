@@ -3,10 +3,17 @@ import { Monitor, Smartphone, Tablet } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import { FundraisingWidget } from './widget/FundraisingWidget'
 
+// Widths deliberately straddle every layout's own max-width cap (card/
+// compact/progress_focused: max-w-sm/384px; horizontal: max-w-lg/512px;
+// wide: uncapped) rather than clustering just above/below one of them --
+// 480/380 used to sit only 4px either side of 384, so switching
+// desktop<->tablet on the default 'card' layout barely changed anything.
+// 560 clears every cap (always shows a layout's true full size); 360 and
+// 300 both sit below every cap so each step visibly shrinks the widget.
 const VIEWPORTS = [
-  { value: 'desktop', label: 'Desktop', icon: Monitor, width: 480 },
-  { value: 'tablet', label: 'Tablet', icon: Tablet, width: 380 },
-  { value: 'mobile', label: 'Mobile', icon: Smartphone, width: 320 },
+  { value: 'desktop', label: 'Desktop', icon: Monitor, width: 560 },
+  { value: 'tablet', label: 'Tablet', icon: Tablet, width: 360 },
+  { value: 'mobile', label: 'Mobile', icon: Smartphone, width: 300 },
 ]
 
 // Renders the exact same FundraisingWidget the public /embed/$id page
