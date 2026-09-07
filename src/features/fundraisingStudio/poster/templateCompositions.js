@@ -1,56 +1,84 @@
 import {
-  CANVAS_WIDTH, CANVAS_HEIGHT, createImageElement, createQrElement, createShapeElement, createTextElement,
+  createImageElement, createQrElement, createShapeElement, createTextElement,
 } from './designSchema'
+import { POSTER_TEMPLATES } from '../shared/posterTemplates'
 
-// Per-template styling -- the templates share one structural skeleton
-// (cover image, heading, org name, description, stats row for campaigns,
-// QR corner) and differ only in palette/type treatment. This is
-// deliberately not five bespoke layouts: "configurable starting
-// compositions," not a locked design each, per the product brief -- once
-// created, every element below is freely moved/edited/deleted like any
-// other.
-const TEMPLATE_STYLES = {
-  classic: { background: '#ffffff', headingColor: '#111111', accentColor: '#111111', bodyColor: '#4b5563' },
-  modern: { background: '#0f172a', headingColor: '#ffffff', accentColor: '#38bdf8', bodyColor: '#cbd5e1' },
-  minimal: { background: '#ffffff', headingColor: '#111111', accentColor: '#111111', bodyColor: '#6b7280' },
-  bold: { background: '#dc2626', headingColor: '#ffffff', accentColor: '#ffffff', bodyColor: '#fecaca' },
-  community: { background: '#fef3c7', headingColor: '#78350f', accentColor: '#b45309', bodyColor: '#92400e' },
-}
+// Every template is the same composition at a different aspect ratio (see
+// posterTemplates.js for why sizes, not styles) -- the destination's cover
+// photo fills the frame, a dark scrim sits over it for legibility, and
+// title/org/description/QR are anchored to the bottom-left, sized as a
+// fraction of canvas width so square/story/wide all read consistently at
+// their own scale. Not five bespoke palettes anymore (see the old
+// TEMPLATE_STYLES this replaced) -- what differs between templates now is
+// pure geometry. Still "a configurable starting composition, not a locked
+// design" -- once created, every element below is freely moved/edited/
+// deleted like any other (PosterEditor.jsx).
+const OVERLAY_COLOR = 'rgba(8, 11, 20, 0.55)'
+const BACKGROUND_FALLBACK = '#0f172a'
 
 export function buildInitialDesign(template, destinationType) {
-  const style = TEMPLATE_STYLES[template] ?? TEMPLATE_STYLES.classic
+  const size = POSTER_TEMPLATES.find((t) => t.value === template) ?? POSTER_TEMPLATES[0]
+  const { width, height } = size
+  const hasStats = destinationType === 'campaign'
+
+  const pad = Math.round(width * 0.055)
+  const qrSize = Math.round(Math.min(width, height) * 0.16)
+  const titleFontSize = Math.round(width * 0.048)
+  const orgFontSize = Math.round(width * 0.024)
+  const descFontSize = Math.round(width * 0.02)
+  const textWidth = width - pad * 2 - qrSize - Math.round(pad * 0.4)
+
+  // Stacked bottom-up: figure out the total block height first, then place
+  // each row from there down to `pad` above the bottom edge -- keeps the
+  // whole caption block glued to the bottom regardless of canvas height
+  // (story's is more than 3x wide's).
+  const rows = [
+    { key: 'title', fontSize: titleFontSize, gap: Math.round(titleFontSize * 0.35) },
+    { key: 'org', fontSize: orgFontSize, gap: Math.round(orgFontSize * 0.5) },
+    { key: 'desc', fontSize: descFontSize, gap: Math.round(descFontSize * 1.4) },
+  ]
+  if (hasStats) {
+    rows.push(
+      { key: 'divider', fontSize: Math.round(width * 0.011), gap: Math.round(descFontSize * 0.8) },
+      { key: 'raised', fontSize: Math.round(titleFontSize * 0.55), gap: Math.round(descFontSize * 0.3) },
+      { key: 'goal', fontSize: descFontSize, gap: Math.round(descFontSize * 0.25) },
+      { key: 'deadline', fontSize: descFontSize, gap: 0 },
+    )
+  }
+  const contentHeight = rows.reduce((sum, row) => sum + row.fontSize + row.gap, 0)
+
+  const y = {}
+  let cursor = height - pad - contentHeight
+  for (const row of rows) {
+    y[row.key] = cursor
+    cursor += row.fontSize + row.gap
+  }
+
   const elements = [
-    createImageElement({
-      x: 0, y: 0, width: CANVAS_WIDTH, height: 640, binding: 'cover_image_url', objectFit: 'cover',
-    }),
-    createTextElement({
-      x: 60, y: 680, width: CANVAS_WIDTH - 120, binding: 'title', fontSize: 56, fontWeight: 'bold', color: style.headingColor,
-    }),
-    createTextElement({
-      x: 60, y: 780, width: CANVAS_WIDTH - 120, binding: 'organization_name', fontSize: 28, color: style.accentColor,
-    }),
-    createTextElement({
-      x: 60, y: 830, width: CANVAS_WIDTH - 300, binding: 'description', fontSize: 24, color: style.bodyColor,
-    }),
-    createQrElement({ x: CANVAS_WIDTH - 240, y: CANVAS_HEIGHT - 240, width: 180, height: 180 }),
+    createImageElement({ x: 0, y: 0, width, height, binding: 'cover_image_url', objectFit: 'cover' }),
+    // `listening: false` -- a full-bleed scrim stacked directly on top of
+    // the full-bleed cover photo would otherwise intercept every click
+    // meant for that image (Konva hits the topmost node), making the
+    // photo underneath impossible to select/resize. The scrim stays
+    // visible, just excluded from hit-testing (see PosterElementNode.jsx).
+    createShapeElement({ x: 0, y: 0, width, height, shapeType: 'rect', fill: OVERLAY_COLOR, listening: false }),
+    createTextElement({ x: pad, y: y.title, width: textWidth, binding: 'title', fontSize: titleFontSize, fontWeight: 'bold', color: '#ffffff' }),
+    createTextElement({ x: pad, y: y.org, width: textWidth, binding: 'organization_name', fontSize: orgFontSize, color: '#e2e8f0' }),
+    createTextElement({ x: pad, y: y.desc, width: textWidth, binding: 'description', fontSize: descFontSize, color: '#cbd5e1' }),
+    createQrElement({ x: width - pad - qrSize, y: height - pad - qrSize, width: qrSize, height: qrSize }),
   ]
 
-  if (destinationType === 'campaign') {
+  if (hasStats) {
     elements.push(
       createShapeElement({
-        x: 60, y: 1000, width: CANVAS_WIDTH - 120, height: 12, shapeType: 'rect', fill: `${style.accentColor}33`, cornerRadius: 6,
+        x: pad, y: y.divider, width: textWidth, height: Math.round(width * 0.011),
+        shapeType: 'rect', fill: 'rgba(255, 255, 255, 0.25)', cornerRadius: 999,
       }),
-      createTextElement({
-        x: 60, y: 1030, width: 400, binding: 'raised', fontSize: 32, fontWeight: 'bold', color: style.headingColor,
-      }),
-      createTextElement({
-        x: 60, y: 1075, width: 400, binding: 'goal', fontSize: 20, color: style.bodyColor,
-      }),
-      createTextElement({
-        x: 60, y: 1120, width: 400, binding: 'deadline', fontSize: 20, color: style.bodyColor,
-      }),
+      createTextElement({ x: pad, y: y.raised, width: textWidth, binding: 'raised', fontSize: Math.round(titleFontSize * 0.55), fontWeight: 'bold', color: '#ffffff' }),
+      createTextElement({ x: pad, y: y.goal, width: textWidth, binding: 'goal', fontSize: descFontSize, color: '#cbd5e1' }),
+      createTextElement({ x: pad, y: y.deadline, width: textWidth, binding: 'deadline', fontSize: descFontSize, color: '#cbd5e1' }),
     )
   }
 
-  return { version: 1, width: CANVAS_WIDTH, height: CANVAS_HEIGHT, background: style.background, elements }
+  return { version: 1, width, height, background: BACKGROUND_FALLBACK, elements }
 }

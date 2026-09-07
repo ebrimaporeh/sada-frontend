@@ -9,6 +9,8 @@ import { PosterCanvas } from './PosterCanvas'
 import { ElementsPanel } from './ElementsPanel'
 import { PropertiesPanel } from './PropertiesPanel'
 import { exportPosterAsPng } from './exportPoster'
+import { buildInitialDesign } from './templateCompositions'
+import { POSTER_TEMPLATES } from '../shared/posterTemplates'
 
 const AUTOSAVE_DEBOUNCE_MS = 1200
 
@@ -65,6 +67,7 @@ export function PosterEditor({ poster }) {
   }, [design])
 
   const selectedElement = design.elements.find((el) => el.id === selectedId) || null
+  const currentSize = POSTER_TEMPLATES.find((t) => t.width === design.width && t.height === design.height)?.value
 
   function handleAdd(element) {
     commit({ ...design, elements: [...design.elements, element] })
@@ -92,6 +95,21 @@ export function PosterEditor({ poster }) {
     commit({ ...design, elements: direction === 'front' ? [...elements, element] : [element, ...elements] })
   }
 
+  // Regenerates the starting composition at the new size rather than
+  // rescaling the existing elements -- a linear x/y/font transform can't
+  // reproduce the same bottom-anchored layout math templateCompositions.js
+  // uses across wildly different aspect ratios (e.g. Story's 9:16 down to
+  // Wide's ~1.9:1) without producing visibly broken results. This always
+  // looks right; Undo is the safety net for anyone who'd already
+  // customized the previous size.
+  function handleSizeChange(nextTemplate) {
+    const size = POSTER_TEMPLATES.find((t) => t.value === nextTemplate)
+    if (!size || (design.width === size.width && design.height === size.height)) return
+    commit(buildInitialDesign(nextTemplate, poster.destination?.type))
+    setSelectedId(null)
+    updatePoster.mutate({ id: poster.id, template: nextTemplate })
+  }
+
   function handleExport(pixelRatio) {
     if (!stageRef.current) return
     setIsExportMenuOpen(false)
@@ -101,7 +119,7 @@ export function PosterEditor({ poster }) {
     // clear off the canvas before rasterizing -- otherwise they'd get
     // baked into the exported PNG.
     requestAnimationFrame(() => {
-      exportPosterAsPng(stageRef.current, { pixelRatio, filename: `${poster.name}.png` })
+      exportPosterAsPng(stageRef.current, { pixelRatio, filename: `${poster.name}.png`, width: design.width, height: design.height })
       setIsExporting(false)
     })
   }
@@ -139,10 +157,10 @@ export function PosterEditor({ poster }) {
               {isExportMenuOpen && (
                 <div className="absolute right-0 mt-1 w-40 bg-card border rounded-lg shadow-lg py-1 z-20">
                   <button type="button" onClick={() => handleExport(1)} className="w-full text-left px-3 py-1.5 text-xs hover:bg-accent">
-                    Standard (1080px)
+                    Standard ({design.width}px)
                   </button>
                   <button type="button" onClick={() => handleExport(2)} className="w-full text-left px-3 py-1.5 text-xs hover:bg-accent">
-                    High-res (2160px)
+                    High-res ({design.width * 2}px)
                   </button>
                 </div>
               )}
@@ -159,10 +177,10 @@ export function PosterEditor({ poster }) {
         </div>
 
         <div className="rounded-xl border bg-card px-2 py-1.5 overflow-x-auto">
-          <ElementsPanel posterId={poster.id} onAdd={handleAdd} />
+          <ElementsPanel posterId={poster.id} onAdd={handleAdd} currentSize={currentSize} onSizeChange={handleSizeChange} />
         </div>
 
-        <div className="rounded-xl border bg-muted/30 p-4">
+        <div className="rounded-xl border bg-muted/30 p-4 h-[70vh] max-h-[820px] min-h-[360px]">
           <PosterCanvas
             design={design}
             destination={poster.destination}

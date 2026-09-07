@@ -4,7 +4,11 @@ import { cn } from '@/utils/cn'
 // Shared by Poster Studio's and Embed Studio's "create new" flow -- picking
 // a destination is the one step both submodules genuinely share, per the
 // architecture doc's "destination resolution" shared concern.
-export function DestinationPicker({ campaignDestinations, organizationDestinations, value, onChange }) {
+//
+// `columns` lets callers fit this into a narrower rail (Poster Studio's
+// side-by-side layout) without changing Embed Studio's wider single-column
+// page, which still wants the 2-up grid.
+export function DestinationPicker({ campaignDestinations, organizationDestinations, value, onChange, columns = 2 }) {
   const isEmpty = campaignDestinations.length === 0 && organizationDestinations.length === 0
   if (isEmpty) {
     return (
@@ -14,12 +18,14 @@ export function DestinationPicker({ campaignDestinations, organizationDestinatio
     )
   }
 
+  const gridClass = cn('grid gap-3', columns === 1 ? 'grid-cols-1' : 'sm:grid-cols-2')
+
   return (
     <div className="space-y-6">
       {organizationDestinations.length > 0 && (
         <div>
           <p className="section-label mb-2">Organizations</p>
-          <div className="grid sm:grid-cols-2 gap-3">
+          <div className={gridClass}>
             {organizationDestinations.map((d) => (
               <DestinationCard key={`organization-${d.id}`} destination={d} icon={Building2}
                 selected={value?.type === 'organization' && value?.id === d.id}
@@ -31,7 +37,7 @@ export function DestinationPicker({ campaignDestinations, organizationDestinatio
       {campaignDestinations.length > 0 && (
         <div>
           <p className="section-label mb-2">Campaigns</p>
-          <div className="grid sm:grid-cols-2 gap-3">
+          <div className={gridClass}>
             {campaignDestinations.map((d) => (
               <DestinationCard key={`campaign-${d.id}`} destination={d} icon={Megaphone}
                 selected={value?.type === 'campaign' && value?.id === d.id}

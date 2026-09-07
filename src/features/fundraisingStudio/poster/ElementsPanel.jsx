@@ -3,6 +3,8 @@ import { Type, Image as ImageIcon, Square, Circle as CircleIcon, Minus, QrCode, 
 import { compressImage } from '@/utils/imageCompression'
 import { useUploadPosterImage } from '@/hooks/usePosters'
 import { createImageElement, createQrElement, createShapeElement, createTextElement } from './designSchema'
+import { POSTER_TEMPLATES } from '../shared/posterTemplates'
+import { cn } from '@/utils/cn'
 
 // Click-to-add, not drag-and-drop -- see the architecture doc's "why not
 // @dnd-kit" note. Konva's own drag handling already covers moving an
@@ -11,7 +13,7 @@ import { createImageElement, createQrElement, createShapeElement, createTextElem
 // Rendered as a horizontal bar above the canvas (not a side column) --
 // PosterEditor.jsx places this in its own row, so the canvas/properties
 // area only needs two columns, not three.
-export function ElementsPanel({ posterId, onAdd }) {
+export function ElementsPanel({ posterId, onAdd, currentSize, onSizeChange }) {
   const fileInputRef = useRef(null)
   const uploadImage = useUploadPosterImage()
   const [isUploading, setIsUploading] = useState(false)
@@ -50,6 +52,28 @@ export function ElementsPanel({ posterId, onAdd }) {
       <PanelButton icon={CircleIcon} label="Circle" onClick={() => onAdd(createShapeElement({ shapeType: 'circle', width: 160, height: 160 }))} />
       <PanelButton icon={Minus} label="Line" onClick={() => onAdd(createShapeElement({ shapeType: 'line', width: 300, height: 4, fill: '#111111' }))} />
       <PanelButton icon={QrCode} label="QR Code" onClick={() => onAdd(createQrElement())} />
+
+      {onSizeChange && (
+        <>
+          <div className="w-px h-8 bg-border mx-1" />
+          <div className="flex items-center gap-1 rounded-lg border p-0.5">
+            {POSTER_TEMPLATES.map((t) => (
+              <button
+                key={t.value}
+                type="button"
+                title={`${t.label} — ${t.width}×${t.height}`}
+                onClick={() => onSizeChange(t.value)}
+                className={cn(
+                  'px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors',
+                  currentSize === t.value ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-accent',
+                )}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   )
 }

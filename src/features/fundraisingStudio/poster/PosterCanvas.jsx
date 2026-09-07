@@ -1,13 +1,23 @@
 import { useEffect, useRef, useState } from 'react'
 import { Layer, Rect, Stage, Transformer } from 'react-konva'
-import { CANVAS_HEIGHT, CANVAS_WIDTH } from './designSchema'
 import { PosterElementNode } from './PosterElementNode'
 
-// Design-space stays fixed at CANVAS_WIDTH/HEIGHT; only Konva's own
-// stageScale shrinks it to fit the visible container -- deliberately not a
-// CSS transform, since Konva's scaleX/scaleY (unlike a CSS transform on an
-// ancestor) is what correctly keeps pointer/drag/transform coordinates in
-// design space regardless of on-screen zoom.
+// Design-space stays fixed at the poster's own design.width/height (set
+// once at creation from the chosen template's size, see
+// posterTemplates.js/templateCompositions.js -- square/story/wide are
+// genuinely different aspect ratios, not just a palette choice); only
+// Konva's own stageScale shrinks it to fit the visible container --
+// deliberately not a CSS transform, since Konva's scaleX/scaleY (unlike a
+// CSS transform on an ancestor) is what correctly keeps pointer/drag/
+// transform coordinates in design space regardless of on-screen zoom.
+//
+// The container is height-bounded by the caller (PosterEditor's wrapper),
+// not sized off a CSS aspect-ratio driven purely by width -- a Story
+// poster (9:16) rendered at full container width would be taller than the
+// viewport, forcing a scroll just to see the whole canvas. Measuring both
+// container dimensions and scaling to *contain* the design within them
+// (like `object-fit: contain`) keeps the entire poster visible regardless
+// of its aspect ratio.
 export function PosterCanvas({ design, destination, selectedId, onSelect, onElementChange, stageRef }) {
   const containerRef = useRef(null)
   const transformerRef = useRef(null)
@@ -18,12 +28,12 @@ export function PosterCanvas({ design, destination, selectedId, onSelect, onElem
     const el = containerRef.current
     if (!el) return
     const observer = new ResizeObserver((entries) => {
-      const width = entries[0]?.contentRect?.width
-      if (width) setStageScale(width / CANVAS_WIDTH)
+      const { width, height } = entries[0]?.contentRect ?? {}
+      if (width && height) setStageScale(Math.min(width / design.width, height / design.height))
     })
     observer.observe(el)
     return () => observer.disconnect()
-  }, [])
+  }, [design.width, design.height])
 
   useEffect(() => {
     const node = selectedId ? nodeRefs.current[selectedId] : null
@@ -38,11 +48,11 @@ export function PosterCanvas({ design, destination, selectedId, onSelect, onElem
   }
 
   return (
-    <div ref={containerRef} className="w-full" style={{ aspectRatio: `${CANVAS_WIDTH} / ${CANVAS_HEIGHT}` }}>
+    <div ref={containerRef} className="w-full h-full flex items-center justify-center">
       <Stage
         ref={stageRef}
-        width={CANVAS_WIDTH * stageScale}
-        height={CANVAS_HEIGHT * stageScale}
+        width={design.width * stageScale}
+        height={design.height * stageScale}
         scaleX={stageScale}
         scaleY={stageScale}
         onMouseDown={(e) => {
@@ -50,7 +60,7 @@ export function PosterCanvas({ design, destination, selectedId, onSelect, onElem
         }}
       >
         <Layer>
-          <Rect x={0} y={0} width={CANVAS_WIDTH} height={CANVAS_HEIGHT} fill={design.background} listening={false} />
+          <Rect x={0} y={0} width={design.width} height={design.height} fill={design.background} listening={false} />
           {design.elements.map((element) => (
             <PosterElementNode
               key={element.id}

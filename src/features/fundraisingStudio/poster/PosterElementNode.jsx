@@ -61,11 +61,18 @@ export function PosterElementNode({ element, destination, shared, shapeRef }) {
   }
 
   if (type === 'shape') {
+    // `listening: false` (only set on the overlay scrim templateCompositions.js
+    // generates -- see its comment) excludes a shape from the hit graph so
+    // clicks fall through to whatever sits underneath it, e.g. the
+    // full-bleed cover photo it's stacked on top of. Every other shape
+    // defaults to listening (undefined !== false), unaffected.
+    const listening = element.listening !== false
     if (element.shapeType === 'circle') {
       return (
         <Circle
           ref={shapeRef}
           {...commonProps}
+          listening={listening}
           radius={element.width / 2}
           fill={element.fill}
           stroke={element.stroke || undefined}
@@ -78,6 +85,7 @@ export function PosterElementNode({ element, destination, shared, shapeRef }) {
         <Line
           ref={shapeRef}
           {...commonProps}
+          listening={listening}
           points={[0, 0, element.width, 0]}
           stroke={element.stroke || element.fill}
           strokeWidth={element.strokeWidth || 4}
@@ -88,6 +96,7 @@ export function PosterElementNode({ element, destination, shared, shapeRef }) {
       <Rect
         ref={shapeRef}
         {...commonProps}
+        listening={listening}
         width={element.width}
         height={element.height}
         fill={element.fill}
