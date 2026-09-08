@@ -14,6 +14,13 @@ export const organizationsApi = {
       .post(`/organizations/${id}/cover/`, form, { headers: { 'Content-Type': 'multipart/form-data' } })
       .then((r) => r.data)
   },
+  uploadLogo: (id, file) => {
+    const form = new FormData()
+    form.append('logo', file)
+    return apiClient
+      .post(`/organizations/${id}/logo/`, form, { headers: { 'Content-Type': 'multipart/form-data' } })
+      .then((r) => r.data)
+  },
   transferOwnership: (id, userId) =>
     apiClient.post(`/organizations/${id}/transfer-ownership/`, { user_id: userId }).then((r) => r.data),
 

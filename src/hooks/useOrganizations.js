@@ -76,6 +76,18 @@ export function useUploadOrganizationCover(id) {
   })
 }
 
+export function useUploadOrganizationLogo(id) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (file) => organizationsApi.uploadLogo(id, file),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.organizations.detail(id) })
+      // The logo also shows in the profile switcher/header (me.organizations).
+      queryClient.invalidateQueries({ queryKey: queryKeys.auth.me() })
+    },
+  })
+}
+
 // Direct-donation totals (direct + campaign, kept separate -- see
 // backend/services.md's get_organization_donation_stats).
 export function useOrganizationDonationStats(id) {

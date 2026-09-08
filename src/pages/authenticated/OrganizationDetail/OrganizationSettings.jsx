@@ -1,9 +1,12 @@
 import { useState } from 'react'
-import { AlertCircle, Clock, Mail, UserCheck, ImageIcon, Loader2 } from 'lucide-react'
+import { AlertCircle, Clock, Mail, UserCheck, ImageIcon, Loader2, Building2 } from 'lucide-react'
 import { useMyOrganizationChangeRequests, useSubmitOrganizationChangeRequest } from '@/hooks/useUsers'
-import { useMyOrganizationMembership, useUpdateOrganization, useUploadOrganizationCover } from '@/hooks/useOrganizations'
+import {
+  useMyOrganizationMembership, useUpdateOrganization, useUploadOrganizationCover, useUploadOrganizationLogo,
+} from '@/hooks/useOrganizations'
 import { OrganizationPermission } from '@/constants'
 import { initials } from '@/utils/formatters'
+import { compressImage } from '@/utils/imageCompression'
 
 const CHANGEABLE_FIELD_LABELS = {
   phone: 'Primary Phone Number',
@@ -138,6 +141,61 @@ function ContactPersonsList({ contactPersons }) {
   )
 }
 
+// Branding mark shown wherever the org appears across the platform
+// (OrganizationOverview's avatar, profile switcher, fundraiser cards) --
+// distinct from DonationPageSettings' cover image below, which is only the
+// /give/<slug> banner. Compressed client-side first, same pattern as
+// campaign cover/gallery uploads (EditTab.jsx's CampaignPhotosCard).
+function LogoSettings({ organization, canManage }) {
+  const [error, setError] = useState('')
+  const uploadLogo = useUploadOrganizationLogo(organization.id)
+
+  async function handleLogoChange(e) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    setError('')
+    const compressed = await compressImage(file, 'logo')
+    uploadLogo.mutate(compressed, {
+      onError: (err) => setError(err?.response?.data?.message || 'Failed to upload logo.'),
+    })
+  }
+
+  return (
+    <div className="border rounded-2xl p-6 bg-card space-y-4">
+      <div>
+        <h2 className="font-semibold text-base">Organization Logo</h2>
+        <p className="text-xs text-muted-foreground mt-1">
+          Shown wherever your organization appears across the platform.
+        </p>
+      </div>
+
+      <div className="flex items-center gap-4">
+        <div className="w-16 h-16 rounded-xl bg-muted overflow-hidden flex items-center justify-center flex-shrink-0">
+          {organization.logo ? (
+            <img src={organization.logo} alt="Logo" className="w-full h-full object-cover" />
+          ) : (
+            <Building2 className="w-6 h-6 text-muted-foreground" />
+          )}
+        </div>
+        {canManage && (
+          <label className="text-xs font-medium text-primary hover:underline cursor-pointer inline-flex items-center gap-1.5">
+            {uploadLogo.isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+            {uploadLogo.isPending ? 'Uploading…' : organization.logo ? 'Change logo' : 'Upload logo'}
+            <input type="file" accept="image/*" className="hidden" onChange={handleLogoChange} disabled={uploadLogo.isPending} />
+          </label>
+        )}
+      </div>
+
+      {error && (
+        <p className="text-xs text-destructive flex items-center gap-1">
+          <AlertCircle className="w-3 h-3 flex-shrink-0" /> {error}
+        </p>
+      )}
+    </div>
+  )
+}
+
 // What shows on the public /give/<slug> donation page -- description and
 // cover image, both directly editable (unlike phone/recovery email above)
 // since neither is account-recovery-critical, see
@@ -254,6 +312,8 @@ export function OrganizationSettings({ organization }) {
         </div>
         <ContactPersonsList contactPersons={organization.contact_persons} />
       </div>
+
+      <LogoSettings organization={organization} canManage={canManage} />
 
       <DonationPageSettings organization={organization} canManage={canManage} />
 
