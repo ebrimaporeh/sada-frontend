@@ -110,10 +110,9 @@ export function EmbedDetailPage() {
         <div className="flex items-center gap-2 min-w-0">
           <Link
             to={ROUTES.FUNDRAISING_EMBEDS}
-            title="Back to Embeds"
-            className="shrink-0 p-1.5 -ml-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+            className="shrink-0 flex items-center gap-0.5 py-1 pl-1.5 pr-2 -ml-1.5 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-5 h-5" /> Embeds
           </Link>
           <div className="min-w-0">
             <input
