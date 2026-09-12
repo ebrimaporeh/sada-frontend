@@ -27,7 +27,7 @@ export function VisionIndexPage() {
           </div>
           <h1 className="text-3xl sm:text-4xl font-bold mb-2">Platform Vision</h1>
           <p className="text-muted-foreground">
-            What's actually built today, and where each part of the platform is headed next —
+            What's actually built today, and where each part of the platform is headed next -
             documented honestly, not as a pitch deck.
           </p>
         </div>

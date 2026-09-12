@@ -71,7 +71,7 @@ export function CategoriesSection() {
               Fundraisers for every cause
             </h2>
             <p className="text-muted-foreground mt-3 text-lg max-w-xl">
-              Ranked by community support — the causes Gambians are rallying behind right now.
+              Ranked by community support - the causes Gambians are rallying behind right now.
             </p>
           </div>
           <Link

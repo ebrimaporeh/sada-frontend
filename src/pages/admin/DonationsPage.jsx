@@ -148,7 +148,7 @@ export function DonationsPage() {
                 {donations.map((d) => {
                   const isAnon = d.is_anonymous ?? d.anonymous ?? false
                   const donorName = d.donor_name ?? d.donor ?? 'Anonymous'
-                  const campaignTitle = d.campaign_title ?? d.campaign ?? '—'
+                  const campaignTitle = d.campaign_title ?? d.campaign ?? '-'
                   const date = d.paid_at ?? d.created_at ?? d.date
                   return (
                     <tr

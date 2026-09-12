@@ -124,7 +124,7 @@ export function OverviewTab({ campaign, donors, payouts, totalPaidOut, available
           ].map(([label, value]) => (
             <div key={label}>
               <p className="text-xs text-muted-foreground mb-0.5">{label}</p>
-              <p className="font-medium">{value || '—'}</p>
+              <p className="font-medium">{value || '-'}</p>
             </div>
           ))}
         </div>

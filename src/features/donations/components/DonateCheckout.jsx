@@ -46,7 +46,7 @@ function CampaignSummaryCard({ campaign }) {
           {isOngoingCampaign(campaign.deadline) ? 'ongoing campaign' : `${daysLeft(campaign.deadline)} days left`}
         </span>
       </div>
-      {/* Bottom, not overlaid on the image — the image's overflow-hidden
+      {/* Bottom, not overlaid on the image - the image's overflow-hidden
           was clipping the share popover the moment it opened downward,
           making it render but stay invisible. */}
       <ShareCampaign
@@ -96,7 +96,7 @@ export function DonateCheckout({ campaign, embedded = false, onCancel, embedId }
   const { methods: PROVIDERS, isLoading: methodsLoading } = useDonationMethods()
 
   // Default to whichever method loads first, once the backend's enabled
-  // gateways are known — can't hardcode 'wave' since that gateway might be
+  // gateways are known - can't hardcode 'wave' since that gateway might be
   // disabled, or Stripe might be the only one enabled.
   useEffect(() => {
     if (!provider && PROVIDERS.length > 0) {
@@ -184,7 +184,7 @@ export function DonateCheckout({ campaign, embedded = false, onCancel, embedId }
             setProcessing(false)
             return
           }
-          // Only guests get this convenience — a logged-in donor's info
+          // Only guests get this convenience - a logged-in donor's info
           // already lives on their account, not a browser-local cache.
           if (!me) {
             storage.set(GUEST_DONOR_STORAGE_KEY, { donorName: donorName.trim(), phone: phone.trim(), provider })
@@ -280,7 +280,7 @@ export function DonateCheckout({ campaign, embedded = false, onCancel, embedId }
         )}
       </div>
 
-      {/* Phone number — mobile money only; card donors go straight to Stripe's own card entry page instead */}
+      {/* Phone number - mobile money only; card donors go straight to Stripe's own card entry page instead */}
       {requiresPhone && (
         <div>
           <label className="text-sm font-medium block mb-1.5">
@@ -339,7 +339,7 @@ export function DonateCheckout({ campaign, embedded = false, onCancel, embedId }
       </button>
 
       <p className="text-xs text-center text-muted-foreground flex items-center justify-center gap-1">
-        <Lock className="w-3 h-3" /> Payments are processed securely — you'll be taken to {selectedMethod?.gateway === 'stripe' ? "Stripe's" : 'your provider\'s'} page to complete it
+        <Lock className="w-3 h-3" /> Payments are processed securely - you'll be taken to {selectedMethod?.gateway === 'stripe' ? "Stripe's" : 'your provider\'s'} page to complete it
       </p>
     </div>
   )

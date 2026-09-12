@@ -139,7 +139,7 @@ export function UsersPage() {
                       className="hover:bg-muted/50 cursor-pointer transition-colors"
                     >
                       <td className="px-4 py-3 font-medium">{org.organization_name}</td>
-                      <td className="px-4 py-3">{org.organization_type_name || '—'}</td>
+                      <td className="px-4 py-3">{org.organization_type_name || '-'}</td>
                       <td className="px-4 py-3">
                         <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
                           <Users className="w-3 h-3" /> {org.member_count}
@@ -166,7 +166,7 @@ export function UsersPage() {
                       onClick={() => handleSelectUser(user)}
                       className="hover:bg-muted/50 cursor-pointer transition-colors"
                     >
-                      <td className="px-4 py-3">{user.full_name || '—'}</td>
+                      <td className="px-4 py-3">{user.full_name || '-'}</td>
                       <td className="px-4 py-3">{user.email}</td>
                       <td className="px-4 py-3">
                         <span

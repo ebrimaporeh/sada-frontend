@@ -1,4 +1,4 @@
-# Frontend JS — AI Operating Instructions
+# Frontend JS - AI Operating Instructions
 
 ## Stack
 
@@ -12,10 +12,10 @@
 
 1. **API calls**: ONLY in `src/api/`. Use `apiClient` from `src/api/client.js`.
 2. **Hooks**: Wrap API calls in React Query hooks (`src/hooks/`). Components never call API directly.
-3. **Auth state**: Managed via `useMe()` hook — reads cached user from React Query.
+3. **Auth state**: Managed via `useMe()` hook - reads cached user from React Query.
 4. **Tokens**: Stored in `localStorage` (`access_token`, `refresh_token`). Auto-refresh handled in `client.js`.
 5. **Routes**: Defined in `src/routes/rootRoute.js`. Guards use `beforeLoad`.
-6. **Layouts**: `PublicLayout`, `AuthenticatedLayout`, `AdminLayout` — all wrap `<Outlet />`.
+6. **Layouts**: `PublicLayout`, `AuthenticatedLayout`, `AdminLayout` - all wrap `<Outlet />`.
 7. **Features**: Domain logic in `src/features/<domain>/`. Components, hooks, utils co-located.
 
 ## Path Alias
@@ -49,4 +49,4 @@ npx shadcn@latest add input
 npx shadcn@latest add card
 ```
 
-Components land in `src/components/ui/` — do not modify them directly.
+Components land in `src/components/ui/` - do not modify them directly.

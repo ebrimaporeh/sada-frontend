@@ -3,7 +3,7 @@ import { ChevronRight, Home } from 'lucide-react'
 import { cn } from '@/utils/cn'
 
 /**
- * `items` is everything between Home and the current page — an array of
+ * `items` is everything between Home and the current page - an array of
  * `{ label, to, params? }`. `current` (plain text, not a link) is the page
  * you're actually on. Also emits a BreadcrumbList JSON-LD block, which is
  * what lets Google show these as breadcrumbs directly in search results

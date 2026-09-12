@@ -4,7 +4,7 @@ export const donationApi = {
   createDonation: (data) =>
     apiClient.post('/donations/', data).then((r) => r.data),
 
-  // Reconciles a donation directly against ModemPay — needed because the
+  // Reconciles a donation directly against ModemPay - needed because the
   // webhook can't reach a localhost backend, and is a useful safety net even
   // when it can.
   verifyDonation: (reference) =>

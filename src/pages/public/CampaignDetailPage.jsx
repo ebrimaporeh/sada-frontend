@@ -12,7 +12,7 @@ export function CampaignDetailPage() {
 
   useEffect(() => {
     if (slug) recordView.mutate(slug)
-    // Only fire once per slug landed on — not on every campaign refetch.
+    // Only fire once per slug landed on - not on every campaign refetch.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug])
 

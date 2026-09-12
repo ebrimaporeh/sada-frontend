@@ -36,7 +36,7 @@ export function HeroSection() {
 
             <p className="text-lg text-muted-foreground leading-[1.8] mb-9 max-w-lg">
               Support real Gambians raising funds for medical emergencies, education, community
-              projects, and more — donate with mobile money in seconds.
+              projects, and more - donate with mobile money in seconds.
             </p>
 
             <div className="flex flex-wrap gap-3 mb-11">

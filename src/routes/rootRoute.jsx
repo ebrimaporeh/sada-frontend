@@ -8,7 +8,7 @@ import { AdminLayout } from '@/layouts/AdminLayout'
 import { Resource, hasResourceAccess, isAdminAreaRole, landingRouteForResources } from '@/utils/permissions'
 import { SiteFavicon } from '@/components/custom/SiteFavicon'
 
-// Pages — public
+// Pages - public
 import { HomePage } from '@/pages/public/HomePage'
 import { LoginPage } from '@/pages/public/LoginPage'
 import { RegisterPage } from '@/pages/public/RegisterPage'
@@ -36,7 +36,7 @@ import { VisionIndexPage } from '@/pages/public/VisionIndexPage'
 import { VisionTopicPage } from '@/pages/public/VisionTopicPage'
 import { EmbedWidgetPage } from '@/pages/public/EmbedWidgetPage'
 
-// Pages — authenticated
+// Pages - authenticated
 import { DashboardPage } from '@/pages/authenticated/DashboardPage'
 import { MyCampaignsPage } from '@/pages/authenticated/MyCampaignsPage'
 import { MyCampaignDetailPage } from '@/pages/authenticated/MyCampaignDetailPage'
@@ -60,7 +60,7 @@ import { EmbedsListPage } from '@/pages/authenticated/FundraisingStudio/EmbedsLi
 import { EmbedNewPage } from '@/pages/authenticated/FundraisingStudio/EmbedNewPage'
 import { EmbedDetailPage } from '@/pages/authenticated/FundraisingStudio/EmbedDetailPage'
 
-// Pages — admin
+// Pages - admin
 import { AdminDashboardPage } from '@/pages/admin/DashboardPage'
 import { UsersPage } from '@/pages/admin/UsersPage'
 import { AdminFundraiserDetailPage } from '@/pages/admin/AdminFundraiserDetailPage'

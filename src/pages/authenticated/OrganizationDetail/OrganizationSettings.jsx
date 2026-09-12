@@ -94,7 +94,7 @@ function ChangeableField({ organizationId, fieldName, label, currentValue, pendi
         </form>
       ) : (
         <>
-          <p className="font-medium">{currentValue || '—'}</p>
+          <p className="font-medium">{currentValue || '-'}</p>
           {pendingRequest ? (
             isEmailField ? (
               <p className="text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded-lg px-2 py-1 mt-1 flex items-center gap-1.5">
@@ -229,7 +229,7 @@ function DonationPageSettings({ organization, canManage }) {
       <div>
         <h2 className="font-semibold text-base">Donation Page</h2>
         <p className="text-xs text-muted-foreground mt-1">
-          What donors see at your public donation link (see the Donations tab for that URL) — a short description and
+          What donors see at your public donation link (see the Donations tab for that URL) - a short description and
           a cover image.
         </p>
       </div>
@@ -258,7 +258,7 @@ function DonationPageSettings({ organization, canManage }) {
             </div>
           </form>
         ) : (
-          <p className="text-sm">{organization.description || '—'}</p>
+          <p className="text-sm">{organization.description || '-'}</p>
         )}
       </div>
 
@@ -322,7 +322,7 @@ export function OrganizationSettings({ organization }) {
           <h2 className="font-semibold text-base">Organization Details</h2>
           <p className="text-xs text-muted-foreground mt-1">
             Name and type were set at creation and aren't editable here. Phone number changes need admin approval.
-            Recovery emails are different — changing one sends a confirmation link to the new address, and it takes
+            Recovery emails are different - changing one sends a confirmation link to the new address, and it takes
             effect as soon as that link is clicked, with no admin involved. Either way nothing changes until the
             request resolves.
           </p>

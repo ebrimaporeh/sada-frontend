@@ -7,10 +7,10 @@ import { cn } from '@/utils/cn'
  * same `{ target: { value } }` shape a native select's change event has,
  * so existing `onChange={set('field')}`-style handlers keep working.
  *
- * `options` is `[{ value, label, icon? }]` — `icon` is an optional
+ * `options` is `[{ value, label, icon? }]` - `icon` is an optional
  * already-resolved component (e.g. a lucide-react icon or the result of a
  * lookup like `getCategoryIcon(cat.icon)`), rendered next to the label.
- * Passing an icon here is how you show a real icon glyph — a native
+ * Passing an icon here is how you show a real icon glyph - a native
  * `<option>` can only ever render plain text, which is why "category icon
  * name" (e.g. "Stethoscope Medical") used to leak into option text instead
  * of ever becoming a real icon.

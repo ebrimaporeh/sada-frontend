@@ -5,7 +5,7 @@ function InfoField({ label, value }) {
   return (
     <div>
       <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">{label}</p>
-      <p className="text-sm font-medium">{value || '—'}</p>
+      <p className="text-sm font-medium">{value || '-'}</p>
     </div>
   )
 }

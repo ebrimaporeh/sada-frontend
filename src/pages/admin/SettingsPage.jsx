@@ -101,7 +101,7 @@ export function SettingsPage() {
             </h2>
             <p className="text-sm text-muted-foreground mt-1">
               Percentage the platform takes from each campaign payout when an owner withdraws funds.
-              Donations themselves carry no platform fee — donors only pay whatever their payment
+              Donations themselves carry no platform fee - donors only pay whatever their payment
               provider charges directly.
             </p>
           </div>
@@ -194,7 +194,7 @@ function LegalContentCard({ onNotify }) {
         </h2>
         <p className="text-sm text-muted-foreground mt-1">
           Edit the content shown on the public Help, Trust &amp; Safety, Privacy, and Terms pages. Markdown supported.
-          Use the "Insert variable" menu to write values like the site name or platform fee as tags — they stay
+          Use the "Insert variable" menu to write values like the site name or platform fee as tags - they stay
           correct automatically if that setting ever changes, instead of needing every page updated by hand.
         </p>
       </div>
@@ -340,7 +340,7 @@ function PaymentGatewaysCard({ onNotify }) {
               onChange={(v) => setForm((f) => ({ ...f, wave_enabled: v }))}
               disabled={!form.modempay_enabled}
               label="Wave"
-              description="Donations and withdrawals. Turning this off also stops withdrawals — Wave is the only payout network."
+              description="Donations and withdrawals. Turning this off also stops withdrawals - Wave is the only payout network."
             />
             <Toggle
               checked={form.aps_enabled}
@@ -354,14 +354,14 @@ function PaymentGatewaysCard({ onNotify }) {
               onChange={(v) => setForm((f) => ({ ...f, afrimoney_enabled: v }))}
               disabled={!form.modempay_enabled}
               label="Afrimoney"
-              description="Donations and withdrawals — Afrimoney supports both, same as Wave."
+              description="Donations and withdrawals - Afrimoney supports both, same as Wave."
             />
             <DonationRangeFields
               minValue={form.modempay_min_donation_amount}
               maxValue={form.modempay_max_donation_amount}
               onMinChange={(v) => setForm((f) => ({ ...f, modempay_min_donation_amount: v }))}
               onMaxChange={(v) => setForm((f) => ({ ...f, modempay_max_donation_amount: v }))}
-              hint="ModemPay enforces its own real limit on its end — keep the maximum here at or below it, or donations in between will pass here and still get rejected."
+              hint="ModemPay enforces its own real limit on its end - keep the maximum here at or below it, or donations in between will pass here and still get rejected."
             />
           </div>
         </div>
@@ -374,7 +374,7 @@ function PaymentGatewaysCard({ onNotify }) {
                 <CreditCard className="w-3.5 h-3.5" /> Stripe
               </span>
             }
-            description="Card donations only — Stripe cannot pay out to a Gambian mobile-money wallet."
+            description="Card donations only - Stripe cannot pay out to a Gambian mobile-money wallet."
           />
           <div className="mt-3 ml-4 pl-4 border-l-2">
             <DonationRangeFields
@@ -382,7 +382,7 @@ function PaymentGatewaysCard({ onNotify }) {
               maxValue={form.stripe_max_donation_amount}
               onMinChange={(v) => setForm((f) => ({ ...f, stripe_min_donation_amount: v }))}
               onMaxChange={(v) => setForm((f) => ({ ...f, stripe_max_donation_amount: v }))}
-              hint="Not independently confirmed against a real Stripe limit — adjust if Stripe rejects amounts below this."
+              hint="Not independently confirmed against a real Stripe limit - adjust if Stripe rejects amounts below this."
             />
           </div>
         </div>
@@ -399,7 +399,7 @@ function PaymentGatewaysCard({ onNotify }) {
             placeholder="usd"
             className="w-full px-3 py-2 border rounded-lg bg-background focus:outline-hidden focus:ring-2 focus:ring-ring text-sm uppercase"
           />
-          <p className="text-xs text-muted-foreground">Stripe doesn't support GMD — card donations are charged in this currency instead.</p>
+          <p className="text-xs text-muted-foreground">Stripe doesn't support GMD - card donations are charged in this currency instead.</p>
         </div>
         <div className="space-y-1.5">
           <label className="text-sm font-medium">GMD exchange rate</label>
@@ -412,7 +412,7 @@ function PaymentGatewaysCard({ onNotify }) {
             />
           </div>
           <p className="text-xs text-muted-foreground">
-            D{form.gmd_to_settlement_rate || '?'} = 1 {(form.stripe_settlement_currency || 'usd').toUpperCase()}. Keep this current —
+            D{form.gmd_to_settlement_rate || '?'} = 1 {(form.stripe_settlement_currency || 'usd').toUpperCase()}. Keep this current -
             a stale rate over/undercharges every card donation.
           </p>
         </div>
@@ -561,7 +561,7 @@ function ZakatSettingsCard({ onNotify }) {
           <HandHeart className="w-4 h-4" /> Zakat Calculator
         </h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Nisab is computed from both gold and silver weight/price — whichever comes out lower is used
+          Nisab is computed from both gold and silver weight/price - whichever comes out lower is used
           automatically, since that's the more inclusive threshold most scholars favor. Keep both prices
           per gram up to date, or set a flat override below to skip that calculation entirely.
         </p>
@@ -607,7 +607,7 @@ function ZakatSettingsCard({ onNotify }) {
       </div>
 
       <p className="text-xs text-muted-foreground -mt-2">
-        These weights are the classical nisab standard set by the Supreme Islamic Council of The Gambia —
+        These weights are the classical nisab standard set by the Supreme Islamic Council of The Gambia -
         only the prices normally need updating, and only when no flat override is set below.
       </p>
 
@@ -702,7 +702,7 @@ function SiteBrandingCard({ onNotify }) {
           <ImageIcon className="w-4 h-4" /> Site Branding
         </h2>
         <p className="text-sm text-muted-foreground mt-1">
-          The name, description, and logo shown across the site — nav, footer, login, and emails.
+          The name, description, and logo shown across the site - nav, footer, login, and emails.
         </p>
       </div>
 
@@ -750,7 +750,7 @@ function SiteBrandingCard({ onNotify }) {
           <div className="grid sm:grid-cols-2 gap-5">
             <LogoUpload
               label="Logo (transparent)"
-              hint="Used on light surfaces — nav bar, login, footer."
+              hint="Used on light surfaces - nav bar, login, footer."
               currentUrl={logo}
               preview={logoPreview}
               surfaceClassName="bg-[repeating-conic-gradient(#e5e7eb_0%_25%,transparent_0%_50%)] bg-[length:12px_12px]"

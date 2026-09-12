@@ -11,7 +11,7 @@ export function useMyDonations() {
   })
 }
 
-// Public campaign page donor list — visible to any visitor, not just the
+// Public campaign page donor list - visible to any visitor, not just the
 // campaign owner. 20 donors per page (the backend default), sorted by
 // latest (default) or highest amount.
 export function useCampaignDonors(slug, { page = 1, sort = 'latest' } = {}) {
@@ -50,7 +50,7 @@ export function useMyCampaignDonors(slug, { page = 1 } = {}) {
 }
 
 // Reconciles a donation directly with ModemPay when the donor lands back on
-// the success page — the webhook can't reach a localhost backend at all, and
+// the success page - the webhook can't reach a localhost backend at all, and
 // this also covers a webhook that's simply late/missed in production.
 export function useVerifyDonation(reference, slug) {
   const queryClient = useQueryClient()
@@ -62,7 +62,7 @@ export function useVerifyDonation(reference, slug) {
     staleTime: 0,
   })
 
-  // React Query v5 dropped per-query onSuccess — react to the resolved data instead.
+  // React Query v5 dropped per-query onSuccess - react to the resolved data instead.
   useEffect(() => {
     if (query.data && slug) {
       queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.detail(slug) })

@@ -12,7 +12,7 @@
 // templateCompositions.buildInitialDesign) and back Poster.Template on
 // the backend (apps/fundraising/models.py) -- keep both in sync.
 export const POSTER_TEMPLATES = [
-  { value: 'square', label: 'Square', description: '1:1 — feed posts and profile shares.', width: 1080, height: 1080 },
-  { value: 'story', label: 'Story', description: '9:16 — full-screen stories and status updates.', width: 1080, height: 1920 },
-  { value: 'wide', label: 'Wide', description: '1.9:1 — link-preview banners for shared posts.', width: 1200, height: 630 },
+  { value: 'square', label: 'Square', description: '1:1 - feed posts and profile shares.', width: 1080, height: 1080 },
+  { value: 'story', label: 'Story', description: '9:16 - full-screen stories and status updates.', width: 1080, height: 1920 },
+  { value: 'wide', label: 'Wide', description: '1.9:1 - link-preview banners for shared posts.', width: 1200, height: 630 },
 ]

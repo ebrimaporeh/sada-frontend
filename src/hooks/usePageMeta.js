@@ -39,7 +39,7 @@ export function usePageMeta({ title, description, image, type = 'website', url, 
   const { siteName, siteDescription } = useSiteSettings()
 
   useEffect(() => {
-    const fullTitle = title ? `${title} — ${siteName}` : siteName
+    const fullTitle = title ? `${title} - ${siteName}` : siteName
     const finalDescription = description || siteDescription
     const canonicalUrl = url || window.location.href
 

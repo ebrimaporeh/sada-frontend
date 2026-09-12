@@ -70,7 +70,7 @@ export function PaymentMethodsSection() {
               Give however works for you
             </h2>
             <p className="text-muted-foreground mt-4 text-lg max-w-lg">
-              Mobile money or card — pick what's already in your pocket, whether you're
+              Mobile money or card - pick what's already in your pocket, whether you're
               in The Gambia or supporting from the diaspora.
             </p>
 

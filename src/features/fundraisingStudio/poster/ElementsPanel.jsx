@@ -61,7 +61,7 @@ export function ElementsPanel({ posterId, onAdd, currentSize, onSizeChange }) {
               <button
                 key={t.value}
                 type="button"
-                title={`${t.label} — ${t.width}×${t.height}`}
+                title={`${t.label} - ${t.width}×${t.height}`}
                 onClick={() => onSizeChange(t.value)}
                 className={cn(
                   'px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors',

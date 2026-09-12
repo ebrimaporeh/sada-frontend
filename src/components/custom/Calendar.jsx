@@ -3,13 +3,13 @@ import { cn } from '@/utils/cn'
 
 /**
  * Tailwind-styled wrapper around react-day-picker. No default stylesheet is
- * imported — every part is styled here via `classNames` so it matches the
+ * imported - every part is styled here via `classNames` so it matches the
  * app's semantic tokens instead of react-day-picker's own look.
  *
  * Nav (prev/next) and the month/year caption are rendered as separate DOM
  * siblings by react-day-picker (nav isn't nested inside the caption), so they
  * live in their own stacked rows here rather than being overlaid with
- * `absolute` positioning — that overlay approach silently ate clicks on both
+ * `absolute` positioning - that overlay approach silently ate clicks on both
  * the nav buttons and the caption underneath it.
  */
 export function Calendar({ className, captionLayout = 'dropdown', ...props }) {

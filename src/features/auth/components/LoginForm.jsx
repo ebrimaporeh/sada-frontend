@@ -100,7 +100,7 @@ export function LoginForm() {
       {/* Test account quick login */}
       <div className="space-y-2">
         <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Quick login — test accounts
+          Quick login - test accounts
         </p>
         <div className="grid grid-cols-2 gap-2">
           {TEST_ACCOUNTS.map((account) => {

@@ -128,7 +128,7 @@ function VerificationDetails({ verification }) {
     <div className="space-y-3">
       <div>
         <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Registration Number</p>
-        <p className="text-sm font-medium">{verification.registration_number || '—'}</p>
+        <p className="text-sm font-medium">{verification.registration_number || '-'}</p>
       </div>
       <SubmittedDocs verification={verification} />
     </div>
@@ -178,7 +178,7 @@ export function OrganizationVerificationSection({ organization }) {
   }
 
   const canSubmitNew = !organization.is_verified && (!verification || verification.status === 'rejected')
-  // Only fall back to the verification record's own status for pending/rejected —
+  // Only fall back to the verification record's own status for pending/rejected -
   // never show "Approved" here when organization.is_verified is false. is_verified
   // is the single source of truth for the verified grant; a stale/desynced
   // approved record must never contradict it in the UI.

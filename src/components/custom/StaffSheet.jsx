@@ -136,7 +136,7 @@ export function StaffSheet({ isOpen, onClose, staff }) {
       <div className="space-y-4">
         <div className="p-3 rounded-lg bg-muted/50 border">
           <label className="text-xs font-semibold text-muted-foreground block mb-1">FULL NAME</label>
-          <p className="text-sm font-medium">{staff.full_name || '—'}</p>
+          <p className="text-sm font-medium">{staff.full_name || '-'}</p>
         </div>
 
         <div className="p-3 rounded-lg bg-muted/50 border">
@@ -146,10 +146,10 @@ export function StaffSheet({ isOpen, onClose, staff }) {
 
         <div className="p-3 rounded-lg bg-muted/50 border">
           <label className="text-xs font-semibold text-muted-foreground block mb-1">PHONE</label>
-          <p className="text-sm">{staff.phone || '—'}</p>
+          <p className="text-sm">{staff.phone || '-'}</p>
         </div>
 
-        {/* Status — dropdown selection applies immediately via its own
+        {/* Status - dropdown selection applies immediately via its own
             confirmation modal, independent of the Save Changes footer
             button (which only handles the role change below). */}
         <div className="p-3 rounded-lg bg-muted/50 border space-y-2">
@@ -175,10 +175,10 @@ export function StaffSheet({ isOpen, onClose, staff }) {
           )}
         </div>
 
-        {/* Role — editable */}
+        {/* Role - editable */}
         <div className="p-3 rounded-lg bg-muted/50 border space-y-2">
           <label className="text-xs font-semibold text-muted-foreground block">
-            ROLE {isCurrentlyAdmin && <span className="normal-case font-normal">— currently Admin</span>}
+            ROLE {isCurrentlyAdmin && <span className="normal-case font-normal">- currently Admin</span>}
           </label>
           <div className="space-y-2">
             {roleOptions.map(({ value, label, description, icon: Icon }) => (
@@ -206,11 +206,11 @@ export function StaffSheet({ isOpen, onClose, staff }) {
             </p>
           )}
           <p className="text-[11px] text-muted-foreground">
-            Promoting to Admin isn't available here — that stays a deliberate, separate action.
+            Promoting to Admin isn't available here - that stays a deliberate, separate action.
           </p>
         </div>
 
-        {/* Permissions preview — live, reflects the selected role above */}
+        {/* Permissions preview - live, reflects the selected role above */}
         <div className="p-3 rounded-lg bg-muted/50 border space-y-2">
           <label className="text-xs font-semibold text-muted-foreground block">
             {roleChanged ? `PERMISSIONS AS ${targetRoleLabel.toUpperCase()}` : 'CURRENT PERMISSIONS'}

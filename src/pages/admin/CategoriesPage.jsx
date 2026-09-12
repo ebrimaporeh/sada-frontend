@@ -320,7 +320,7 @@ export function CategoriesPage() {
                     />
                   </label>
                   <p className="text-xs text-muted-foreground">
-                    {isCreating ? 'Optional — you can add an image after creating' : 'Max 5MB'}
+                    {isCreating ? 'Optional - you can add an image after creating' : 'Max 5MB'}
                   </p>
                 </div>
               </div>
@@ -386,7 +386,7 @@ export function CategoriesPage() {
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleConfirmDelete}
         title={`Delete "${deleteTarget?.name}"?`}
-        description="This permanently removes the category. Categories with existing campaigns can't be deleted — reassign or remove those campaigns first."
+        description="This permanently removes the category. Categories with existing campaigns can't be deleted - reassign or remove those campaigns first."
         confirmLabel="Delete Category"
         isLoading={deleteCategory.isPending}
         errorMessage={deleteCategory.isError ? deleteCategory.error?.response?.data?.message || 'Failed to delete category.' : null}

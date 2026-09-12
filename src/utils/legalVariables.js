@@ -7,12 +7,12 @@ export const LEGAL_VARIABLE_DEFS = [
   { key: 'site_name', label: 'Site name' },
   { key: 'site_description', label: 'Site description' },
   { key: 'contact_email', label: 'Contact email' },
-  { key: 'platform_fee_percent', label: 'Platform fee (number only — write the % yourself)' },
+  { key: 'platform_fee_percent', label: 'Platform fee (number only - write the % yourself)' },
   { key: 'current_year', label: 'Current year' },
 ]
 
 // Formats a platform_fee_percent Decimal-as-string ("1.00") down to how a
-// human would actually write it in a sentence ("1", "2.5") — no trailing
+// human would actually write it in a sentence ("1", "2.5") - no trailing
 // zeros, since the raw DB value is always fixed to 2 decimal places.
 export function formatFeePercent(value) {
   if (value == null || value === '') return ''

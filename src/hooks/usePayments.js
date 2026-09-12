@@ -5,7 +5,7 @@ import { paymentApi } from '@/api/paymentApi'
 import { PAYMENT_METHODS, QUERY_STALE_TIME } from '@/constants'
 
 // Which gateways are actually enabled right now (PAYMENT_GATEWAYS settings
-// on the backend) — the donate/withdraw forms build their provider picker
+// on the backend) - the donate/withdraw forms build their provider picker
 // from this instead of trusting a frontend constant to stay in sync.
 export function useGateways() {
   const query = useQuery({
@@ -45,7 +45,7 @@ export function useDonationMethods() {
 }
 
 // Payouts stay modempay-only (wave) until another gateway adds payout
-// support — this just reflects whatever the backend actually allows.
+// support - this just reflects whatever the backend actually allows.
 export function usePayoutMethods() {
   return useEligibleMethods('payout_methods')
 }

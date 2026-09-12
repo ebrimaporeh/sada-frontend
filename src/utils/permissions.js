@@ -1,16 +1,16 @@
 // Frontend mirror of sada-backend/permissions/roles.py's Resource keys and
-// labels — those don't change at runtime, so they're still safe to keep as
+// labels - those don't change at runtime, so they're still safe to keep as
 // a static list here (see the root .claude/CLAUDE.md: no shared schema,
 // keep both sides in sync by hand).
 //
 // WHO has which resource, and which roles even exist, are both no longer
-// static, though — an admin can create/edit/delete roles at runtime via
+// static, though - an admin can create/edit/delete roles at runtime via
 // the Roles & Permissions tab (backed by apps.rbac.models.Role and Django
 // Groups), so there's no ROLE_RESOURCES or hardcoded role-list map here to
 // mirror anymore. Instead:
 //   - every /users/me/ response carries the current user's own `resources`
 //     array (UserSerializer.resources, computed server-side from their
-//     live group permissions) — that's what hasResourceAccess() checks.
+//     live group permissions) - that's what hasResourceAccess() checks.
 //   - the live role catalog (name + resources per role) comes from
 //     useRolePermissions() (src/hooks/usePermissions.js), already grouped
 //     by entity by the backend for the checklist UI.
@@ -70,7 +70,7 @@ export const RESOURCE_LABELS = {
   [Resource.AUDIT_VIEW]: 'Audit log (view)',
 }
 
-// Only the two roles that AREN'T rows in the runtime Role catalog — every
+// Only the two roles that AREN'T rows in the runtime Role catalog - every
 // other role's display name comes from useRolePermissions().roles (see
 // roleLabel() below).
 export const FIXED_ROLE_LABELS = {
@@ -79,7 +79,7 @@ export const FIXED_ROLE_LABELS = {
 }
 
 // `dynamicRoles` is useRolePermissions()'s live `roles` array
-// ([{role, label, resources}]) — pass it in from wherever that query is
+// ([{role, label, resources}]) - pass it in from wherever that query is
 // already fetched rather than re-fetching here.
 export function roleLabel(role, dynamicRoles = []) {
   if (FIXED_ROLE_LABELS[role]) return FIXED_ROLE_LABELS[role]
@@ -87,7 +87,7 @@ export function roleLabel(role, dynamicRoles = []) {
 }
 
 // A small fixed palette a role's badge color is deterministically picked
-// from by its slug — so a brand-new custom role still gets a distinct,
+// from by its slug - so a brand-new custom role still gets a distinct,
 // stable color with no map to maintain by hand. Admin keeps its own fixed
 // color rather than being hashed in, since it's the one role that's never
 // just "a bag of resources."
@@ -126,8 +126,8 @@ const LANDING_ROUTES_BY_RESOURCE = [
 ]
 
 // Admin always qualifies (its full-access escape hatch isn't resource-
-// driven). Anyone else — Moderator, Finance Officer, or any brand-new
-// custom role — qualifies the moment they've actually been granted at
+// driven). Anyone else - Moderator, Finance Officer, or any brand-new
+// custom role - qualifies the moment they've actually been granted at
 // least one resource, rather than by matching a hardcoded role name. A
 // role with zero grants (e.g. just created, not yet configured) correctly
 // does *not* count as admin-area yet.
@@ -138,7 +138,7 @@ export function isAdminAreaRole(user) {
 }
 
 // `resources` is the current user's own resource list (`me.resources`),
-// not a role — the caller no longer needs to know which role maps to
+// not a role - the caller no longer needs to know which role maps to
 // which resources, since that mapping can change at runtime and only the
 // backend (the actual Group/Permission source of truth) can answer it.
 export function hasResourceAccess(resources, resource) {

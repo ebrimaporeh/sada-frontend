@@ -59,12 +59,12 @@ export function useReportsStats() {
   })
 }
 
-// Sidebar nav badge counts — pending (not yet resolved/reviewed) reports and
+// Sidebar nav badge counts - pending (not yet resolved/reviewed) reports and
 // verifications. Polled like the notification bell's unread count so the
 // badge stays live without a manual refresh. `enabled` should be gated on
 // the viewer actually having Resource.REPORTS_VIEW/VERIFICATIONS_VIEW access (see
-// src/utils/permissions.js) so a role without that access — e.g. Finance
-// Officer — never fires these requests.
+// src/utils/permissions.js) so a role without that access - e.g. Finance
+// Officer - never fires these requests.
 export function useAdminBadgeCounts({ enabled = true } = {}) {
   const reportsQuery = useQuery({
     queryKey: ['admin', 'badge-counts', 'reports'],

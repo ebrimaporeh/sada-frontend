@@ -91,7 +91,7 @@ export function SettingsPage() {
     })
   }
 
-  // Payment settings — seed once when me first loads; never reset on background refetches
+  // Payment settings - seed once when me first loads; never reset on background refetches
   const paymentSeeded = useRef(false)
   const [paymentForm, setPaymentForm] = useState({ default_payment_provider: '', default_payment_phone: '' })
   const [paymentSaved, setPaymentSaved] = useState(false)
@@ -151,7 +151,7 @@ export function SettingsPage() {
     )
   }
 
-  // Notifications — seed once when me first loads
+  // Notifications - seed once when me first loads
   const notifSeeded = useRef(false)
   const [notif, setNotif] = useState({
     donations_received: true,

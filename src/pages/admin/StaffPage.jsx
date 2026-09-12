@@ -135,7 +135,7 @@ function RolePermissionsEditor() {
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
             Toggle exactly what each role can view, create, edit, or delete, grouped by area. Changes apply
-            immediately to every staff member with that role — no deploy required. Admin always has full access.
+            immediately to every staff member with that role - no deploy required. Admin always has full access.
           </p>
         </div>
         <button
@@ -257,7 +257,7 @@ export function StaffPage() {
                       onClick={() => handleSelect(member)}
                       className="hover:bg-muted/50 cursor-pointer transition-colors"
                     >
-                      <td className="px-4 py-3">{member.full_name || '—'}</td>
+                      <td className="px-4 py-3">{member.full_name || '-'}</td>
                       <td className="px-4 py-3">{member.email}</td>
                       <td className="px-4 py-3">
                         <span className={cn('inline-flex items-center text-xs font-medium px-2.5 py-1 rounded-full', roleBadgeClass(member.role))}>

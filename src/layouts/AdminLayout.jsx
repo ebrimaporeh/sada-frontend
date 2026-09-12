@@ -28,7 +28,7 @@ function NavBadge({ count }) {
 }
 
 // Every link is gated on the exact same resource its route already enforces
-// server-side and via requireResource() in rootRoute.jsx — this only ever
+// server-side and via requireResource() in rootRoute.jsx - this only ever
 // hides links the user couldn't use anyway, it isn't itself a security
 // boundary. `resources` is the current user's own live resource list (see
 // src/utils/permissions.js), not a static role → resource map.
@@ -213,7 +213,7 @@ export function AdminLayout() {
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Mobile-only menu trigger — the sidebar (desktop aside / mobile
+        {/* Mobile-only menu trigger - the sidebar (desktop aside / mobile
             drawer, both above) is otherwise unreachable once the header is
             gone, since it's the only nav affordance on small screens. */}
         <button

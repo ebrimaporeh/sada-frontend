@@ -108,7 +108,7 @@ export function AdminVisionPage() {
           <>
             <PageHeader
               title="Platform Vision"
-              description="Roadmap documentation shown publicly at /vision — current state, implementation, and where each topic is headed."
+              description="Roadmap documentation shown publicly at /vision - current state, implementation, and where each topic is headed."
               action={
                 <button
                   onClick={handleNew}

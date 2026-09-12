@@ -168,7 +168,7 @@ export const DONATION_STATUS = {
 }
 
 // Presentation metadata for every payment method this frontend knows how to
-// render — which of these are actually usable comes from the backend
+// render - which of these are actually usable comes from the backend
 // (GET /payments/gateways/, see useGateways()), since that's driven by
 // PAYMENT_GATEWAYS settings and can change (enable/disable Stripe, add a
 // new country's gateway) without a frontend deploy. `gateway` groups
@@ -181,7 +181,7 @@ export const PAYMENT_METHODS = [
   { id: 'card', gateway: 'stripe', name: 'Card', short: '\u{1F4B3}', color: 'bg-violet-600', description: 'Debit or credit card', requiresPhone: false },
 ]
 
-// Withdrawals support wave and afrimoney — ModemPay's payout/transfer API
+// Withdrawals support wave and afrimoney - ModemPay's payout/transfer API
 // doesn't list aps as a valid network (only their checkout/donation side
 // does), and Stripe has no payout path to a Gambian mobile-money wallet at
 // all. Still filtered against the backend's payout_methods in useGateways()

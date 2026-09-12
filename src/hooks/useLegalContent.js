@@ -24,7 +24,7 @@ export function useUpdateLegalContent() {
 }
 
 // Current values for the {{variable}} placeholders Legal/Help content can
-// use — one shared source so the admin editor's "insert variable" picker
+// use - one shared source so the admin editor's "insert variable" picker
 // and the public pages' rendering never disagree about what a tag resolves
 // to. Sourced from settings that already exist elsewhere (site branding,
 // platform fee) rather than a separate admin-managed store, since these

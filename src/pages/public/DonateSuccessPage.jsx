@@ -110,7 +110,7 @@ export function DonateSuccessPage() {
       )}
 
       <p className="text-sm text-muted-foreground">
-        Help this campaign reach its goal — share it with your friends and family on WhatsApp and social media.
+        Help this campaign reach its goal - share it with your friends and family on WhatsApp and social media.
       </p>
 
       <div className="flex flex-col sm:flex-row gap-3">

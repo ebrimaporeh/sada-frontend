@@ -128,7 +128,7 @@ export function FundraiserGrid() {
             ))}
           </div>
 
-          {/* Scroll sentinel — triggers fetchNextPage when it enters the viewport */}
+          {/* Scroll sentinel - triggers fetchNextPage when it enters the viewport */}
           <div ref={sentinelRef} className="h-1" />
 
           {hasNextPage && (

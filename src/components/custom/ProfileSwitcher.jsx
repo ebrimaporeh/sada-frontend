@@ -6,7 +6,7 @@ import { ROUTES } from '@/constants'
 import { initials } from '@/utils/formatters'
 import { cn } from '@/utils/cn'
 
-// Dashboard-level "who am I acting as" control — personal profile, or any
+// Dashboard-level "who am I acting as" control - personal profile, or any
 // organization the signed-in user belongs to (created or invited-and-
 // accepted, useMe() doesn't distinguish the two, both are just
 // OrganizationMembership rows). See useActiveProfile for exactly what

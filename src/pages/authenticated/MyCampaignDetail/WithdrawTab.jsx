@@ -12,7 +12,7 @@ export function WithdrawTab({ campaign, payouts, availableBalance, totalPaidOut 
   const requestPayout = useRequestPayout()
   const { data: platformSettings } = usePlatformSettings()
   const feePercent = Number(platformSettings?.platform_fee_percent ?? 1)
-  // Which networks payouts can actually go to right now, per the backend —
+  // Which networks payouts can actually go to right now, per the backend -
   // wave-only today, but this stops assuming that instead of hardcoding it.
   const { methods: PAYOUT_METHODS } = usePayoutMethods()
 
@@ -42,7 +42,7 @@ export function WithdrawTab({ campaign, payouts, availableBalance, totalPaidOut 
   }, [me])
 
   // Fall back to the first backend-enabled payout method if the user has no
-  // saved default — can't hardcode 'wave' since that's a settings decision.
+  // saved default - can't hardcode 'wave' since that's a settings decision.
   useEffect(() => {
     if (!provider && PAYOUT_METHODS.length > 0) {
       setProvider(PAYOUT_METHODS[0].id)
@@ -67,7 +67,7 @@ export function WithdrawTab({ campaign, payouts, availableBalance, totalPaidOut 
     if (!numAmount || numAmount < 50) { setError('Minimum withdrawal is D 50'); return false }
     if (numAmount > availableBalance) { setError(`Maximum available is ${formatGMD(availableBalance)}`); return false }
     if (!activePhone.trim() || activePhone.trim().length < 7) { setError('Enter a valid phone number'); return false }
-    if (feeLoading || !preview) { setError('Still calculating fees — please wait a moment.'); return false }
+    if (feeLoading || !preview) { setError('Still calculating fees - please wait a moment.'); return false }
     setError('')
     return true
   }
@@ -136,7 +136,7 @@ export function WithdrawTab({ campaign, payouts, availableBalance, totalPaidOut 
 
   return (
     <div className="space-y-6">
-      {/* Balance banner — full width */}
+      {/* Balance banner - full width */}
       <div className="border rounded-2xl bg-card p-6">
         <div className="flex items-center justify-between mb-4">
           <div>

@@ -3,7 +3,7 @@ import { useSiteSettings } from '@/hooks/useSiteSettings'
 import { cn } from '@/utils/cn'
 
 // Renders the admin-configured logo. `variant="with-background"` uses the
-// logo-on-its-own-background asset instead of the transparent one — pick
+// logo-on-its-own-background asset instead of the transparent one - pick
 // that on dark surfaces (e.g. the footer) where a transparent wordmark
 // would lose contrast; use the default transparent variant everywhere else.
 export function Logo({ className, imgClassName = 'h-8 w-auto', variant = 'transparent' }) {

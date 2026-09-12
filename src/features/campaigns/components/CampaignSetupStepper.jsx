@@ -10,7 +10,7 @@ import { cn } from '@/utils/cn'
 
 const STEPS = ['Your Story', 'Images', 'Goal & Deadline', 'Review & Launch']
 
-// Which step a field-keyed launch error should point back at — keeps a
+// Which step a field-keyed launch error should point back at - keeps a
 // rejected launch attempt actionable instead of just "something's wrong".
 const FIELD_STEP = {
   short_description: 0,
@@ -204,7 +204,7 @@ export function CampaignSetupStepper({ campaign, onLaunched }) {
 
             <FieldGroup
               label={goalForm.hasDeadline ? 'Campaign Deadline *' : 'Campaign Deadline'}
-              hint={goalForm.hasDeadline ? 'When do you need the funds by? (max 1 year)' : 'No end date — see the toggle below.'}
+              hint={goalForm.hasDeadline ? 'When do you need the funds by? (max 1 year)' : 'No end date - see the toggle below.'}
               error={errors.deadline}
             >
               <DatePicker
@@ -252,11 +252,11 @@ export function CampaignSetupStepper({ campaign, onLaunched }) {
             </div>
             <div className="p-4">
               <p className="text-xs text-muted-foreground mb-1">Short Description</p>
-              <p className="text-sm">{story.short_description || '—'}</p>
+              <p className="text-sm">{story.short_description || '-'}</p>
             </div>
             <div className="p-4">
               <p className="text-xs text-muted-foreground mb-1">Story Preview</p>
-              <p className="text-sm text-muted-foreground line-clamp-3">{story.story || '—'}</p>
+              <p className="text-sm text-muted-foreground line-clamp-3">{story.story || '-'}</p>
             </div>
             <div className="p-4">
               <p className="text-xs text-muted-foreground mb-1">Cover Photo</p>
@@ -276,12 +276,12 @@ export function CampaignSetupStepper({ campaign, onLaunched }) {
                 <p className="text-sm font-medium">
                   {goalForm.hasDeadline && goalForm.deadline
                     ? new Date(goalForm.deadline).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
-                    : 'No end date — ongoing campaign'}
+                    : 'No end date - ongoing campaign'}
                 </p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground mb-1">Region</p>
-                <p className="text-sm font-medium">{GAMBIA_REGIONS.find((r) => r.value === campaign.region)?.label || campaign.region || '—'}</p>
+                <p className="text-sm font-medium">{GAMBIA_REGIONS.find((r) => r.value === campaign.region)?.label || campaign.region || '-'}</p>
               </div>
             </div>
           </div>

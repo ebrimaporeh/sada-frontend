@@ -107,12 +107,12 @@ export function DonationSheet({
 
         <div className="p-3 rounded-lg bg-muted/50 border">
           <label className="text-xs font-semibold text-muted-foreground block mb-1">DONOR</label>
-          <p className="text-sm font-medium">{view.is_anonymous ? 'Anonymous' : (view.donor_name || '—')}</p>
+          <p className="text-sm font-medium">{view.is_anonymous ? 'Anonymous' : (view.donor_name || '-')}</p>
         </div>
 
         <div className="p-3 rounded-lg bg-muted/50 border">
           <label className="text-xs font-semibold text-muted-foreground block mb-1">CAMPAIGN</label>
-          <p className="text-sm">{view.campaign_title || '—'}</p>
+          <p className="text-sm">{view.campaign_title || '-'}</p>
         </div>
 
         <div className="p-3 rounded-lg bg-muted/50 border">
@@ -122,7 +122,7 @@ export function DonationSheet({
 
         <div className="p-3 rounded-lg bg-muted/50 border">
           <label className="text-xs font-semibold text-muted-foreground block mb-1">PHONE</label>
-          <p className="text-sm">{view.phone || '—'}</p>
+          <p className="text-sm">{view.phone || '-'}</p>
         </div>
 
         <div className="p-3 rounded-lg bg-muted/50 border">

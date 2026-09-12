@@ -343,7 +343,7 @@ export function OrganizationDonateCheckout({ organization, embedded = false, onC
       </button>
 
       <p className="text-xs text-center text-muted-foreground flex items-center justify-center gap-1">
-        <Lock className="w-3 h-3" /> Payments are processed securely — you'll be taken to {selectedMethod?.gateway === 'stripe' ? "Stripe's" : 'your provider\'s'} page to complete it
+        <Lock className="w-3 h-3" /> Payments are processed securely - you'll be taken to {selectedMethod?.gateway === 'stripe' ? "Stripe's" : 'your provider\'s'} page to complete it
       </p>
     </div>
   )
@@ -384,7 +384,7 @@ export function OrganizationDonateCheckout({ organization, embedded = false, onC
           <div>
             <h1 className="text-2xl font-bold">Support {organization.organization_name}</h1>
             <p className="text-muted-foreground text-sm mt-1">
-              You're donating directly to this organization — not to a specific campaign. Your contribution helps them
+              You're donating directly to this organization - not to a specific campaign. Your contribution helps them
               continue their work.
             </p>
           </div>

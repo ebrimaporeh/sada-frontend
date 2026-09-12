@@ -33,7 +33,7 @@ function PublicDonateLink({ organization }) {
         <Link2 className="w-4 h-4" /> Public Donation Link
       </h2>
       <p className="text-xs text-muted-foreground">
-        This link works even when {organization.organization_name} has no active campaigns — share it directly with
+        This link works even when {organization.organization_name} has no active campaigns - share it directly with
         donors.
       </p>
       <div className="flex items-center gap-2">
@@ -83,7 +83,7 @@ function DirectDonationsList({ organizationId }) {
                 <tr key={d.id}>
                   <td className="px-4 py-2.5 font-medium">{d.donor_name}</td>
                   <td className="px-4 py-2.5 text-primary font-semibold">{formatGMD(d.amount)}</td>
-                  <td className="px-4 py-2.5 text-muted-foreground max-w-[240px] truncate">{d.message || '—'}</td>
+                  <td className="px-4 py-2.5 text-muted-foreground max-w-[240px] truncate">{d.message || '-'}</td>
                   <td className="px-4 py-2.5 text-muted-foreground">{formatDate(d.paid_at || d.created_at)}</td>
                 </tr>
               ))}

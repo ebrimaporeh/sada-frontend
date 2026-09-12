@@ -6,7 +6,7 @@ import { usePageMeta } from '@/hooks/usePageMeta'
 
 /**
  * Shared centered-card wrapper for auth pages (login, register, forgot/reset
- * password, verify email) — was duplicated identically across all five.
+ * password, verify email) - was duplicated identically across all five.
  * `title` sets the page title; these are never worth indexing (no unique
  * content, and a login/reset-password URL isn't something search traffic
  * should land on), so noindex is fixed, not a prop.

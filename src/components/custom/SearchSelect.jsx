@@ -5,7 +5,7 @@ import { cn } from '@/utils/cn'
 /**
  * Same contract as Select (drop-in for a native `<select>`, fires
  * `onChange` as `{ target: { value } }`), but opens with a search input
- * that filters `options` by label — for lists long enough that scanning
+ * that filters `options` by label - for lists long enough that scanning
  * them beats scrolling. See Select.jsx for the `options` shape.
  */
 export function SearchSelect({

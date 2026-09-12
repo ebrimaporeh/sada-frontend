@@ -5,7 +5,7 @@ import { Select } from '@/components/custom/Select'
 import { cn } from '@/utils/cn'
 import { renderLegalVariables } from '@/utils/legalVariables'
 
-// `variables`, when passed, is [{key, label, value}] — feeds both the
+// `variables`, when passed, is [{key, label, value}] - feeds both the
 // "Insert variable" picker below and the live preview's substitution, so
 // what an admin sees in Preview matches what donors will actually see.
 export function MarkdownEditor({ value, onChange, placeholder = 'Write your content here...', variables }) {
@@ -102,7 +102,7 @@ export function MarkdownEditor({ value, onChange, placeholder = 'Write your cont
                 buttonClassName="text-xs py-1.5"
                 options={variables.map((v) => ({
                   value: `{{${v.key}}}`,
-                  label: v.label + (v.value ? ` — ${v.value}` : ''),
+                  label: v.label + (v.value ? ` - ${v.value}` : ''),
                 }))}
               />
             )}
@@ -156,7 +156,7 @@ const MARKDOWN_COMPONENTS = {
   ),
 }
 
-// Renders markdown to actual React elements (not dangerouslySetInnerHTML) —
+// Renders markdown to actual React elements (not dangerouslySetInnerHTML) -
 // safer, and correctly handles everything CommonMark supports (bullet/
 // numbered lists, nested formatting, etc.) that the old regex-based parser
 // silently dropped.

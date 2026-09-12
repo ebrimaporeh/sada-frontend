@@ -114,7 +114,7 @@ export function useCampaign(slug) {
   return { campaign: query.data ?? null, isLoading: query.isLoading, isError: query.isError, error: query.error }
 }
 
-// Fire-and-forget view beacon — errors are swallowed since a dropped view
+// Fire-and-forget view beacon - errors are swallowed since a dropped view
 // count shouldn't ever surface to the visitor.
 export function useRecordCampaignView() {
   return useMutation({
@@ -138,7 +138,7 @@ export function useFeaturedCampaigns() {
   }
 }
 
-// Hero card (home page) — a single weighted-random pick from the backend
+// Hero card (home page) - a single weighted-random pick from the backend
 // (see campaign_service.get_hero_campaign), re-rolled per request rather
 // than a fixed/curated list like useFeaturedCampaigns above. staleTime: 0
 // so navigating back to the homepage re-rolls instead of showing a cached

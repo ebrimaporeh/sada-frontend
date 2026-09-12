@@ -71,7 +71,7 @@
 }
 
 @utility section-label {
-  /* Small "eyebrow" label above a section heading — a short colored line
+  /* Small "eyebrow" label above a section heading - a short colored line
      plus uppercase tracked text. Consumes the existing --primary token,
      no new color introduced. */
   @apply inline-flex items-center gap-2.5 mb-3.5;
@@ -86,7 +86,7 @@
 }
 
 @utility stat-grid {
-  /* Bordered stat box grid, e.g. hero stats — cells share dividers instead
+  /* Bordered stat box grid, e.g. hero stats - cells share dividers instead
      of each being its own card. */
   @apply grid border border-border rounded-xl overflow-hidden bg-card;
   & > div {
@@ -95,15 +95,15 @@
 }
 
 @utility page-header {
-  /* Inner-page hero banner — used at the top of standalone content pages
+  /* Inner-page hero banner - used at the top of standalone content pages
      (Trust & Safety, Help, Privacy, Terms) for a consistent entry point. */
   @apply bg-muted/40 border-b py-14 sm:py-16;
 }
 
 @utility bg-primary {
   /* Overrides Tailwind's generated `.bg-primary` (background-color: hsl(var(--primary)))
-     so every existing and future bg-primary usage — buttons, progress bars,
-     filled badges — renders the brand gradient instead of a flat color.
+     so every existing and future bg-primary usage - buttons, progress bars,
+     filled badges - renders the brand gradient instead of a flat color.
      text-primary/border-primary/ring-primary are untouched: a gradient can't
      render legibly as text/border/ring, so those keep the flat --primary color. */
   background: var(--primary-gradient);
@@ -129,7 +129,7 @@
 
     --primary: 134 36% 53%;
     --primary-foreground: 0 0% 100%;
-    /* The brand gradient — used as the actual `background` on bg-primary
+    /* The brand gradient - used as the actual `background` on bg-primary
        elements (see the .bg-primary override below); --primary itself stays
        a flat HSL color for text/border/ring usages, which can't render a
        gradient. Keep both ends in sync with this if the brand color changes. */
@@ -151,7 +151,7 @@
     --radius: 0.625rem;
 
     /* Design-system scale. Shadows are intentionally fixed-black (not tied to
-       --foreground, which flips near-white in dark mode) — a shadow should
+       --foreground, which flips near-white in dark mode) - a shadow should
        never become a glow. */
     --shadow-sm: 0 2px 8px rgb(0 0 0 / 0.06);
     --shadow-md: 0 8px 28px rgb(0 0 0 / 0.10);

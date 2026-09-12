@@ -59,7 +59,7 @@ const analyticsApi = {
 }
 
 export const adminApi = {
-  // Stats — computed server-side, one lightweight call per page, independent of list pagination.
+  // Stats - computed server-side, one lightweight call per page, independent of list pagination.
   getUsersStats: () => apiClient.get('/users/stats/').then(r => r.data.data),
   getCampaignsStats: () => apiClient.get('/campaigns/admin/stats/').then(r => r.data.data),
   getDonationsStats: () => apiClient.get('/donations/admin/stats/').then(r => r.data.data),

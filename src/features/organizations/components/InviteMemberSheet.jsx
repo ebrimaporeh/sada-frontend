@@ -117,7 +117,7 @@ export function InviteMemberSheet({ isOpen, onClose, organizationId, roles }) {
 
         {justInvited && !inviteMember.isPending && (
           <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-green-50 text-green-700 text-sm font-medium">
-            <CheckCircle2 className="w-4 h-4 flex-shrink-0" /> Invitation sent — you can invite another below
+            <CheckCircle2 className="w-4 h-4 flex-shrink-0" /> Invitation sent - you can invite another below
           </div>
         )}
         {inviteMember.isError && (

@@ -62,7 +62,7 @@ export function useRegister() {
 
   return useMutation({
     mutationFn: authApi.register,
-    // No tokens come back — the backend doesn't log a new account in until
+    // No tokens come back - the backend doesn't log a new account in until
     // its email is verified (see login_user's email_verified check), so
     // there's nothing to store here. Send them to check their inbox instead.
     onSuccess: (data) => {

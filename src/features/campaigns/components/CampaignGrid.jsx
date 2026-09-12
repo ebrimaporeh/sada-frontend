@@ -82,7 +82,7 @@ export function CampaignGrid() {
           </button>
         </div>
 
-        {/* Category filter — horizontal scroll, ordered by most donated (backend) */}
+        {/* Category filter - horizontal scroll, ordered by most donated (backend) */}
         <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide -mx-1 px-1 pb-1">
           <button
             onClick={() => setCategory('all')}

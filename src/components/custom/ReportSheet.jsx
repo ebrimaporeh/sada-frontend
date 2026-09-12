@@ -73,7 +73,7 @@ export function ReportSheet({ isOpen, onClose, report }) {
           <p className="text-sm">{formatDate(report.created_at)}</p>
         </div>
 
-        {/* Campaign Details Section — read-only. Suspend/status changes for
+        {/* Campaign Details Section - read-only. Suspend/status changes for
             a campaign live on the campaign's own detail page, not here. */}
         {campaign && (
           <div className="p-4 rounded-lg bg-blue-50 border border-blue-200 space-y-3 mt-4">

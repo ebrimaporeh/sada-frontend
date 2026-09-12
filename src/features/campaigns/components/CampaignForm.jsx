@@ -164,14 +164,14 @@ export function CampaignForm() {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
       <PageHeader
         title="Start a Campaign"
-        description="Tell us the basics — you'll add your story, photos, and goal next."
+        description="Tell us the basics - you'll add your story, photos, and goal next."
       />
 
       <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 border rounded-lg px-3 py-2 mb-6">
         {isOrg ? <Building2 className="w-4 h-4 flex-shrink-0" /> : <UserIcon className="w-4 h-4 flex-shrink-0" />}
         Creating as{' '}
         <span className="font-semibold text-foreground">{isOrg ? organization.organization_name : 'yourself'}</span>
-        <span className="text-xs">— switch profiles from the sidebar to create as someone else</span>
+        <span className="text-xs">- switch profiles from the sidebar to create as someone else</span>
       </div>
 
       {!canCreate ? (
@@ -229,7 +229,7 @@ export function CampaignForm() {
             checked={form.is_urgent}
             onChange={(v) => setForm((f) => ({ ...f, is_urgent: v }))}
             label="Mark as urgent"
-            description="Urgent campaigns get a visible badge and appear in the 'Urgent' filter — use for time-sensitive needs only."
+            description="Urgent campaigns get a visible badge and appear in the 'Urgent' filter - use for time-sensitive needs only."
           />
 
           {submitError && (

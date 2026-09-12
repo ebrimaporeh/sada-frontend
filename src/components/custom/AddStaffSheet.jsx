@@ -15,7 +15,7 @@ export function AddStaffSheet({ isOpen, onClose }) {
   const createUser = useCreateUser()
   const { data: rolePermissions } = useRolePermissions()
 
-  // Staff-only — regular users self-register, so "User" isn't an option
+  // Staff-only - regular users self-register, so "User" isn't an option
   // here. Every role offered comes from the live Role catalog (any admin
   // can create a new one at any time) and grants real admin-panel access,
   // so every submission goes through the confirmation modal below.
@@ -28,7 +28,7 @@ export function AddStaffSheet({ isOpen, onClose }) {
     icon: ShieldCheck,
   }))
 
-  // Default to the first available role once the catalog loads — can't
+  // Default to the first available role once the catalog loads - can't
   // hardcode a slug like "moderator" any more, an admin may have renamed
   // or deleted it.
   useEffect(() => {
@@ -151,7 +151,7 @@ export function AddStaffSheet({ isOpen, onClose }) {
           <label className="text-sm font-medium">Role</label>
           {roleOptions.length === 0 ? (
             <p className="text-xs text-muted-foreground bg-muted/50 rounded-lg p-3">
-              No roles exist yet — create one from the Roles & Permissions tab first.
+              No roles exist yet - create one from the Roles & Permissions tab first.
             </p>
           ) : (
             <div className="space-y-2">
@@ -177,12 +177,12 @@ export function AddStaffSheet({ isOpen, onClose }) {
         </div>
 
         <p className="text-xs text-muted-foreground bg-muted/50 rounded-lg p-3">
-          No password is set here — the new staff member gets an email with a link to set their own password.
+          No password is set here - the new staff member gets an email with a link to set their own password.
         </p>
 
         {justCreated && !createUser.isPending && (
           <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-green-50 text-green-700 text-sm font-medium">
-            <CheckCircle2 className="w-4 h-4 flex-shrink-0" /> Staff account created — you can add another below
+            <CheckCircle2 className="w-4 h-4 flex-shrink-0" /> Staff account created - you can add another below
           </div>
         )}
         {createUser.isError && (

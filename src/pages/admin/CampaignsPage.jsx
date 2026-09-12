@@ -161,7 +161,7 @@ export function CampaignsPage() {
                 {campaigns.map((c) => {
                   const pct = progressPercent(c.raised, c.goal)
                   const isActioning = actioningId === c.id
-                  const categoryName = c.category_name ?? c.category ?? '—'
+                  const categoryName = c.category_name ?? c.category ?? '-'
                   return (
                     <tr key={c.id} className="hover:bg-muted/30 transition-colors">
                       <td className="px-4 py-3 max-w-[200px]">

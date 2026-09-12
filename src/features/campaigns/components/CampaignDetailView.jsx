@@ -184,7 +184,7 @@ export function CampaignDetailView({ campaign }) {
                     mainImage === img.image_url ? 'border-primary' : 'border-transparent opacity-70 hover:opacity-100',
                   )}
                 >
-                  <img src={img.image_url} alt={`${campaign.title} — photo ${thumbnails.indexOf(img) + 1}`} loading="lazy" className="w-full h-full object-cover" />
+                  <img src={img.image_url} alt={`${campaign.title} - photo ${thumbnails.indexOf(img) + 1}`} loading="lazy" className="w-full h-full object-cover" />
                 </button>
               ))}
             </div>
@@ -285,14 +285,14 @@ export function CampaignDetailView({ campaign }) {
                       </div>
                     </div>
                     <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{u.content}</p>
-                    {u.posted_by_name && <p className="text-xs text-muted-foreground">— {u.posted_by_name}</p>}
+                    {u.posted_by_name && <p className="text-xs text-muted-foreground">- {u.posted_by_name}</p>}
                     {u.images?.length > 0 && (
                       <div className="flex gap-2 flex-wrap pt-2">
                         {u.images.map((img) => (
                           <img
                             key={img.id}
                             src={img.image_url}
-                            alt={`${u.title || 'Update'} — ${campaign.title}`}
+                            alt={`${u.title || 'Update'} - ${campaign.title}`}
                             loading="lazy"
                             className="w-32 h-32 rounded-lg object-cover border"
                           />

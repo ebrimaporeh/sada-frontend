@@ -20,7 +20,7 @@ export function VerifyPromptModal({ isOpen, onClose }) {
           <div className="flex-1 min-w-0 pt-1">
             <h2 className="font-bold text-base">Verify your identity first?</h2>
             <p className="text-sm text-muted-foreground mt-1">
-              Verified campaign owners get a blue verified badge donors can see — it builds trust and helps your campaign raise more.
+              Verified campaign owners get a blue verified badge donors can see - it builds trust and helps your campaign raise more.
             </p>
           </div>
           <button onClick={onClose} className="p-1 rounded-lg hover:bg-accent transition-colors flex-shrink-0">

@@ -137,11 +137,11 @@ function VerificationDetails({ verification }) {
       <div className="grid grid-cols-2 gap-3 max-w-xs">
         <div>
           <p className="text-[10px] text-muted-foreground uppercase tracking-wide">ID Type</p>
-          <p className="text-sm font-medium">{ID_TYPES.find((t) => t.value === verification.id_type)?.label || verification.id_type || '—'}</p>
+          <p className="text-sm font-medium">{ID_TYPES.find((t) => t.value === verification.id_type)?.label || verification.id_type || '-'}</p>
         </div>
         <div>
           <p className="text-[10px] text-muted-foreground uppercase tracking-wide">ID Number</p>
-          <p className="text-sm font-medium">{verification.id_number || '—'}</p>
+          <p className="text-sm font-medium">{verification.id_number || '-'}</p>
         </div>
       </div>
       <SubmittedPhotos verification={verification} />
@@ -150,7 +150,7 @@ function VerificationDetails({ verification }) {
 }
 
 // Some verified users (staff granted is_verified directly, seed/legacy accounts)
-// have no IdentityVerification record at all — there's no ID submission to show,
+// have no IdentityVerification record at all - there's no ID submission to show,
 // so fall back to their own account info rather than rendering nothing.
 function VerifiedAccountInfo({ user }) {
   if (!user) return null
@@ -160,11 +160,11 @@ function VerifiedAccountInfo({ user }) {
       <div className="grid grid-cols-2 gap-3 max-w-xs">
         <div>
           <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Name</p>
-          <p className="text-sm font-medium">{user.full_name || `${user.first_name} ${user.last_name}`.trim() || '—'}</p>
+          <p className="text-sm font-medium">{user.full_name || `${user.first_name} ${user.last_name}`.trim() || '-'}</p>
         </div>
         <div>
           <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Email</p>
-          <p className="text-sm font-medium truncate">{user.email || '—'}</p>
+          <p className="text-sm font-medium truncate">{user.email || '-'}</p>
         </div>
         {user.phone && (
           <div>
@@ -179,7 +179,7 @@ function VerifiedAccountInfo({ user }) {
           </div>
         )}
       </div>
-      <p className="text-xs text-muted-foreground">No ID submission on file — this account was verified directly by an administrator.</p>
+      <p className="text-xs text-muted-foreground">No ID submission on file - this account was verified directly by an administrator.</p>
     </div>
   )
 }
@@ -218,7 +218,7 @@ export function IdentityVerificationSection() {
   }
 
   const canSubmitNew = !user?.is_verified && (!verification || verification.status === 'rejected')
-  // Only fall back to the verification record's own status for pending/rejected —
+  // Only fall back to the verification record's own status for pending/rejected -
   // never show "Approved" here when user.is_verified is false. is_verified is the
   // single source of truth for the verified grant; a stale/desynced approved
   // record must never contradict it in the UI.
@@ -255,7 +255,7 @@ export function IdentityVerificationSection() {
       ) : verification && verification.status === 'pending' ? (
         <div className="text-xs text-muted-foreground border rounded-lg p-3 bg-muted/30 space-y-3">
           <div className="space-y-1">
-            <p>Submitted {formatDate(verification.created_at)} — {ID_TYPES.find((t) => t.value === verification.id_type)?.label}.</p>
+            <p>Submitted {formatDate(verification.created_at)} - {ID_TYPES.find((t) => t.value === verification.id_type)?.label}.</p>
             <p>We'll email you once it's been reviewed.</p>
           </div>
           <VerificationDetails verification={verification} />
@@ -277,7 +277,7 @@ export function IdentityVerificationSection() {
         <button
           type="button"
           onClick={() => {
-            // Reset — this section stays mounted across the whole session, so
+            // Reset - this section stays mounted across the whole session, so
             // stale state from an earlier form open (e.g. "Passport" selected,
             // which hides the Back Photo field) must not carry over into a
             // fresh submission or resubmission.

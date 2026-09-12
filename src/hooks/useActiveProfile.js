@@ -14,7 +14,7 @@ export { INDIVIDUAL_PROFILE_ID }
 // page content silently jumping to a different context.
 const SWITCH_OVERLAY_DURATION_MS = 700
 
-// Pure client-side "which hat am I acting as right now" — the backend has
+// Pure client-side "which hat am I acting as right now" - the backend has
 // no session/JWT concept of this, every write that needs org context (e.g.
 // campaign creation) just carries an explicit organization_id, same as
 // every other per-request param in this codebase (see
@@ -27,7 +27,7 @@ const SWITCH_OVERLAY_DURATION_MS = 700
 // campaign is created under, and which org's verification/settings render
 // on pages that don't otherwise have an org in view (VerificationPage,
 // the dashboard greeting). It deliberately does NOT gate whether you can
-// edit/pause/withdraw an *existing* campaign you already have access to —
+// edit/pause/withdraw an *existing* campaign you already have access to -
 // that's checked against your real membership permissions for that
 // specific campaign's organization (see useCampaignOrgPermission), so
 // switching your active profile to "Individual" to glance at the dashboard

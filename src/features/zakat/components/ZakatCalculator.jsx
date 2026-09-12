@@ -46,7 +46,7 @@ export function ZakatCalculator() {
           {!settingsLoading && zakatSettings && (
             <>
               {' '}Zakat is due at <strong>{zakatSettings.zakat_percentage}%</strong> of your wealth once it
-              reaches the nisab threshold — currently <strong>{formatGMD(zakatSettings.nisab_amount)}</strong>.
+              reaches the nisab threshold - currently <strong>{formatGMD(zakatSettings.nisab_amount)}</strong>.
             </>
           )}
         </p>
@@ -55,7 +55,7 @@ export function ZakatCalculator() {
       <div className="border border-amber-200 bg-amber-50 rounded-xl p-4 flex items-start gap-3 text-sm">
         <Info className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
         <p className="text-amber-800">
-          This calculator gives an estimate and a starting shortlist of eligible campaigns — it isn't a
+          This calculator gives an estimate and a starting shortlist of eligible campaigns - it isn't a
           religious ruling. If you're unsure about your specific situation, please consult a knowledgeable
           scholar.
         </p>
@@ -124,7 +124,7 @@ export function ZakatCalculator() {
 
             {!result.is_eligible && (
               <p className="text-sm text-muted-foreground">
-                Your zakatable wealth is below the nisab threshold, so Zakat isn't obligatory right now —
+                Your zakatable wealth is below the nisab threshold, so Zakat isn't obligatory right now -
                 but you're always welcome to give voluntary sadaqah to any campaign.
               </p>
             )}
@@ -137,7 +137,7 @@ export function ZakatCalculator() {
                 <h2 className="font-bold text-lg">Campaigns eligible for your Zakat</h2>
               </div>
               <p className="text-sm text-muted-foreground -mt-2">
-                Screened to exclude campaigns outside Zakat's eight eligible categories — review each one
+                Screened to exclude campaigns outside Zakat's eight eligible categories - review each one
                 yourself before giving.
               </p>
 
@@ -147,7 +147,7 @@ export function ZakatCalculator() {
                 </div>
               ) : campaigns.length === 0 ? (
                 <div className="border rounded-xl p-8 text-center text-muted-foreground text-sm">
-                  No eligible campaigns right now — check back soon.
+                  No eligible campaigns right now - check back soon.
                 </div>
               ) : (
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">

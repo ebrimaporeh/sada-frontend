@@ -12,12 +12,12 @@ const pillars = [
   {
     icon: Smartphone,
     title: 'Built for how Gambians actually pay',
-    body: "No bank account required. Donate with Wave, APS Wallet, or a card, and withdraw straight to Wave or APS Wallet — every payment is processed securely by Stripe and ModemPay.",
+    body: "No bank account required. Donate with Wave, APS Wallet, or a card, and withdraw straight to Wave or APS Wallet - every payment is processed securely by Stripe and ModemPay.",
   },
   {
     icon: ShieldCheck,
     title: 'Real people, reviewed',
-    body: 'Campaign owners can verify their identity with a government ID, and every campaign shows its real donation and withdrawal history — nothing hidden.',
+    body: 'Campaign owners can verify their identity with a government ID, and every campaign shows its real donation and withdrawal history - nothing hidden.',
   },
 ]
 
@@ -42,7 +42,7 @@ export function AboutPage() {
           <p className="text-lg text-muted-foreground mt-6 leading-relaxed">
             {siteName} exists so that medical bills, school fees, community projects, and
             emergencies don't have to depend on who you happen to know. We connect Gambians who need
-            help with the people — at home and in the diaspora — who want to give it, using the
+            help with the people - at home and in the diaspora - who want to give it, using the
             mobile money networks everyone already trusts.
           </p>
         </div>
@@ -64,7 +64,7 @@ export function AboutPage() {
             </h2>
             <p className="text-muted-foreground leading-relaxed">
               Make it possible for any Gambian to raise money for a genuine cause in minutes, without
-              needing a bank account, a foreign platform, or a middleman — and make sure every donor
+              needing a bank account, a foreign platform, or a middleman - and make sure every donor
               can see exactly where their money went.
             </p>
           </div>
@@ -119,7 +119,7 @@ export function AboutPage() {
         <div className="max-w-2xl mx-auto px-4 sm:px-6 text-center">
           <h2 className="text-3xl font-bold mb-3">Have a cause worth rallying behind?</h2>
           <p className="text-muted-foreground mb-8">
-            Starting a campaign takes a few minutes, and it's live immediately — no waiting on approval.
+            Starting a campaign takes a few minutes, and it's live immediately - no waiting on approval.
           </p>
           <Link
             to={ROUTES.CAMPAIGN_NEW}

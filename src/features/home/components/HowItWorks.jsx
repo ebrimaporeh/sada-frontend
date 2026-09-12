@@ -32,7 +32,7 @@ const steps = [
     image: stepThreeImage,
     title: 'Receive funds',
     description:
-      'Donations arrive directly to your mobile money account. Withdraw anytime — a small platform fee applies only when you cash out.',
+      'Donations arrive directly to your mobile money account. Withdraw anytime - a small platform fee applies only when you cash out.',
   },
 ]
 
@@ -45,7 +45,7 @@ export function HowItWorks() {
     const stepEls = scrollColumnRef.current?.querySelectorAll('[data-step]')
     if (!stepEls?.length) return
 
-    // Treat the middle band of the viewport as the "reveal line" — whichever
+    // Treat the middle band of the viewport as the "reveal line" - whichever
     // step's text block is crossing it becomes the active one, driving the
     // sticky image swap on the left.
     const observer = new IntersectionObserver(
@@ -82,7 +82,7 @@ export function HowItWorks() {
         </div>
 
         <div className="grid lg:grid-cols-2 lg:gap-12 mb-12">
-          {/* Sticky image panel — desktop only, swaps per active step */}
+          {/* Sticky image panel - desktop only, swaps per active step */}
           <div className="hidden  lg:block relative">
             <div className="sticky top-24 h-[80vh] rounded-3xl overflow-hidden border bg-muted shadow-brand-md">
               {steps.map((step, i) => (
@@ -118,7 +118,7 @@ export function HowItWorks() {
             </div>
           </div>
 
-          {/* Text column — each step is a full-height scroll-trigger zone on desktop */}
+          {/* Text column - each step is a full-height scroll-trigger zone on desktop */}
           <div ref={scrollColumnRef}>
             {steps.map(({ number, icon: Icon, image, title, description }, i) => (
               <div
@@ -155,7 +155,7 @@ export function HowItWorks() {
           </Link>
           <p className="text-xs text-muted-foreground mt-4">
             {stats ? `Trusted by ${compactNumber(stats.fundraisers_count)} fundraisers. ` : ''}
-            No donor-side fees — a small platform fee applies only when you withdraw funds.
+            No donor-side fees - a small platform fee applies only when you withdraw funds.
           </p>
         </div>
       </div>

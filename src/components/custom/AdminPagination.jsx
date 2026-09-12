@@ -1,7 +1,7 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 // Windowed page list with '...' gaps, e.g. [1, '…', 8, 9, 10, 11, 12, '…', 79]
-// — rendering every page number would overflow the bar once totalPages is large.
+// - rendering every page number would overflow the bar once totalPages is large.
 function getPageWindow(page, totalPages, siblingCount = 1) {
   const totalNumbers = siblingCount * 2 + 5 // first, last, current, 2 ellipses
   if (totalPages <= totalNumbers) {

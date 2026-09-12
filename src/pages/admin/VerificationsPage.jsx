@@ -228,7 +228,7 @@ export function VerificationsPage() {
                 <div className="border rounded-xl p-4 bg-muted/30 flex items-center gap-3">
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-muted-foreground mb-1">Current</p>
-                    <p className="text-sm font-medium truncate">{selected.current_value || '—'}</p>
+                    <p className="text-sm font-medium truncate">{selected.current_value || '-'}</p>
                   </div>
                   <ArrowRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                   <div className="flex-1 min-w-0">
@@ -345,7 +345,7 @@ export function VerificationsPage() {
               <div className="space-y-3 border-t pt-4">
                 <p className="text-xs text-muted-foreground flex items-start gap-2">
                   <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-                  This is confirmed automatically when {selected.proposed_value} clicks the link we sent it —
+                  This is confirmed automatically when {selected.proposed_value} clicks the link we sent it -
                   there's nothing for an admin to approve. You can still reject it if it looks suspicious.
                 </p>
                 <textarea

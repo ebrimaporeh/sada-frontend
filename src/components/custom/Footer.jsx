@@ -47,7 +47,7 @@ export function Footer() {
           <div>
             <h3 className="text-xl sm:text-2xl font-bold">Ready to make a difference?</h3>
             <p className="text-sm text-background/60 mt-1">
-              Start a campaign in minutes — a small platform fee applies only when you withdraw funds.
+              Start a campaign in minutes - a small platform fee applies only when you withdraw funds.
             </p>
           </div>
           <Link
@@ -67,7 +67,7 @@ export function Footer() {
           </Link>
           <p className="text-sm text-background/60 leading-relaxed max-w-sm">
             {settings.country}'s crowdfunding platform. Helping Gambians raise funds for medical,
-            education, community, and more — powered by local mobile money.
+            education, community, and more - powered by local mobile money.
           </p>
 
           <div className="mt-5">

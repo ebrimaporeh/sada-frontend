@@ -66,7 +66,7 @@ export function useUpdateMe() {
 }
 
 // Avatar uploads instantly on file selection through its own endpoint,
-// separate from the rest of the profile form — see MyAvatarUploadView.
+// separate from the rest of the profile form - see MyAvatarUploadView.
 export function useUploadAvatar() {
   const queryClient = useQueryClient()
   return useMutation({
@@ -84,7 +84,7 @@ export function useUpdateUser() {
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.users.detail(id) })
       queryClient.invalidateQueries({ queryKey: queryKeys.users.all() })
-      // Also used for staff status changes (StaffSheet) — the staff list is
+      // Also used for staff status changes (StaffSheet) - the staff list is
       // a separate query, so it needs its own invalidation too.
       queryClient.invalidateQueries({ queryKey: queryKeys.staff.all() })
     },
@@ -98,7 +98,7 @@ export function useCreateUser() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.users.all() })
       // Staff (moderator/finance_officer) accounts created here also live in
-      // the separate staff list query on StaffPage — without this it never
+      // the separate staff list query on StaffPage - without this it never
       // reflects a newly created staff member until a manual reload.
       queryClient.invalidateQueries({ queryKey: queryKeys.staff.all() })
     },
