@@ -20,6 +20,10 @@ export function buildInitialDesign(template, destinationType) {
   const size = POSTER_TEMPLATES.find((t) => t.value === template) ?? POSTER_TEMPLATES[0]
   const { width, height } = size
   const hasStats = destinationType === 'campaign'
+  // Organizations don't have a cover photo (that's a campaign-only field) --
+  // their logo is the closest thing to a hero image, so it's the sensible
+  // default background for that destination type instead.
+  const defaultBackgroundBinding = destinationType === 'organization' ? 'organization_logo_url' : 'cover_image_url'
 
   const pad = Math.round(width * 0.055)
   const qrSize = Math.round(Math.min(width, height) * 0.16)
@@ -59,13 +63,26 @@ export function buildInitialDesign(template, destinationType) {
   // elements the user added themselves -- the former gets regenerated at
   // the new size (see the comment there for why), the latter gets kept.
   const elements = [
-    createImageElement({ x: 0, y: 0, width, height, binding: 'cover_image_url', objectFit: 'cover', fromTemplate: true }),
+    // `role: 'background-image'`/`'scrim'` let PropertiesPanel.jsx's
+    // Background section find these two specifically (rather than just
+    // "the first fromTemplate image/shape") so switching background mode
+    // works regardless of what order elements end up in.
+    createImageElement({
+      x: 0, y: 0, width, height, binding: defaultBackgroundBinding, objectFit: 'cover',
+      fromTemplate: true, role: 'background-image',
+    }),
     // `listening: false` -- a full-bleed scrim stacked directly on top of
     // the full-bleed cover photo would otherwise intercept every click
     // meant for that image (Konva hits the topmost node), making the
     // photo underneath impossible to select/resize. The scrim stays
     // visible, just excluded from hit-testing (see PosterElementNode.jsx).
-    createShapeElement({ x: 0, y: 0, width, height, shapeType: 'rect', fill: OVERLAY_COLOR, listening: false, fromTemplate: true }),
+    // Hidden (opacity 0) rather than removed when the background switches
+    // to a flat color -- a photo-legibility scrim over a color the user
+    // picked on purpose would just mute it.
+    createShapeElement({
+      x: 0, y: 0, width, height, shapeType: 'rect', fill: OVERLAY_COLOR, listening: false,
+      fromTemplate: true, role: 'scrim',
+    }),
     createTextElement({ x: pad, y: y.title, width: textWidth, binding: 'title', fontSize: titleFontSize, fontWeight: 'bold', color: '#ffffff', fromTemplate: true }),
     createTextElement({ x: pad, y: y.org, width: textWidth, binding: 'organization_name', fontSize: orgFontSize, color: '#e2e8f0', fromTemplate: true }),
     createTextElement({ x: pad, y: y.desc, width: textWidth, binding: 'description', fontSize: descFontSize, color: '#cbd5e1', fromTemplate: true }),
@@ -85,4 +102,17 @@ export function buildInitialDesign(template, destinationType) {
   }
 
   return { version: 1, width, height, background: BACKGROUND_FALLBACK, elements }
+}
+
+// Falls back to the old `fromTemplate`-only heuristic for designs saved
+// before `role` existed -- without it, a poster created before this shipped
+// would show the Background panel as if it had no background image at all.
+export function findBackgroundImage(design) {
+  return design.elements.find((el) => el.role === 'background-image')
+    ?? design.elements.find((el) => el.fromTemplate && el.type === 'image')
+}
+
+export function findBackgroundScrim(design) {
+  return design.elements.find((el) => el.role === 'scrim')
+    ?? design.elements.find((el) => el.fromTemplate && el.type === 'shape' && el.listening === false)
 }

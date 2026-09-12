@@ -9,7 +9,7 @@ import { PosterCanvas } from './PosterCanvas'
 import { ElementsPanel } from './ElementsPanel'
 import { PropertiesPanel } from './PropertiesPanel'
 import { exportPosterAsPng } from './exportPoster'
-import { buildInitialDesign } from './templateCompositions'
+import { buildInitialDesign, findBackgroundImage, findBackgroundScrim } from './templateCompositions'
 import { POSTER_TEMPLATES } from '../shared/posterTemplates'
 
 const AUTOSAVE_DEBOUNCE_MS = 1200
@@ -179,9 +179,73 @@ export function PosterEditor({ poster }) {
         ...(typeof el.fontSize === 'number' ? { fontSize: Math.round(el.fontSize * scale) } : {}),
       }))
     const next = buildInitialDesign(nextTemplate, poster.destination?.type)
-    commit({ ...next, elements: [...next.elements, ...customElements] })
+    // Background choice (which image, or a flat color instead) is a design-
+    // wide setting, not per-size layout -- carry it onto the freshly
+    // regenerated background-image/scrim elements rather than resetting to
+    // the template default every time the size changes.
+    const oldBackgroundImage = findBackgroundImage(design)
+    const oldScrim = findBackgroundScrim(design)
+    const nextElements = next.elements.map((el) => {
+      // `src` too, not just `binding` -- a background promoted from a plain
+      // uploaded image (handleSetImageAsBackground) has no binding at all.
+      if (el.role === 'background-image' && oldBackgroundImage) {
+        return { ...el, binding: oldBackgroundImage.binding, src: oldBackgroundImage.src }
+      }
+      if (el.role === 'scrim' && oldScrim) return { ...el, opacity: oldScrim.opacity }
+      return el
+    })
+    commit({ ...next, background: design.background, elements: [...nextElements, ...customElements] })
     setSelectedId(null)
     updatePoster.mutate({ id: poster.id, template: nextTemplate })
+  }
+
+  // binding: which image the background shows ('cover_image_url' /
+  // 'organization_logo_url'), or '' to switch to a flat color (see
+  // findBackgroundImage/findBackgroundScrim in templateCompositions.js for
+  // how these two elements are located). background: the flat color itself,
+  // used both as the Color-mode background and as the matte an image
+  // background sits on while it loads.
+  function handleBackgroundChange({ binding, background }) {
+    let elements = design.elements
+    if (binding !== undefined) {
+      elements = elements.map((el) => {
+        if (el.role === 'background-image') return { ...el, binding }
+        if (el.role === 'scrim') return { ...el, opacity: binding ? 1 : 0 }
+        return el
+      })
+    }
+    commit({ ...design, elements, ...(background !== undefined ? { background } : {}) })
+  }
+
+  // Promotes any image element (an upload, or a bound one) to be the
+  // background instead -- resizes it full-bleed and hands it the
+  // background-image role. The element that previously held that role is
+  // dropped outright rather than left behind at the same full-bleed
+  // geometry -- keeping it around would just be an invisible duplicate
+  // stacked directly behind the new one. `fromTemplate: true` so a later
+  // size switch treats it like the template-owned background it now is
+  // (regenerated/rescaled full-bleed, see handleSizeChange) instead of
+  // trying to preserve it as a "user-added" element in place.
+  function handleSetImageAsBackground(id) {
+    const target = design.elements.find((el) => el.id === id)
+    const oldBackground = findBackgroundImage(design)
+    if (!target || target.id === oldBackground?.id) return
+    // Reset rotation/opacity too, not just position/size -- a full-bleed
+    // rect that's still carrying whatever rotation or transparency it had
+    // as a regular element visibly doesn't cover the canvas anymore (swings
+    // outside the frame, or lets the base color show through).
+    const promoted = {
+      ...target, role: 'background-image', fromTemplate: true, objectFit: 'cover',
+      x: 0, y: 0, width: design.width, height: design.height, rotation: 0, opacity: 1,
+    }
+    // Placed first, not left at its old spot in the stack -- a background
+    // has to render behind every other element, and simply transforming it
+    // in place would leave it wherever it happened to be added (usually the
+    // end, i.e. drawn on top of and hiding everything else).
+    const rest = design.elements
+      .filter((el) => el.id !== oldBackground?.id && el.id !== id)
+      .map((el) => (el.role === 'scrim' ? { ...el, opacity: 1 } : el))
+    commit({ ...design, elements: [promoted, ...rest] })
   }
 
   function handleExport(pixelRatio) {
@@ -274,6 +338,9 @@ export function PosterEditor({ poster }) {
           onDelete={handleDelete}
           onBringToFront={() => reorder('front')}
           onSendToBack={() => reorder('back')}
+          design={design}
+          onBackgroundChange={handleBackgroundChange}
+          onSetAsBackground={handleSetImageAsBackground}
         />
       </aside>
     </div>

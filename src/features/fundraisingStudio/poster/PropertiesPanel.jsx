@@ -1,6 +1,7 @@
 import { AlertTriangle, ArrowDownToLine, ArrowUpToLine, Trash2 } from 'lucide-react'
 import { SearchSelect } from '@/components/custom/SearchSelect'
 import { BINDING_FIELDS, FONT_FAMILIES } from './designSchema'
+import { findBackgroundImage } from './templateCompositions'
 
 // Relative luminance contrast, simplified (WCAG-style) -- used only to warn
 // when a QR code's foreground/background colors are too close to remain
@@ -24,9 +25,59 @@ function contrastRatio(hex1, hex2) {
   return (lighter + 0.05) / (darker + 0.05)
 }
 
-export function PropertiesPanel({ element, onChange, onDelete, onBringToFront, onSendToBack }) {
+// Background is a design-wide setting (not an element you select on canvas),
+// so it lives here rather than in ElementsPanel/PosterCanvas -- shown when
+// nothing else is selected, same spot Figma/Canva put canvas-level settings.
+// "Image" mode just means the background-image element (see
+// findBackgroundImage) has a binding; "Color" means it's cleared, so that
+// element renders nothing (PosterElementNode.jsx) and the flat
+// `design.background` underneath shows through instead -- see
+// PosterEditor.jsx's handleBackgroundChange for the actual mutation.
+function BackgroundPanel({ design, onChange }) {
+  const backgroundImage = findBackgroundImage(design)
+  // `src` too, not just `binding` -- a background promoted from a plain
+  // uploaded image (the "Use as background" Object fit option below) has
+  // no binding at all.
+  const mode = (backgroundImage?.binding || backgroundImage?.src) ? 'image' : 'color'
+
+  return (
+    <div className="space-y-3">
+      <p className="section-label">Background</p>
+      <Field label="Type">
+        <select
+          value={mode}
+          onChange={(e) => onChange({ binding: e.target.value === 'image' ? 'cover_image_url' : '' })}
+          className={inputClass}
+        >
+          <option value="image">Image</option>
+          <option value="color">Solid color</option>
+        </select>
+      </Field>
+      {mode === 'image' ? (
+        <Field label="Image source">
+          <select value={backgroundImage.binding} onChange={(e) => onChange({ binding: e.target.value })} className={inputClass}>
+            <option value="">Uploaded image</option>
+            <option value="cover_image_url">Campaign cover photo</option>
+            <option value="organization_logo_url">Organization logo</option>
+          </select>
+        </Field>
+      ) : (
+        <Field label="Color"><ColorInput value={design.background} onChange={(v) => onChange({ background: v })} /></Field>
+      )}
+    </div>
+  )
+}
+
+export function PropertiesPanel({
+  element, onChange, onDelete, onBringToFront, onSendToBack, design, onBackgroundChange, onSetAsBackground,
+}) {
   if (!element) {
-    return <p className="text-sm text-muted-foreground py-8 text-center">Select an element to edit its properties.</p>
+    return (
+      <div className="space-y-5">
+        <BackgroundPanel design={design} onChange={onBackgroundChange} />
+        <p className="text-sm text-muted-foreground py-4 text-center border-t">Select an element to edit its properties.</p>
+      </div>
+    )
   }
 
   function set(patch) {
@@ -103,9 +154,20 @@ export function PropertiesPanel({ element, onChange, onDelete, onBringToFront, o
             </select>
           </Field>
           <Field label="Object fit">
-            <select value={element.objectFit} onChange={(e) => set({ objectFit: e.target.value })} className={inputClass}>
+            <select
+              value={element.objectFit}
+              onChange={(e) => (
+                e.target.value === 'background' ? onSetAsBackground(element.id) : set({ objectFit: e.target.value })
+              )}
+              className={inputClass}
+            >
               <option value="cover">Cover (crop to fill)</option>
               <option value="fill">Stretch to fill</option>
+              {/* Not a persisted fit mode -- picking this promotes the whole
+                  element to the poster's background (PosterEditor.jsx's
+                  handleSetImageAsBackground) and it reverts to showing
+                  "Cover" right after, since objectFit itself becomes 'cover'. */}
+              <option value="background">Use as background (fill canvas)</option>
             </select>
           </Field>
           <Field label="Corner radius"><NumberInput value={element.borderRadius} onChange={(v) => set({ borderRadius: v })} /></Field>

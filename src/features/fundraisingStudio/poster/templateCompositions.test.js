@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildInitialDesign } from './templateCompositions'
+import { buildInitialDesign, findBackgroundImage, findBackgroundScrim } from './templateCompositions'
 import { POSTER_TEMPLATES } from '../shared/posterTemplates'
 
 describe('buildInitialDesign', () => {
@@ -28,6 +28,21 @@ describe('buildInitialDesign', () => {
     const [cover, overlay] = design.elements
     expect(cover).toMatchObject({ type: 'image', binding: 'cover_image_url', x: 0, y: 0, width: design.width, height: design.height })
     expect(overlay).toMatchObject({ type: 'shape', x: 0, y: 0, width: design.width, height: design.height })
+  })
+
+  it('defaults the background to the campaign cover photo', () => {
+    const design = buildInitialDesign('square', 'campaign')
+    expect(findBackgroundImage(design)).toMatchObject({ binding: 'cover_image_url' })
+  })
+
+  it('defaults the background to the organization logo when there is no cover photo', () => {
+    const design = buildInitialDesign('square', 'organization')
+    expect(findBackgroundImage(design)).toMatchObject({ binding: 'organization_logo_url' })
+  })
+
+  it('findBackgroundScrim locates the legibility overlay stacked on the background image', () => {
+    const design = buildInitialDesign('square', 'campaign')
+    expect(findBackgroundScrim(design)).toMatchObject({ type: 'shape', listening: false })
   })
 
   it('falls back to the first template size for an unrecognized template', () => {
