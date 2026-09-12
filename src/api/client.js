@@ -85,6 +85,12 @@ apiClient.interceptors.response.use(
         })
         const newAccessToken = data.access
         localStorage.setItem('access_token', newAccessToken)
+        // ROTATE_REFRESH_TOKENS + BLACKLIST_AFTER_ROTATION are on server-side,
+        // so the refresh token this request used is now blacklisted -- the
+        // response's new one must replace it or the *next* refresh 401s.
+        if (data.refresh) {
+          localStorage.setItem('refresh_token', data.refresh)
+        }
         apiClient.defaults.headers.common.Authorization = `Bearer ${newAccessToken}`
         processQueue(null, newAccessToken)
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`
