@@ -180,9 +180,18 @@ export function PropertiesPanel({
           {element.shapeType === 'rect' && (
             <Field label="Corner radius"><NumberInput value={element.cornerRadius} onChange={(v) => set({ cornerRadius: v })} /></Field>
           )}
+          {element.shapeType === 'line' && (
+            // "Width"/"length" read backwards for a line vs. every other
+            // shape -- what's normally called a line's "width" is its
+            // thickness (the shared Stroke width field below), not how
+            // long it is, so this one's labeled Length to avoid the clash.
+            <Field label="Length"><NumberInput value={element.width} onChange={(v) => set({ width: v })} /></Field>
+          )}
           <div className="grid grid-cols-2 gap-3">
             <Field label="Stroke color"><ColorInput value={element.stroke || '#000000'} onChange={(v) => set({ stroke: v })} /></Field>
-            <Field label="Stroke width"><NumberInput value={element.strokeWidth} onChange={(v) => set({ strokeWidth: v })} /></Field>
+            <Field label={element.shapeType === 'line' ? 'Width' : 'Stroke width'}>
+              <NumberInput value={element.strokeWidth} onChange={(v) => set({ strokeWidth: v })} />
+            </Field>
           </div>
         </>
       )}

@@ -50,7 +50,7 @@ export function ElementsPanel({ posterId, onAdd, currentSize, onSizeChange }) {
         onClick={() => onAdd(createShapeElement({ shapeType: 'rect', cornerRadius: 24 }))}
       />
       <PanelButton icon={CircleIcon} label="Circle" onClick={() => onAdd(createShapeElement({ shapeType: 'circle', width: 160, height: 160 }))} />
-      <PanelButton icon={Minus} label="Line" onClick={() => onAdd(createShapeElement({ shapeType: 'line', width: 300, height: 4, fill: '#111111' }))} />
+      <PanelButton icon={Minus} label="Line" onClick={() => onAdd(createShapeElement({ shapeType: 'line', width: 300, height: 4, fill: '#111111', strokeWidth: 4 }))} />
       <PanelButton icon={QrCode} label="QR Code" onClick={() => onAdd(createQrElement())} />
 
       {onSizeChange && (

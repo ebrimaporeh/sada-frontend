@@ -89,6 +89,12 @@ export function PosterElementNode({ element, destination, shared, shapeRef }) {
           points={[0, 0, element.width, 0]}
           stroke={element.stroke || element.fill}
           strokeWidth={element.strokeWidth || 4}
+          // Konva hit-tests a Line against a band exactly `strokeWidth` wide
+          // by default -- for a thin line that's only a few px, so a click
+          // that's off by a hair falls through to whatever's underneath
+          // (the full-bleed cover image, which is always listening). This
+          // widens only the invisible hit area, not the drawn stroke.
+          hitStrokeWidth={Math.max(element.strokeWidth || 4, 20)}
         />
       )
     }

@@ -47,6 +47,9 @@ export function PosterCanvas({ design, destination, selectedId, onSelect, onElem
     onElementChange(design.elements.map((el) => (el.id === id ? { ...el, ...patch } : el)))
   }
 
+  const selectedElement = design.elements.find((el) => el.id === selectedId)
+  const isLineSelected = selectedElement?.shapeType === 'line'
+
   return (
     <div ref={containerRef} className="w-full h-full flex items-center justify-center">
       <Stage
@@ -78,20 +81,39 @@ export function PosterCanvas({ design, destination, selectedId, onSelect, onElem
                   const scaleY = node.scaleY()
                   node.scaleX(1)
                   node.scaleY(1)
-                  commitElement(element.id, {
+                  const patch = {
                     x: node.x(),
                     y: node.y(),
                     rotation: node.rotation(),
                     width: Math.max(20, node.width() * scaleX),
-                    height: node.height ? Math.max(20, node.height() * scaleY) : element.height,
-                  })
+                  }
+                  // A line's "height" is just its stroke thickness, not a
+                  // dimension its handles resize -- leave it alone. (Every
+                  // other shape node does expose a real height, so the old
+                  // `node.height ? ... : element.height` check here always
+                  // took the truthy branch -- `node.height` is the method
+                  // itself, not a call to it.)
+                  if (element.shapeType !== 'line') {
+                    patch.height = Math.max(20, node.height() * scaleY)
+                  }
+                  commitElement(element.id, patch)
                 },
               }}
             />
           ))}
-          <Transformer ref={transformerRef} rotateEnabled boundBoxFunc={(oldBox, newBox) => (
-            newBox.width < 20 || newBox.height < 20 ? oldBox : newBox
-          )} />
+          <Transformer
+            ref={transformerRef}
+            rotateEnabled
+            enabledAnchors={isLineSelected ? ['middle-left', 'middle-right'] : undefined}
+            boundBoxFunc={(oldBox, newBox) => {
+              // A horizontal line's own bounding box is only as tall as its
+              // stroke (a few px) -- the general 20px-minimum guard below
+              // would reject *any* resize of it, since it can never pass
+              // that height check. Only the length (width) needs a floor.
+              const minHeight = isLineSelected ? 1 : 20
+              return newBox.width < 20 || newBox.height < minHeight ? oldBox : newBox
+            }}
+          />
         </Layer>
       </Stage>
     </div>
