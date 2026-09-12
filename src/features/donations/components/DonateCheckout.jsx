@@ -253,7 +253,7 @@ export function DonateCheckout({ campaign, embedded = false, onCancel, embedId }
         <p className="text-sm font-medium mb-3">Pay with</p>
         {methodsLoading ? (
           <div className="grid grid-cols-3 gap-2">
-            {[0, 1, 2].map((i) => <div key={i} className="h-[84px] rounded-xl border bg-muted/30 animate-pulse" />)}
+            {[0, 1, 2].map((i) => <div key={i} className="h-[96px] rounded-xl border bg-muted/30 animate-pulse" />)}
           </div>
         ) : PROVIDERS.length === 0 ? (
           <p className="text-sm text-muted-foreground border rounded-xl p-3.5">
@@ -272,7 +272,7 @@ export function DonateCheckout({ campaign, embedded = false, onCancel, embedId }
                 )}
               >
                 {provider === p.id && <CheckCircle2 className="w-4 h-4 text-primary absolute top-1.5 right-1.5" />}
-                <MethodBadge method={p} size="w-9 h-9" />
+                <MethodBadge method={p} size="w-12 h-12" />
                 <span className="text-xs font-semibold">{p.name}</span>
               </button>
             ))}
