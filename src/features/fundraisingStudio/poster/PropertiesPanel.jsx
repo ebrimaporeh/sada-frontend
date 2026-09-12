@@ -1,5 +1,6 @@
 import { AlertTriangle, ArrowDownToLine, ArrowUpToLine, Trash2 } from 'lucide-react'
-import { BINDING_FIELDS } from './designSchema'
+import { SearchSelect } from '@/components/custom/SearchSelect'
+import { BINDING_FIELDS, FONT_FAMILIES } from './designSchema'
 
 // Relative luminance contrast, simplified (WCAG-style) -- used only to warn
 // when a QR code's foreground/background colors are too close to remain
@@ -61,6 +62,17 @@ export function PropertiesPanel({ element, onChange, onDelete, onBringToFront, o
               <textarea value={element.text} onChange={(e) => set({ text: e.target.value })} rows={3} className={inputClass} />
             </Field>
           )}
+          <Field label="Font family">
+            <SearchSelect
+              value={element.fontFamily}
+              onChange={(e) => set({ fontFamily: e.target.value })}
+              options={FONT_FAMILIES}
+              placeholder="Choose a font"
+              searchPlaceholder="Search fonts…"
+              buttonClassName="py-2"
+              listMaxHeightClassName="max-h-[184px]"
+            />
+          </Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Font size"><NumberInput value={element.fontSize} onChange={(v) => set({ fontSize: v })} /></Field>
             <Field label="Weight">

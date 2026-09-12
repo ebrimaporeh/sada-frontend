@@ -11,6 +11,28 @@ export function emptyDesign(background = '#ffffff') {
   return { version: 1, width: CANVAS_WIDTH, height: CANVAS_HEIGHT, background, elements: [] }
 }
 
+// 'DM Sans'/'Playfair Display' are the app's own webfonts, already loaded
+// via the Google Fonts <link> in index.html -- Konva's Text node just draws
+// onto a <canvas>, so it needs the font already available in the document,
+// same as any other canvas text rendering. Everything else here is a
+// standard web-safe family present on Windows/macOS/Linux by default, so
+// the whole list renders without pulling in any new font loading.
+export const FONT_FAMILIES = [
+  { value: 'sans-serif', label: 'Sans Serif' },
+  { value: 'serif', label: 'Serif' },
+  { value: 'monospace', label: 'Monospace' },
+  { value: 'DM Sans', label: 'DM Sans' },
+  { value: 'Playfair Display', label: 'Playfair Display' },
+  { value: 'Arial', label: 'Arial' },
+  { value: 'Helvetica', label: 'Helvetica' },
+  { value: 'Georgia', label: 'Georgia' },
+  { value: 'Times New Roman', label: 'Times New Roman' },
+  { value: 'Verdana', label: 'Verdana' },
+  { value: 'Trebuchet MS', label: 'Trebuchet MS' },
+  { value: 'Courier New', label: 'Courier New' },
+  { value: 'Impact', label: 'Impact' },
+]
+
 // Bindings are dot-free keys directly off the flat FundraisingDestination
 // shape the backend serializes (services/fundraising_destination.py) --
 // see formatBindingValue below for how each renders, including the

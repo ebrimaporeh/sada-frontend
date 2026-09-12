@@ -11,6 +11,10 @@ import { cn } from '@/utils/cn'
 export function SearchSelect({
   value, onChange, options, placeholder = 'Select…', searchPlaceholder = 'Search…',
   disabled, className, buttonClassName, emptyMessage = 'No matches',
+  // Overridable so a caller can tune how many rows show before the list
+  // scrolls (each option row is ~36px) -- e.g. the poster editor's font
+  // picker uses a shorter one to default to about 5 visible.
+  listMaxHeightClassName = 'max-h-56',
 }) {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
@@ -78,7 +82,7 @@ export function SearchSelect({
               className="w-full pl-9 pr-3 py-2.5 text-sm bg-transparent focus:outline-hidden"
             />
           </div>
-          <div className="max-h-56 overflow-y-auto py-1">
+          <div className={cn(listMaxHeightClassName, 'overflow-y-auto py-1')}>
             {filtered.length === 0 ? (
               <p className="px-3 py-2 text-sm text-muted-foreground">{emptyMessage}</p>
             ) : (
