@@ -54,29 +54,33 @@ export function buildInitialDesign(template, destinationType) {
     cursor += row.fontSize + row.gap
   }
 
+  // `fromTemplate: true` marks every element this function produces so
+  // PosterEditor.jsx's size-switch handler can tell them apart from
+  // elements the user added themselves -- the former gets regenerated at
+  // the new size (see the comment there for why), the latter gets kept.
   const elements = [
-    createImageElement({ x: 0, y: 0, width, height, binding: 'cover_image_url', objectFit: 'cover' }),
+    createImageElement({ x: 0, y: 0, width, height, binding: 'cover_image_url', objectFit: 'cover', fromTemplate: true }),
     // `listening: false` -- a full-bleed scrim stacked directly on top of
     // the full-bleed cover photo would otherwise intercept every click
     // meant for that image (Konva hits the topmost node), making the
     // photo underneath impossible to select/resize. The scrim stays
     // visible, just excluded from hit-testing (see PosterElementNode.jsx).
-    createShapeElement({ x: 0, y: 0, width, height, shapeType: 'rect', fill: OVERLAY_COLOR, listening: false }),
-    createTextElement({ x: pad, y: y.title, width: textWidth, binding: 'title', fontSize: titleFontSize, fontWeight: 'bold', color: '#ffffff' }),
-    createTextElement({ x: pad, y: y.org, width: textWidth, binding: 'organization_name', fontSize: orgFontSize, color: '#e2e8f0' }),
-    createTextElement({ x: pad, y: y.desc, width: textWidth, binding: 'description', fontSize: descFontSize, color: '#cbd5e1' }),
-    createQrElement({ x: width - pad - qrSize, y: height - pad - qrSize, width: qrSize, height: qrSize }),
+    createShapeElement({ x: 0, y: 0, width, height, shapeType: 'rect', fill: OVERLAY_COLOR, listening: false, fromTemplate: true }),
+    createTextElement({ x: pad, y: y.title, width: textWidth, binding: 'title', fontSize: titleFontSize, fontWeight: 'bold', color: '#ffffff', fromTemplate: true }),
+    createTextElement({ x: pad, y: y.org, width: textWidth, binding: 'organization_name', fontSize: orgFontSize, color: '#e2e8f0', fromTemplate: true }),
+    createTextElement({ x: pad, y: y.desc, width: textWidth, binding: 'description', fontSize: descFontSize, color: '#cbd5e1', fromTemplate: true }),
+    createQrElement({ x: width - pad - qrSize, y: height - pad - qrSize, width: qrSize, height: qrSize, fromTemplate: true }),
   ]
 
   if (hasStats) {
     elements.push(
       createShapeElement({
         x: pad, y: y.divider, width: textWidth, height: Math.round(width * 0.011),
-        shapeType: 'rect', fill: 'rgba(255, 255, 255, 0.25)', cornerRadius: 999,
+        shapeType: 'rect', fill: 'rgba(255, 255, 255, 0.25)', cornerRadius: 999, fromTemplate: true,
       }),
-      createTextElement({ x: pad, y: y.raised, width: textWidth, binding: 'raised', fontSize: Math.round(titleFontSize * 0.55), fontWeight: 'bold', color: '#ffffff' }),
-      createTextElement({ x: pad, y: y.goal, width: textWidth, binding: 'goal', fontSize: descFontSize, color: '#cbd5e1' }),
-      createTextElement({ x: pad, y: y.deadline, width: textWidth, binding: 'deadline', fontSize: descFontSize, color: '#cbd5e1' }),
+      createTextElement({ x: pad, y: y.raised, width: textWidth, binding: 'raised', fontSize: Math.round(titleFontSize * 0.55), fontWeight: 'bold', color: '#ffffff', fromTemplate: true }),
+      createTextElement({ x: pad, y: y.goal, width: textWidth, binding: 'goal', fontSize: descFontSize, color: '#cbd5e1', fromTemplate: true }),
+      createTextElement({ x: pad, y: y.deadline, width: textWidth, binding: 'deadline', fontSize: descFontSize, color: '#cbd5e1', fromTemplate: true }),
     )
   }
 

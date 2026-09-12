@@ -153,17 +153,33 @@ export function PosterEditor({ poster }) {
     commit({ ...design, elements: direction === 'front' ? [...elements, element] : [element, ...elements] })
   }
 
-  // Regenerates the starting composition at the new size rather than
-  // rescaling the existing elements -- a linear x/y/font transform can't
-  // reproduce the same bottom-anchored layout math templateCompositions.js
-  // uses across wildly different aspect ratios (e.g. Story's 9:16 down to
-  // Wide's ~1.9:1) without producing visibly broken results. This always
-  // looks right; Undo is the safety net for anyone who'd already
-  // customized the previous size.
+  // Regenerates the template's own starting elements at the new size rather
+  // than rescaling them -- a linear x/y/font transform can't reproduce the
+  // same bottom-anchored layout math templateCompositions.js uses across
+  // wildly different aspect ratios (e.g. Story's 9:16 down to Wide's
+  // ~1.9:1) without producing visibly broken results. Anything the user
+  // added themselves (unmarked by `fromTemplate`) isn't template-generated
+  // in the first place, so there's no such layout math to reproduce for it
+  // -- it's kept and proportionally rescaled onto the new canvas instead of
+  // being thrown away. Undo remains the safety net for the template part.
   function handleSizeChange(nextTemplate) {
     const size = POSTER_TEMPLATES.find((t) => t.value === nextTemplate)
     if (!size || (design.width === size.width && design.height === size.height)) return
-    commit(buildInitialDesign(nextTemplate, poster.destination?.type))
+    const scaleX = size.width / design.width
+    const scaleY = size.height / design.height
+    const scale = Math.min(scaleX, scaleY) // uniform, so rescaled elements keep their own proportions
+    const customElements = design.elements
+      .filter((el) => !el.fromTemplate)
+      .map((el) => ({
+        ...el,
+        x: Math.round(el.x * scaleX),
+        y: Math.round(el.y * scaleY),
+        ...(typeof el.width === 'number' ? { width: Math.round(el.width * scale) } : {}),
+        ...(typeof el.height === 'number' ? { height: Math.round(el.height * scale) } : {}),
+        ...(typeof el.fontSize === 'number' ? { fontSize: Math.round(el.fontSize * scale) } : {}),
+      }))
+    const next = buildInitialDesign(nextTemplate, poster.destination?.type)
+    commit({ ...next, elements: [...next.elements, ...customElements] })
     setSelectedId(null)
     updatePoster.mutate({ id: poster.id, template: nextTemplate })
   }
