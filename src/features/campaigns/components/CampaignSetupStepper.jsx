@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { AlertCircle, ChevronRight, ChevronLeft, Info, Loader2, Rocket } from 'lucide-react'
+import { useNavigate } from '@tanstack/react-router'
+import { AlertCircle, ChevronRight, ChevronLeft, Info, Loader2, Rocket, Save } from 'lucide-react'
 import { useUpdateMyCampaign, useLaunchCampaign } from '@/hooks/useCampaigns'
 import { StepIndicator } from '@/components/custom/StepIndicator'
 import { MarkdownEditor } from '@/components/custom/MarkdownEditor'
 import { DatePicker } from '@/components/custom/DatePicker'
 import { CampaignPhotosCard } from '@/pages/authenticated/MyCampaignDetail/EditTab'
-import { GAMBIA_REGIONS } from '@/constants'
+import { GAMBIA_REGIONS, ROUTES } from '@/constants'
 import { cn } from '@/utils/cn'
 
 const STEPS = ['Your Story', 'Images', 'Goal & Deadline', 'Review & Launch']
@@ -15,7 +16,6 @@ const STEPS = ['Your Story', 'Images', 'Goal & Deadline', 'Review & Launch']
 const FIELD_STEP = {
   short_description: 0,
   story: 0,
-  cover_image: 1,
   goal: 2,
 }
 
@@ -49,6 +49,7 @@ function FieldGroup({ label, hint, error, children }) {
 }
 
 export function CampaignSetupStepper({ campaign, onLaunched }) {
+  const navigate = useNavigate()
   const [step, setStep] = useState(() => deriveInitialStep(campaign))
   const [errors, setErrors] = useState({})
   const [saveError, setSaveError] = useState('')
@@ -124,6 +125,14 @@ export function CampaignSetupStepper({ campaign, onLaunched }) {
     setStep((s) => s - 1)
   }
 
+  // Saves the goal/deadline (same validation/mutation as "Continue") but
+  // exits the stepper instead of advancing to Review & Launch -- the
+  // campaign is already DRAFT the whole way through this flow, so nothing
+  // else is needed to genuinely "save as draft" for later.
+  function handleSaveDraft() {
+    saveGoal(() => navigate({ to: ROUTES.MY_CAMPAIGNS }))
+  }
+
   function handleLaunch() {
     setSaveError('')
     launchCampaign.mutate(campaign.slug, {
@@ -179,7 +188,7 @@ export function CampaignSetupStepper({ campaign, onLaunched }) {
           <CampaignPhotosCard campaign={campaign} />
           {!cover && (
             <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-              <Info className="w-3.5 h-3.5" /> A cover image is required before you can launch.
+              <Info className="w-3.5 h-3.5" /> Optional -- campaigns without a cover photo show a colored placeholder instead.
             </p>
           )}
         </div>
@@ -263,7 +272,7 @@ export function CampaignSetupStepper({ campaign, onLaunched }) {
               {cover ? (
                 <img src={cover.image_url} alt="Cover" className="w-32 aspect-video object-cover rounded-lg border" />
               ) : (
-                <p className="text-sm text-destructive">Not added yet</p>
+                <p className="text-sm text-muted-foreground">Not added -- will show a colored placeholder instead</p>
               )}
             </div>
             <div className="p-4 grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -307,13 +316,25 @@ export function CampaignSetupStepper({ campaign, onLaunched }) {
         ) : <div />}
 
         {step < STEPS.length - 1 ? (
-          <button
-            onClick={next}
-            disabled={isSaving}
-            className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold px-6 py-2.5 rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-60"
-          >
-            {isSaving ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving…</> : <>Continue <ChevronRight className="w-4 h-4" /></>}
-          </button>
+          <div className="flex items-center gap-3">
+            {step === 2 && (
+              <button
+                type="button"
+                onClick={handleSaveDraft}
+                disabled={isSaving}
+                className="inline-flex items-center gap-2 border font-semibold px-5 py-2.5 rounded-xl hover:bg-accent transition-colors disabled:opacity-60"
+              >
+                <Save className="w-4 h-4" /> Save as Draft
+              </button>
+            )}
+            <button
+              onClick={next}
+              disabled={isSaving}
+              className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold px-6 py-2.5 rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-60"
+            >
+              {isSaving ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving…</> : <>Continue <ChevronRight className="w-4 h-4" /></>}
+            </button>
+          </div>
         ) : (
           <button
             onClick={handleLaunch}
