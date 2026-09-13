@@ -57,7 +57,6 @@ import { PostersListPage } from '@/pages/authenticated/FundraisingStudio/Posters
 import { PosterNewPage } from '@/pages/authenticated/FundraisingStudio/PosterNewPage'
 import { PosterDetailPage } from '@/pages/authenticated/FundraisingStudio/PosterDetailPage'
 import { EmbedsListPage } from '@/pages/authenticated/FundraisingStudio/EmbedsListPage'
-import { EmbedNewPage } from '@/pages/authenticated/FundraisingStudio/EmbedNewPage'
 import { EmbedDetailPage } from '@/pages/authenticated/FundraisingStudio/EmbedDetailPage'
 
 // Pages - admin
@@ -420,12 +419,6 @@ const fundraisingEmbedsRoute = createRoute({
   component: EmbedsListPage,
 })
 
-const fundraisingEmbedNewRoute = createRoute({
-  getParentRoute: () => authLayout,
-  path: ROUTES.FUNDRAISING_EMBED_NEW,
-  component: EmbedNewPage,
-})
-
 const fundraisingEmbedDetailRoute = createRoute({
   getParentRoute: () => authLayout,
   path: ROUTES.FUNDRAISING_EMBED_DETAIL,
@@ -609,7 +602,6 @@ const routeTree = rootRoute.addChildren([
     fundraisingPosterNewRoute,
     fundraisingPosterDetailRoute,
     fundraisingEmbedsRoute,
-    fundraisingEmbedNewRoute,
     fundraisingEmbedDetailRoute,
   ]),
   embedWidgetRoute,

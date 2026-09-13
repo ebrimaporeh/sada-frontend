@@ -251,6 +251,16 @@ export function useUpdateMyCampaign() {
     onSuccess: (res, { slug }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.myDetail(slug) })
       queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.mine() })
+      // Toggling show_in_embed here changes what the campaign's organization
+      // embed gallery renders -- without this, the Embed Studio keeps
+      // serving its own cached (staleTime: 5min) gallery snapshot until a
+      // full page reload. organization_id is only present on org-owned
+      // campaigns (see CampaignDetailSerializer) -- an individual campaign
+      // has no org embed to invalidate.
+      const organizationId = res?.data?.campaign?.organization_id
+      if (organizationId) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.embeds.forOrganization(organizationId) })
+      }
     },
   })
 }

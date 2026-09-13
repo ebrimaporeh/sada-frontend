@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Monitor, Smartphone, Tablet } from 'lucide-react'
 import { cn } from '@/utils/cn'
-import { FundraisingWidget } from './widget/FundraisingWidget'
+import { EmbedGallery } from './widget/EmbedGallery'
 
 // Widths deliberately straddle every layout's own max-width cap (card/
 // compact/progress_focused: max-w-sm/384px; horizontal: max-w-lg/512px;
@@ -16,10 +16,20 @@ const VIEWPORTS = [
   { value: 'mobile', label: 'Mobile', icon: Smartphone, width: 300 },
 ]
 
-// Renders the exact same FundraisingWidget the public /embed/$id page
-// does, just inside different fixed-width containers -- per the spec's
-// "same widget, different viewport containers" requirement, not a
-// separate preview-only implementation.
+// Renders the exact same EmbedGallery the public /embed/$id page does,
+// just inside different fixed-width containers -- per the spec's "same
+// widget, different viewport containers" requirement, not a separate
+// preview-only implementation.
+//
+// interactive (not false here, unlike the old single-destination widget
+// preview) -- Donate is a real button that opens the real DonateModal, so
+// an org admin can see the actual donation flow, not just a look-alike.
+// Safe to do: the modal is an in-place overlay (DonateModal.jsx), it
+// doesn't navigate the Studio away -- only the final payment-gateway
+// handoff would, and nothing forces a tester to go that far. The modal's
+// own styling is deliberately independent of the card's appearance
+// config -- customizing the donate flow itself is a separate concern from
+// customizing the embed card, not something this toggles together.
 export function EmbedPreview({ embed }) {
   const [viewport, setViewport] = useState('desktop')
   const active = VIEWPORTS.find((v) => v.value === viewport)
@@ -44,7 +54,7 @@ export function EmbedPreview({ embed }) {
       </div>
       <div className="flex justify-center p-6 rounded-xl border bg-muted/30">
         <div style={{ width: active.width }} className="max-w-full">
-          <FundraisingWidget embed={embed} interactive={false} />
+          <EmbedGallery embed={embed} interactive />
         </div>
       </div>
     </div>

@@ -172,4 +172,24 @@ describe('DonateCheckout', () => {
 
     expect(mutate.mock.calls[0][0].embed_id).toBeUndefined()
   })
+
+  it('applies the embed donation-flow theme to the Donate button when passed', () => {
+    render(
+      <DonateCheckout
+        campaign={campaign}
+        embedded
+        onCancel={() => {}}
+        theme={{ buttonColor: '#00ff00', buttonRadius: 20 }}
+      />,
+    )
+    const button = screen.getByRole('button', { name: /donate/i })
+    expect(button.style.backgroundColor).toBe('rgb(0, 255, 0)')
+    expect(button.style.borderRadius).toBe('20px')
+  })
+
+  it('leaves the Donate button unstyled on the standalone (non-embedded) page', () => {
+    render(<DonateCheckout campaign={campaign} />)
+    const button = screen.getByRole('button', { name: /donate/i })
+    expect(button.getAttribute('style')).toBeNull()
+  })
 })

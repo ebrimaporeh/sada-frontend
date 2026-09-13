@@ -7,6 +7,7 @@ import {
 import { DatePicker } from '@/components/custom/DatePicker'
 import { SearchSelect } from '@/components/custom/SearchSelect'
 import { Select } from '@/components/custom/Select'
+import { Toggle } from '@/components/custom/Toggle'
 import { GAMBIA_REGIONS, CAMPAIGN_STATUS, OrganizationPermission } from '@/constants'
 import { compressImage } from '@/utils/imageCompression'
 import { getCategoryIcon } from '@/utils/categoryIcons'
@@ -168,6 +169,7 @@ export function EditTab({ campaign }) {
     beneficiary: campaign.beneficiary || '',
     beneficiary_relationship: campaign.beneficiary_relationship || '',
     is_urgent: campaign.is_urgent || false,
+    show_in_embed: campaign.show_in_embed || false,
   })
   const [saved, setSaved] = useState(false)
   const [saveError, setSaveError] = useState('')
@@ -195,6 +197,7 @@ export function EditTab({ campaign }) {
         beneficiary: form.beneficiary,
         beneficiary_relationship: form.beneficiary_relationship,
         is_urgent: form.is_urgent,
+        show_in_embed: form.show_in_embed,
       },
       {
         onSuccess: () => setSaved(true),
@@ -258,6 +261,24 @@ export function EditTab({ campaign }) {
           <input type="checkbox" id="urgent" checked={form.is_urgent} onChange={set('is_urgent')} className="rounded" />
           <label htmlFor="urgent" className="text-sm font-medium cursor-pointer">Mark as Urgent</label>
         </div>
+
+        {/* Only org-owned campaigns can ever appear in an embed -- the
+            gallery only ever reads organization.campaigns (see
+            fundraising_destination.resolve_embed_gallery_destinations), so
+            an individually-owned campaign's show_in_embed value is never
+            read at all. Hiding the toggle here avoids a setting that looks
+            live but silently does nothing. */}
+        {campaign.organization_id && (
+          <Toggle
+            checked={form.show_in_embed}
+            onChange={(v) => {
+              setForm((f) => ({ ...f, show_in_embed: v }))
+              setSaved(false)
+            }}
+            label="Show in embed widget"
+            description="Surfaces this campaign as a donation option in your organization's embed widget, once it's Active. Toggle off to hide it from the embed at any time."
+          />
+        )}
       </div>
 
       <div className="border rounded-2xl bg-card p-5 space-y-5">

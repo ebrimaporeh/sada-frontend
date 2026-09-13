@@ -5,17 +5,25 @@ import { cn } from '@/utils/cn'
 import { mergeConfiguration } from '../defaultConfiguration'
 import { DonateModal } from './DonateModal'
 
-// The one widget implementation consumed by both Embed Studio's live
-// preview (EmbedPreview.jsx) and the public /embed/$id page
-// (EmbedWidgetPage.jsx) -- per the spec's "same component, different
-// viewport containers" requirement, not two separate implementations that
-// could drift apart.
+// Renders exactly one destination's card -- consumed by EmbedGallery.jsx,
+// which maps embed.destinations to one of these each (per the spec's "same
+// component, different viewport containers" requirement extended to "same
+// component, one per gallery item", not a separate implementation per
+// call site). `embed` supplies the shared layout/configuration; `destination`
+// is the one item this particular card renders -- callers resolve which
+// destination that is (EmbedGallery iterates embed.destinations).
 //
-// `interactive=false` (Studio preview only) renders the Donate control as
-// a non-navigating look-alike instead of a real link -- clicking Donate in
-// a live preview shouldn't navigate the Studio itself away.
-export function FundraisingWidget({ embed, interactive = true }) {
-  const { destination, layout, is_active: isActive } = embed
+// `interactive=false` renders the Donate control as a non-clickable
+// look-alike instead of a real button -- nothing currently passes this
+// (Studio's preview and the public page are both interactive: true, since
+// DonateModal is an in-place overlay, not a navigation, so there's no
+// reason to block it in Studio), but it stays a real, tested mode in case
+// a future call site needs a purely static render.
+//
+// Doesn't check embed.is_active itself -- EmbedGallery checks that once,
+// gallery-wide, before ever rendering a card.
+export function FundraisingWidget({ embed, destination, interactive = true }) {
+  const { layout } = embed
   const config = mergeConfiguration(embed.configuration)
   const title = config.content.title || destination.title
   const description = config.content.description || destination.description
@@ -31,17 +39,14 @@ export function FundraisingWidget({ embed, interactive = true }) {
   // brand *gradient* via the `background` shorthand, i.e. background-image,
   // not background-color -- a plain inline backgroundColor never overrides
   // that image layer, it just paints invisibly underneath it. backgroundImage:
-  // 'none' is what actually lets a custom color show through.
-  const buttonStyle = config.appearance.primaryColor
-    ? { backgroundColor: config.appearance.primaryColor, backgroundImage: 'none', borderColor: config.appearance.primaryColor }
-    : undefined
-
-  if (!isActive) {
-    return (
-      <div className="p-4 rounded-xl border bg-muted text-center text-sm text-muted-foreground">
-        This donation widget is no longer active.
-      </div>
-    )
+  // 'none' is what actually lets a custom color show through. buttonRadius
+  // applies regardless of a custom color being set -- it's independent of
+  // the card's own borderRadius (see defaultConfiguration.js).
+  const buttonStyle = {
+    borderRadius: `${config.appearance.buttonRadius ?? 8}px`,
+    ...(config.appearance.buttonColor
+      ? { backgroundColor: config.appearance.buttonColor, backgroundImage: 'none', borderColor: config.appearance.buttonColor }
+      : {}),
   }
 
   const donateButton = (
@@ -85,7 +90,7 @@ export function FundraisingWidget({ embed, interactive = true }) {
   } else if (layout === 'horizontal') {
     content = (
       <div style={containerStyle} className="p-4 rounded-xl border bg-card flex gap-4 w-full max-w-lg">
-        <CoverThumbnail destination={destination} className="w-24 h-24 shrink-0" />
+        <CoverThumbnail destination={destination} className="w-24 h-24 shrink-0" radius={containerStyle.borderRadius} />
         <div className="min-w-0 flex-1 space-y-2">
           <p className="font-semibold truncate">{title}</p>
           {description && <p className="text-xs opacity-70 line-clamp-2">{description}</p>}
@@ -114,7 +119,11 @@ export function FundraisingWidget({ embed, interactive = true }) {
     // 'card' (default)
     content = (
       <div style={containerStyle} className="rounded-xl border bg-card overflow-hidden w-full max-w-sm">
-        <CoverThumbnail destination={destination} className="w-full aspect-video" />
+        <CoverThumbnail
+          destination={destination}
+          className="w-full aspect-video"
+          topRadius={containerStyle.borderRadius}
+        />
         <div className="p-4 space-y-3">
           <div>
             <p className="font-semibold">{title}</p>
@@ -130,21 +139,36 @@ export function FundraisingWidget({ embed, interactive = true }) {
   return (
     <>
       {content}
-      {/* Only ever reachable when interactive (the real public embed page --
-          Studio's preview passes interactive=false and DonateButton renders
-          a non-clickable span there, so donateOpen can never become true). */}
+      {/* Only ever reachable when interactive -- with interactive=false,
+          DonateButton renders a non-clickable span, so donateOpen can
+          never become true. Both real call sites (Studio's preview and
+          the public page) pass interactive=true today. */}
       {interactive && donateOpen && (
-        <DonateModal destination={destination} embedId={embed.id} onClose={() => setDonateOpen(false)} />
+        <DonateModal destination={destination} embedId={embed.id} theme={config.donationFlow} onClose={() => setDonateOpen(false)} />
       )}
     </>
   )
 }
 
-function CoverThumbnail({ destination, className }) {
+// `radius` (all four corners, e.g. the horizontal layout's standalone
+// square thumbnail) / `topRadius` (top corners only, e.g. the card
+// layout's thumbnail sitting above a square-cornered content section)
+// apply the exact same borderRadius the card itself uses, set directly on
+// this element rather than left to the parent's overflow-hidden to clip --
+// relying purely on a parent clip (as this used to) leaves a visible seam
+// at the rounded corners where the parent's `border` meets the child
+// image's still-square corner, since the two aren't clipped in exactly the
+// same pass. Declaring the same radius here removes that seam entirely.
+function CoverThumbnail({ destination, className, radius, topRadius }) {
+  const style = topRadius != null
+    ? { borderTopLeftRadius: topRadius, borderTopRightRadius: topRadius }
+    : radius != null
+      ? { borderRadius: radius }
+      : undefined
   return (
-    <div className={cn('bg-muted overflow-hidden', className)}>
+    <div className={cn('bg-muted overflow-hidden', className)} style={style}>
       {destination.cover_image_url && (
-        <img src={destination.cover_image_url} alt="" className="w-full h-full object-cover" />
+        <img src={destination.cover_image_url} alt="" className="w-full h-full object-cover block" />
       )}
     </div>
   )

@@ -62,6 +62,11 @@ export function useUpdateOrganization(id) {
     mutationFn: (data) => organizationsApi.updateDetail(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.organizations.detail(id) })
+      // Toggling show_in_embed here changes what the org's embed gallery
+      // renders (see resolve_embed_gallery_destinations) -- without this,
+      // the Embed Studio keeps serving its own cached (staleTime: 5min)
+      // snapshot of the same organization until a full page reload.
+      queryClient.invalidateQueries({ queryKey: queryKeys.embeds.forOrganization(id) })
     },
   })
 }
@@ -84,6 +89,9 @@ export function useUploadOrganizationLogo(id) {
       queryClient.invalidateQueries({ queryKey: queryKeys.organizations.detail(id) })
       // The logo also shows in the profile switcher/header (me.organizations).
       queryClient.invalidateQueries({ queryKey: queryKeys.auth.me() })
+      // ...and in the embed gallery's organization header (EmbedGallery.jsx) --
+      // same staleness reasoning as useUpdateOrganization above.
+      queryClient.invalidateQueries({ queryKey: queryKeys.embeds.forOrganization(id) })
     },
   })
 }

@@ -3,11 +3,9 @@ import { Image, Code2, ArrowRight } from 'lucide-react'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { ROUTES } from '@/constants'
 import { usePosters } from '@/hooks/usePosters'
-import { useEmbeds } from '@/hooks/useEmbeds'
 
 export function FundraisingStudioHomePage() {
   const { count: posterCount } = usePosters()
-  const { count: embedCount } = useEmbeds()
 
   return (
     <div>
@@ -21,23 +19,21 @@ export function FundraisingStudioHomePage() {
           icon={Image}
           title="Poster Studio"
           description="Design downloadable, shareable fundraising posters."
-          count={posterCount}
-          countLabel="poster"
+          footer={posterCount > 0 ? `${posterCount} poster${posterCount === 1 ? '' : 's'}` : 'No posters yet'}
         />
         <StudioCard
           to={ROUTES.FUNDRAISING_EMBEDS}
           icon={Code2}
           title="Embed Studio"
-          description="Configure a donation widget for an external website."
-          count={embedCount}
-          countLabel="embed"
+          description="Design and install your organization's one donation widget."
+          footer="One embed per organization"
         />
       </div>
     </div>
   )
 }
 
-function StudioCard({ to, icon: Icon, title, description, count, countLabel }) {
+function StudioCard({ to, icon: Icon, title, description, footer }) {
   return (
     <Link to={to} className="group flex flex-col gap-3 p-5 rounded-xl border bg-card hover:border-primary/50 transition-colors">
       <div className="flex items-center justify-between">
@@ -50,9 +46,7 @@ function StudioCard({ to, icon: Icon, title, description, count, countLabel }) {
         <p className="font-semibold">{title}</p>
         <p className="text-sm text-muted-foreground mt-0.5">{description}</p>
       </div>
-      <p className="text-xs text-muted-foreground">
-        {count > 0 ? `${count} ${countLabel}${count === 1 ? '' : 's'}` : `No ${countLabel}s yet`}
-      </p>
+      <p className="text-xs text-muted-foreground">{footer}</p>
     </Link>
   )
 }

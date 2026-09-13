@@ -105,13 +105,23 @@ export function MyCampaignDetailPage() {
                         >
                           <Image className="w-3.5 h-3.5" /> Design Poster
                         </Link>
-                        <Link
-                          to={ROUTES.FUNDRAISING_EMBED_NEW}
-                          search={{ destinationType: 'campaign', destinationId: campaign.id }}
-                          className="inline-flex items-center gap-1.5 text-xs border font-medium px-3 py-1.5 rounded-full hover:bg-accent transition-colors"
-                        >
-                          <Code2 className="w-3.5 h-3.5" /> Create Embed
-                        </Link>
+                        {/* Embeds are organization-scoped now (one per
+                            org, see .claude/backend/fundraising.md) -- an
+                            individually-owned campaign has no embed of its
+                            own to link to. Org-owned campaigns link
+                            straight to their organization's single embed;
+                            whether this campaign actually shows up in it
+                            is controlled by the "Show in embed" toggle in
+                            the Edit tab, not from here. */}
+                        {campaign.organization_id && (
+                          <Link
+                            to={ROUTES.FUNDRAISING_EMBED_DETAIL}
+                            params={{ organizationId: campaign.organization_id }}
+                            className="inline-flex items-center gap-1.5 text-xs border font-medium px-3 py-1.5 rounded-full hover:bg-accent transition-colors"
+                          >
+                            <Code2 className="w-3.5 h-3.5" /> Manage Embed
+                          </Link>
+                        )}
                       </>
                     )}
                   </>

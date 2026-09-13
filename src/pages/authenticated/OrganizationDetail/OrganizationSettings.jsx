@@ -1,12 +1,14 @@
 import { useState } from 'react'
-import { AlertCircle, Clock, Mail, UserCheck, ImageIcon, Loader2, Building2 } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
+import { AlertCircle, ArrowRight, Clock, Mail, UserCheck, ImageIcon, Loader2, Building2 } from 'lucide-react'
 import { useMyOrganizationChangeRequests, useSubmitOrganizationChangeRequest } from '@/hooks/useUsers'
 import {
   useMyOrganizationMembership, useUpdateOrganization, useUploadOrganizationCover, useUploadOrganizationLogo,
 } from '@/hooks/useOrganizations'
-import { OrganizationPermission } from '@/constants'
+import { OrganizationPermission, ROUTES } from '@/constants'
 import { initials } from '@/utils/formatters'
 import { compressImage } from '@/utils/imageCompression'
+import { Toggle } from '@/components/custom/Toggle'
 
 const CHANGEABLE_FIELD_LABELS = {
   phone: 'Primary Phone Number',
@@ -291,6 +293,61 @@ function DonationPageSettings({ organization, canManage }) {
   )
 }
 
+// Toggling this adds a general "Donate to us" card to the organization's
+// single embed widget (see .claude/backend/fundraising.md) -- not tied to
+// any one campaign, alongside whichever campaigns have their own
+// show_in_embed toggle on (see MyCampaignDetail/EditTab.jsx).
+function EmbedSettings({ organization, canManage }) {
+  const [error, setError] = useState('')
+  const updateOrganization = useUpdateOrganization(organization.id)
+
+  function handleToggle(value) {
+    setError('')
+    updateOrganization.mutate(
+      { show_in_embed: value },
+      { onError: (err) => setError(err?.response?.data?.message || 'Failed to save.') },
+    )
+  }
+
+  return (
+    <div className="border rounded-2xl p-6 bg-card space-y-4">
+      <div>
+        <h2 className="font-semibold text-base">Embed Widget</h2>
+        <p className="text-xs text-muted-foreground mt-1">
+          Your organization has one embeddable donation widget you can add to your own website - see Fundraising
+          Studio to customize its design and get the embed code.
+        </p>
+      </div>
+      {canManage ? (
+        <Toggle
+          checked={Boolean(organization.show_in_embed)}
+          onChange={handleToggle}
+          label="Show a general donation option"
+          description="Adds a 'Donate to us' card to your embed widget, not tied to any specific campaign. Individual campaigns have their own toggle in their Edit tab."
+        />
+      ) : (
+        <p className="text-sm">
+          General donation option: <span className="font-medium">{organization.show_in_embed ? 'Shown' : 'Hidden'}</span>
+        </p>
+      )}
+      {error && (
+        <p className="text-xs text-destructive flex items-center gap-1">
+          <AlertCircle className="w-3 h-3 flex-shrink-0" /> {error}
+        </p>
+      )}
+      {canManage && (
+        <Link
+          to={ROUTES.FUNDRAISING_EMBED_DETAIL}
+          params={{ organizationId: organization.id }}
+          className="text-xs font-medium text-primary hover:underline inline-flex items-center gap-1"
+        >
+          Manage your embed widget <ArrowRight className="w-3 h-3" />
+        </Link>
+      )}
+    </div>
+  )
+}
+
 export function OrganizationSettings({ organization }) {
   const { data: changeRequests } = useMyOrganizationChangeRequests()
   const myMembership = useMyOrganizationMembership(organization.id)
@@ -316,6 +373,8 @@ export function OrganizationSettings({ organization }) {
       <LogoSettings organization={organization} canManage={canManage} />
 
       <DonationPageSettings organization={organization} canManage={canManage} />
+
+      <EmbedSettings organization={organization} canManage={canManage} />
 
       <div className="border rounded-2xl p-6 bg-card space-y-4">
         <div>

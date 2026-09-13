@@ -75,12 +75,15 @@ function MethodBadge({ method, size = 'w-10 h-10' }) {
   )
 }
 
-export function DonateCheckout({ campaign, embedded = false, onCancel, embedId }) {
+export function DonateCheckout({ campaign, embedded = false, onCancel, embedId, theme }) {
   const { data: me } = useMe()
   const search = useSearch({ strict: false })
   // Checkout pages aren't content worth ranking, and indexing them just
   // sends search traffic to a dead-end form instead of the campaign page.
-  usePageMeta({ title: `Donate to ${campaign.title}`, noindex: true })
+  // skip when embedded -- a modal/iframe/Studio preview isn't the page,
+  // and shouldn't overwrite whatever title the actual host page set (see
+  // usePageMeta's own comment on `skip`).
+  usePageMeta({ title: `Donate to ${campaign.title}`, noindex: true, skip: embedded })
   // Lets a referring flow (e.g. the Zakat calculator) prefill the amount by
   // linking to /donate/$slug?amount=1234.50 instead of the donor retyping it.
   const [amount, setAmount] = useState(search?.amount ? String(search.amount) : '')
@@ -323,6 +326,11 @@ export function DonateCheckout({ campaign, embedded = false, onCancel, embedId }
       <button
         onClick={handleDonate}
         disabled={processing || donateToCampaign.isPending}
+        // theme is only ever passed when embedded (see DonateModal.jsx) --
+        // the standalone /donate/$slug page never passes it, so this stays
+        // undefined there and the button keeps its plain bg-donate/rounded-xl
+        // classes untouched.
+        style={theme ? { backgroundColor: theme.buttonColor || undefined, borderRadius: `${theme.buttonRadius ?? 8}px` } : undefined}
         className="w-full bg-donate text-donate-foreground font-bold py-3.5 rounded-xl hover:bg-donate/90 transition-colors flex items-center justify-center gap-2 text-base shadow-lg shadow-donate/20 disabled:opacity-70"
       >
         {processing ? (

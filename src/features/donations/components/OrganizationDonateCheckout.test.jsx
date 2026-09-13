@@ -76,4 +76,18 @@ describe('OrganizationDonateCheckout', () => {
     expect(mutate).toHaveBeenCalledTimes(1)
     expect(mutate.mock.calls[0][0]).toMatchObject({ embed_id: 'embed-456' })
   })
+
+  it('applies the embed donation-flow theme to the Donate button when passed', () => {
+    render(
+      <OrganizationDonateCheckout
+        organization={organization}
+        embedded
+        onCancel={() => {}}
+        theme={{ buttonColor: '#00ff00', buttonRadius: 20 }}
+      />,
+    )
+    const button = screen.getByRole('button', { name: /donate/i })
+    expect(button.style.backgroundColor).toBe('rgb(0, 255, 0)')
+    expect(button.style.borderRadius).toBe('20px')
+  })
 })

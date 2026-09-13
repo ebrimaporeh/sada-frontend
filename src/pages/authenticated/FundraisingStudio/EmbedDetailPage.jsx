@@ -1,14 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from '@tanstack/react-router'
-import { Check, ChevronLeft, Copy, Loader2 } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, ChevronLeft, Copy, Loader2 } from 'lucide-react'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
 import { ROUTES } from '@/constants'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
-import { useEmbed, useSetEmbedActive, useUpdateEmbed } from '@/hooks/useEmbeds'
+import { useOrganizationEmbed, useSetEmbedActive, useUpdateEmbed } from '@/hooks/useEmbeds'
 import { EmbedLayoutPicker } from '@/features/fundraisingStudio/embed/EmbedLayoutPicker'
 import { EmbedLayoutDropdown } from '@/features/fundraisingStudio/embed/EmbedLayoutDropdown'
 import { EmbedConfigForm } from '@/features/fundraisingStudio/embed/EmbedConfigForm'
+import { DonationFlowConfigForm } from '@/features/fundraisingStudio/embed/DonationFlowConfigForm'
 import { EmbedPreview } from '@/features/fundraisingStudio/embed/EmbedPreview'
+import { DonationFlowPreview } from '@/features/fundraisingStudio/embed/widget/DonationFlowPreview'
+import { mergeConfiguration } from '@/features/fundraisingStudio/embed/defaultConfiguration'
 
 const AUTOSAVE_DEBOUNCE_MS = 1000
 
@@ -34,9 +37,44 @@ function EmbedCodePanel({ snippet, copied, onCopy }) {
   )
 }
 
+// "Step 2" -- a dedicated screen, not a cramped tab inside the card
+// editor's own sidebar. Design controls on the left, a live, always-on
+// preview of the real donation flow on the right -- DonationFlowPreview is
+// the exact same component the real DonateModal renders, so what's shown
+// here is exactly what a donor sees, styling included, updating instantly
+// as the form on the left changes (no debounce -- that only gates the
+// autosave network call, not this in-memory preview).
+function DonationFlowStep({ embed, configuration, onConfigurationChange, returnUrl, onReturnUrlChange }) {
+  const previewDestination = embed.destinations?.[0]
+  const donationFlowTheme = mergeConfiguration(configuration).donationFlow
+
+  return (
+    <div className="grid gap-4 lg:grid-cols-2 items-start">
+      <div className="rounded-xl border bg-card p-4 order-2 lg:order-1">
+        <DonationFlowConfigForm
+          embed={{ configuration, return_url: returnUrl }}
+          onConfigurationChange={onConfigurationChange}
+          onReturnUrlChange={onReturnUrlChange}
+        />
+      </div>
+      <div className="order-1 lg:order-2 lg:sticky lg:top-4">
+        <p className="section-label mb-2">Live preview</p>
+        {previewDestination ? (
+          <DonationFlowPreview destination={previewDestination} theme={donationFlowTheme} className="rounded-2xl" />
+        ) : (
+          <div className="p-4 rounded-xl border bg-muted text-center text-sm text-muted-foreground">
+            Turn on your organization's own card or an active campaign's "Show in embed widget" toggle first --
+            there's nothing to preview a donation flow for yet.
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export function EmbedDetailPage() {
-  const { id } = useParams({ strict: false })
-  const { embed, isLoading } = useEmbed(id)
+  const { organizationId } = useParams({ strict: false })
+  const { embed, isLoading } = useOrganizationEmbed(organizationId)
   const updateEmbed = useUpdateEmbed()
   const setActive = useSetEmbedActive()
 
@@ -44,6 +82,7 @@ export function EmbedDetailPage() {
   const [layout, setLayout] = useState(null)
   const [configuration, setConfiguration] = useState(null)
   const [returnUrl, setReturnUrl] = useState('')
+  const [step, setStep] = useState('card')
   const [saveState, setSaveState] = useState('saved')
   const [copied, setCopied] = useState(false)
   const isFirstRun = useRef(true)
@@ -70,6 +109,7 @@ export function EmbedDetailPage() {
     updateEmbed.mutate(
       {
         id: embed.id,
+        organizationId,
         layout: debouncedLayout,
         configuration: debouncedConfiguration,
         // Omitted (not sent as '') when blank -- return_url is required
@@ -85,7 +125,7 @@ export function EmbedDetailPage() {
   }, [debouncedLayout, debouncedConfiguration, debouncedReturnUrl])
 
   function handleNameBlur() {
-    if (name && embed && name !== embed.name) updateEmbed.mutate({ id: embed.id, name })
+    if (name && embed && name !== embed.name) updateEmbed.mutate({ id: embed.id, organizationId, name })
   }
 
   function handleCopy(snippet) {
@@ -121,18 +161,38 @@ export function EmbedDetailPage() {
               onBlur={handleNameBlur}
               className="w-full text-lg font-bold tracking-tight bg-transparent border-none focus:outline-none focus:ring-0 px-0"
             />
-            <p className="text-sm text-muted-foreground truncate">{embed.destination?.title}</p>
+            <p className="text-sm text-muted-foreground truncate">{embed.organization?.organization_name}</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
             {saveState === 'saving' && <><Loader2 className="w-3 h-3 animate-spin" /> Saving…</>}
             {saveState === 'saved' && <><Check className="w-3 h-3" /> Saved</>}
             {saveState === 'unsaved' && 'Unsaved changes'}
           </div>
+          {/* The step switch itself -- deliberately up here, not a tab
+              tucked into the (already narrow) config sidebar, since step 2
+              is a full alternate layout, not just a different form. */}
+          {step === 'card' ? (
+            <button
+              type="button"
+              onClick={() => setStep('donationFlow')}
+              className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
+              Next: Design Donation Flow <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setStep('card')}
+              className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-md border hover:bg-accent transition-colors"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" /> Back to Design Card
+            </button>
+          )}
           <button
             type="button"
-            onClick={() => setActive.mutate({ id: embed.id, isActive: !embed.is_active })}
+            onClick={() => setActive.mutate({ id: embed.id, organizationId, isActive: !embed.is_active })}
             className="text-xs font-medium px-3 py-1.5 rounded-md border hover:bg-accent transition-colors"
           >
             {embed.is_active ? 'Deactivate' : 'Activate'}
@@ -140,46 +200,51 @@ export function EmbedDetailPage() {
         </div>
       </div>
 
-      {/* Mobile/tablet (<lg): a compact layout dropdown up top instead of
-          the full card list (which alone can run 400+px tall and push
-          everything else below a scroll before it's even visible), then
-          the preview, then the editing controls right below it -- so a
-          change and its effect stay close together -- with the copy-paste
-          embed code (more a one-time final step than something tweaked
-          alongside the preview) pushed to the very bottom. */}
-      <div className="lg:hidden space-y-4">
-        <EmbedLayoutDropdown layout={layout} onLayoutChange={setLayout} />
-        <EmbedPreview embed={previewEmbed} />
-        <div className="rounded-xl border bg-card p-4">
-          <EmbedConfigForm
-            embed={{ configuration, return_url: returnUrl }}
-            onConfigurationChange={setConfiguration}
-            onReturnUrlChange={setReturnUrl}
-          />
-        </div>
-        <EmbedCodePanel snippet={snippet} copied={copied} onCopy={() => handleCopy(snippet)} />
-      </div>
+      {step === 'donationFlow' ? (
+        <DonationFlowStep
+          embed={previewEmbed}
+          configuration={configuration}
+          onConfigurationChange={setConfiguration}
+          returnUrl={returnUrl}
+          onReturnUrlChange={setReturnUrl}
+        />
+      ) : (
+        <>
+          {/* Mobile/tablet (<lg): a compact layout dropdown up top instead
+              of the full card list (which alone can run 400+px tall and
+              push everything else below a scroll before it's even
+              visible), then the preview, then the editing controls right
+              below it -- so a change and its effect stay close together --
+              with the copy-paste embed code (more a one-time final step
+              than something tweaked alongside the preview) pushed to the
+              very bottom. */}
+          <div className="lg:hidden space-y-4">
+            <EmbedLayoutDropdown layout={layout} onLayoutChange={setLayout} />
+            <EmbedPreview embed={previewEmbed} />
+            <div className="rounded-xl border bg-card p-4">
+              <EmbedConfigForm embed={{ configuration }} onConfigurationChange={setConfiguration} />
+            </div>
+            <EmbedCodePanel snippet={snippet} copied={copied} onCopy={() => handleCopy(snippet)} />
+          </div>
 
-      {/* Desktop (lg+): three columns side by side -- layout | preview +
-          embed code | content/appearance/return-url. */}
-      <div className="hidden lg:grid lg:grid-cols-[240px_1fr_340px] gap-4 items-start">
-        <aside className="rounded-xl border bg-card p-4 h-fit">
-          <EmbedLayoutPicker layout={layout} onLayoutChange={setLayout} />
-        </aside>
+          {/* Desktop (lg+): three columns side by side -- layout | preview +
+              embed code | content/appearance. */}
+          <div className="hidden lg:grid lg:grid-cols-[240px_1fr_340px] gap-4 items-start">
+            <aside className="rounded-xl border bg-card p-4 h-fit">
+              <EmbedLayoutPicker layout={layout} onLayoutChange={setLayout} />
+            </aside>
 
-        <div className="space-y-4">
-          <EmbedPreview embed={previewEmbed} />
-          <EmbedCodePanel snippet={snippet} copied={copied} onCopy={() => handleCopy(snippet)} />
-        </div>
+            <div className="space-y-4">
+              <EmbedPreview embed={previewEmbed} />
+              <EmbedCodePanel snippet={snippet} copied={copied} onCopy={() => handleCopy(snippet)} />
+            </div>
 
-        <aside className="rounded-xl border bg-card p-4 h-fit">
-          <EmbedConfigForm
-            embed={{ configuration, return_url: returnUrl }}
-            onConfigurationChange={setConfiguration}
-            onReturnUrlChange={setReturnUrl}
-          />
-        </aside>
-      </div>
+            <aside className="rounded-xl border bg-card p-4 h-fit">
+              <EmbedConfigForm embed={{ configuration }} onConfigurationChange={setConfiguration} />
+            </aside>
+          </div>
+        </>
+      )}
     </div>
   )
 }

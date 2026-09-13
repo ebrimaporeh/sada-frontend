@@ -29,11 +29,11 @@ export const posterApi = {
 }
 
 export const embedApi = {
-  getMyEmbeds: (params) =>
-    apiClient.get('/fundraising/embeds/', { params }).then((r) => r.data),
-
-  getEmbed: (id) =>
-    apiClient.get(`/fundraising/embeds/${id}/`).then((r) => r.data),
+  // Idempotent get-or-create -- an organization's embed is created blank on
+  // first visit, see services/embed_service.py::get_or_create_org_embed.
+  // There's no separate create call: exactly one embed per organization.
+  getOrganizationEmbed: (organizationId) =>
+    apiClient.get(`/fundraising/organizations/${organizationId}/embed/`).then((r) => r.data),
 
   // Public, unauthenticated -- backs the /embed/$id widget page. Uses the
   // same apiClient as everything else (it's same-origin to the backend, no
@@ -41,17 +41,8 @@ export const embedApi = {
   getPublicEmbed: (id) =>
     apiClient.get(`/fundraising/embeds/${id}/public/`).then((r) => r.data),
 
-  createEmbed: (data) =>
-    apiClient.post('/fundraising/embeds/', data).then((r) => r.data),
-
   updateEmbed: (id, data) =>
     apiClient.patch(`/fundraising/embeds/${id}/`, data).then((r) => r.data),
-
-  deleteEmbed: (id) =>
-    apiClient.delete(`/fundraising/embeds/${id}/`).then((r) => r.data),
-
-  duplicateEmbed: (id) =>
-    apiClient.post(`/fundraising/embeds/${id}/duplicate/`).then((r) => r.data),
 
   activateEmbed: (id) =>
     apiClient.post(`/fundraising/embeds/${id}/activate/`).then((r) => r.data),

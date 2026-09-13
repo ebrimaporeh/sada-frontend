@@ -117,8 +117,7 @@ export const ROUTES = {
   FUNDRAISING_POSTER_NEW: '/fundraising-studio/posters/new',
   FUNDRAISING_POSTER_DETAIL: '/fundraising-studio/posters/$id',
   FUNDRAISING_EMBEDS: '/fundraising-studio/embeds',
-  FUNDRAISING_EMBED_NEW: '/fundraising-studio/embeds/new',
-  FUNDRAISING_EMBED_DETAIL: '/fundraising-studio/embeds/$id',
+  FUNDRAISING_EMBED_DETAIL: '/fundraising-studio/embeds/$organizationId',
   // Public, unauthenticated iframe target -- not under publicLayout (no
   // header/footer/nav chrome, see rootRoute.jsx), since this is meant to be
   // embedded on a third-party site, not browsed directly.

@@ -4,11 +4,12 @@ import {
   AlertCircle, CheckCircle2, Loader2, Building2, User as UserIcon, ShieldAlert,
 } from 'lucide-react'
 import { useCategories, useCreateCampaign } from '@/hooks/useCampaigns'
-import { GAMBIA_REGIONS, OrganizationPermission } from '@/constants'
+import { OrganizationPermission } from '@/constants'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { VerifyPromptModal } from '@/components/custom/VerifyPromptModal'
 import { SearchSelect } from '@/components/custom/SearchSelect'
 import { Select } from '@/components/custom/Select'
+import { Toggle } from '@/components/custom/Toggle'
 import { getCategoryIcon } from '@/utils/categoryIcons'
 import { useMe } from '@/hooks/useAuth'
 import { useActiveProfile } from '@/hooks/useActiveProfile'
@@ -18,10 +19,13 @@ const VERIFY_PROMPT_DISMISSED_KEY = 'campaign_verify_prompt_dismissed'
 
 const STORAGE_KEY = 'campaign_draft'
 
-function FieldGroup({ label, hint, error, children }) {
+function FieldGroup({ label, hint, inlineHint, error, children }) {
   return (
     <div className="space-y-1.5">
-      <label className="text-sm font-medium">{label}</label>
+      <label className="text-sm font-medium">
+        {label}
+        {inlineHint && <span className="ml-1.5 text-xs font-normal text-muted-foreground">{inlineHint}</span>}
+      </label>
       {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
       {children}
       {error && (
@@ -48,38 +52,9 @@ function TextInput({ value, onChange, placeholder, className, ...props }) {
 const INITIAL = {
   title: '',
   category: '',
-  region: '',
   beneficiary: '',
   beneficiary_relationship: '',
   is_urgent: false,
-}
-
-function Toggle({ checked, onChange, label, description }) {
-  return (
-    <label className="flex items-start justify-between gap-4 cursor-pointer border rounded-xl p-4 bg-card">
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium">{label}</p>
-        {description && <p className="text-xs text-muted-foreground mt-0.5">{description}</p>}
-      </div>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        onClick={() => onChange(!checked)}
-        className={cn(
-          'relative flex-shrink-0 w-10 h-6 rounded-full transition-colors focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2',
-          checked ? 'bg-red-500' : 'bg-muted-foreground/30',
-        )}
-      >
-        <span
-          className={cn(
-            'absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow-sm transition-transform',
-            checked ? 'translate-x-4' : 'translate-x-0',
-          )}
-        />
-      </button>
-    </label>
-  )
 }
 
 const RELATIONSHIPS = ['Self', 'Spouse', 'Child', 'Parent', 'Sibling', 'Friend', 'Community', 'Organization', 'Other']
@@ -125,7 +100,6 @@ export function CampaignForm() {
     if (!form.title.trim()) errs.title = 'Title is required'
     else if (form.title.trim().length < 10) errs.title = 'Title must be at least 10 characters'
     if (!form.category) errs.category = 'Please select a category'
-    if (!form.region) errs.region = 'Please select a region'
     if (!form.beneficiary.trim()) errs.beneficiary = 'Beneficiary name is required'
     if (!form.beneficiary_relationship) errs.beneficiary_relationship = 'Relationship is required'
     return errs
@@ -139,7 +113,6 @@ export function CampaignForm() {
     const payload = {
       title: form.title.trim(),
       category: form.category,
-      region: form.region,
       beneficiary: form.beneficiary.trim(),
       beneficiary_relationship: form.beneficiary_relationship,
       is_urgent: form.is_urgent,
@@ -190,29 +163,18 @@ export function CampaignForm() {
             <p className="text-xs text-muted-foreground text-right">{form.title.length}/120</p>
           </FieldGroup>
 
-          <div className="grid sm:grid-cols-2 gap-4">
-            <FieldGroup label="Category *" error={errors.category}>
-              <SearchSelect
-                value={form.category}
-                onChange={set('category')}
-                placeholder="Select a category"
-                searchPlaceholder="Search categories…"
-                options={categories.map((c) => ({ value: c.slug, label: c.name, icon: getCategoryIcon(c.icon) }))}
-              />
-            </FieldGroup>
-
-            <FieldGroup label="Region *" error={errors.region}>
-              <Select
-                value={form.region}
-                onChange={set('region')}
-                placeholder="Select region in The Gambia"
-                options={GAMBIA_REGIONS.map((r) => ({ value: r.value, label: r.label }))}
-              />
-            </FieldGroup>
-          </div>
+          <FieldGroup label="Category *" error={errors.category}>
+            <SearchSelect
+              value={form.category}
+              onChange={set('category')}
+              placeholder="Select a category"
+              searchPlaceholder="Search categories…"
+              options={categories.map((c) => ({ value: c.slug, label: c.name, icon: getCategoryIcon(c.icon) }))}
+            />
+          </FieldGroup>
 
           <div className="grid sm:grid-cols-2 gap-4">
-            <FieldGroup label="Beneficiary Name *" hint="Who will receive the funds?" error={errors.beneficiary}>
+            <FieldGroup label="Beneficiary Name *" inlineHint="Who will receive the funds?" error={errors.beneficiary}>
               <TextInput value={form.beneficiary} onChange={set('beneficiary')} placeholder="Full name or organization" />
             </FieldGroup>
             <FieldGroup label="Your Relationship *" error={errors.beneficiary_relationship}>
@@ -230,6 +192,7 @@ export function CampaignForm() {
             onChange={(v) => setForm((f) => ({ ...f, is_urgent: v }))}
             label="Mark as urgent"
             description="Urgent campaigns get a visible badge and appear in the 'Urgent' filter - use for time-sensitive needs only."
+            activeClassName="bg-red-500"
           />
 
           {submitError && (

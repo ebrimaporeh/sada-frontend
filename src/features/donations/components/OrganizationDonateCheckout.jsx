@@ -73,10 +73,13 @@ function MethodBadge({ method, size = 'w-10 h-10' }) {
 // exactly this, just unused until now.
 const AMOUNT_PRESETS = settings.donate.presets.slice(0, 4)
 
-export function OrganizationDonateCheckout({ organization, embedded = false, onCancel, embedId }) {
+export function OrganizationDonateCheckout({ organization, embedded = false, onCancel, embedId, theme }) {
   const { data: me } = useMe()
   const search = useSearch({ strict: false })
-  usePageMeta({ title: `Support ${organization.organization_name || organization.title}`, noindex: true })
+  // skip when embedded -- a modal/iframe/Studio preview isn't the page,
+  // and shouldn't overwrite whatever title the actual host page set (see
+  // usePageMeta's own comment on `skip`).
+  usePageMeta({ title: `Support ${organization.organization_name || organization.title}`, noindex: true, skip: embedded })
 
   const [amount, setAmount] = useState(search?.amount ? String(search.amount) : '')
   const [customMode, setCustomMode] = useState(false)
@@ -327,6 +330,11 @@ export function OrganizationDonateCheckout({ organization, embedded = false, onC
       <button
         onClick={handleDonate}
         disabled={processing || donateToOrganization.isPending}
+        // theme is only ever passed when embedded (see DonateModal.jsx) --
+        // the standalone /give/$slug page never passes it, so this stays
+        // undefined there and the button keeps its plain bg-donate/rounded-xl
+        // classes untouched.
+        style={theme ? { backgroundColor: theme.buttonColor || undefined, borderRadius: `${theme.buttonRadius ?? 8}px` } : undefined}
         className="w-full bg-donate text-donate-foreground font-bold py-3.5 rounded-xl hover:bg-donate/90 transition-colors flex items-center justify-center gap-2 text-base shadow-lg shadow-donate/20 disabled:opacity-70"
       >
         {processing ? (

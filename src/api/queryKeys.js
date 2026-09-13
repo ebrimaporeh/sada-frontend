@@ -114,8 +114,7 @@ export const queryKeys = {
     detail: (id) => ['posters', 'detail', id],
   },
   embeds: {
-    mine: () => ['embeds', 'mine'],
-    detail: (id) => ['embeds', 'detail', id],
+    forOrganization: (organizationId) => ['embeds', 'organization', organizationId],
     public: (id) => ['embeds', 'public', id],
   },
 }

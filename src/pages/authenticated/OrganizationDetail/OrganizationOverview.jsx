@@ -1,14 +1,64 @@
+import { useState, useRef } from 'react'
 import { Link } from '@tanstack/react-router'
-import { Building2, ShieldCheck, ShieldQuestion, Users, Megaphone, Calendar, Wallet, Image, Code2 } from 'lucide-react'
+import { Building2, ShieldCheck, ShieldQuestion, Users, Megaphone, Calendar, Wallet, Image, Code2, Camera, Loader2, AlertCircle } from 'lucide-react'
 import { formatDate } from '@/utils/formatters'
 import { ROUTES, OrganizationPermission } from '@/constants'
-import { useMyOrganizationMembership } from '@/hooks/useOrganizations'
+import { useMyOrganizationMembership, useUploadOrganizationLogo } from '@/hooks/useOrganizations'
+import { compressImage } from '@/utils/imageCompression'
 
 function InfoField({ label, value }) {
   return (
     <div>
       <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="font-medium text-sm">{value || '—'}</p>
+      <p className="font-medium text-sm">{value || '-'}</p>
+    </div>
+  )
+}
+
+function LogoAvatar({ organization, canManage }) {
+  const fileRef = useRef()
+  const [error, setError] = useState('')
+  const uploadLogo = useUploadOrganizationLogo(organization.id)
+
+  async function handleChange(e) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    setError('')
+    const compressed = await compressImage(file, 'logo')
+    uploadLogo.mutate(compressed, {
+      onError: (err) => setError(err?.response?.data?.message || 'Failed to upload logo.'),
+    })
+  }
+
+  return (
+    <div className="flex-shrink-0">
+      <button
+        type="button"
+        onClick={() => canManage && fileRef.current?.click()}
+        disabled={!canManage || uploadLogo.isPending}
+        title={canManage ? 'Change logo' : undefined}
+        className="relative w-16 h-16 rounded-xl bg-primary/10 text-primary flex items-center justify-center overflow-hidden group disabled:cursor-default"
+      >
+        {organization.logo ? (
+          <img src={organization.logo} alt={organization.organization_name} className="w-full h-full object-cover" />
+        ) : (
+          <Building2 className="w-7 h-7" />
+        )}
+        {canManage && (
+          <span className={`absolute inset-0 flex items-center justify-center bg-black/50 text-white transition-opacity ${uploadLogo.isPending ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+            {uploadLogo.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Camera className="w-5 h-5" />}
+          </span>
+        )}
+      </button>
+      {canManage && (
+        <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleChange} disabled={uploadLogo.isPending} />
+      )}
+      {error && (
+        <p className="text-xs text-destructive flex items-center gap-1 mt-1.5 max-w-32">
+          <AlertCircle className="w-3 h-3 flex-shrink-0" /> {error}
+        </p>
+      )}
     </div>
   )
 }
@@ -20,13 +70,7 @@ export function OrganizationOverview({ organization }) {
   return (
     <div className="space-y-6">
       <div className="border rounded-2xl bg-card p-6 flex flex-col sm:flex-row items-center sm:items-start gap-6">
-        <div className="w-16 h-16 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0 overflow-hidden">
-          {organization.logo ? (
-            <img src={organization.logo} alt={organization.organization_name} className="w-full h-full object-cover" />
-          ) : (
-            <Building2 className="w-7 h-7" />
-          )}
-        </div>
+        <LogoAvatar organization={organization} canManage={canManageOrg} />
         <div className="flex-1 text-center sm:text-left space-y-1">
           <p className="font-bold text-lg">{organization.organization_name}</p>
           <p className="text-sm text-muted-foreground capitalize">{organization.organization_type_name}</p>
@@ -87,11 +131,11 @@ export function OrganizationOverview({ organization }) {
               <Image className="w-4 h-4" /> Design Poster
             </Link>
             <Link
-              to={ROUTES.FUNDRAISING_EMBED_NEW}
-              search={{ destinationType: 'organization', destinationId: organization.id }}
+              to={ROUTES.FUNDRAISING_EMBED_DETAIL}
+              params={{ organizationId: organization.id }}
               className="flex items-center justify-center gap-2 border-2 border-dashed rounded-xl p-4 text-sm font-medium text-muted-foreground hover:text-primary hover:border-primary transition-colors"
             >
-              <Code2 className="w-4 h-4" /> Create Embed
+              <Code2 className="w-4 h-4" /> Manage Embed
             </Link>
           </>
         )}

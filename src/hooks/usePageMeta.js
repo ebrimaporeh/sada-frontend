@@ -35,10 +35,18 @@ function upsertLink(rel, href) {
  * backend), which is the actual fix for those. This hook is the other
  * half: everything a real visitor's browser and Google itself see.
  */
-export function usePageMeta({ title, description, image, type = 'website', url, noindex = false }) {
+// `skip` -- for a component that sometimes IS the page (a standalone route)
+// and sometimes is only ever mounted inside something else that already
+// owns the document's title (a modal, or Embed Studio's persistent inline
+// preview) -- see DonateCheckout.jsx/OrganizationDonateCheckout.jsx's own
+// `embedded` prop. Still calls the hook unconditionally (rules of hooks);
+// this just short-circuits its effect body, so nothing here ever clobbers
+// a host page's title/meta tags it doesn't own.
+export function usePageMeta({ title, description, image, type = 'website', url, noindex = false, skip = false }) {
   const { siteName, siteDescription } = useSiteSettings()
 
   useEffect(() => {
+    if (skip) return
     const fullTitle = title ? `${title} - ${siteName}` : siteName
     const finalDescription = description || siteDescription
     const canonicalUrl = url || window.location.href
@@ -60,5 +68,5 @@ export function usePageMeta({ title, description, image, type = 'website', url, 
     upsertMeta('name', 'twitter:title', title || siteName)
     upsertMeta('name', 'twitter:description', finalDescription)
     if (image) upsertMeta('name', 'twitter:image', image)
-  }, [title, description, image, type, url, noindex, siteName, siteDescription])
+  }, [skip, title, description, image, type, url, noindex, siteName, siteDescription])
 }
