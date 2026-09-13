@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { useParams } from '@tanstack/react-router'
+import { useParams, useSearch } from '@tanstack/react-router'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
 import { usePublicEmbed } from '@/hooks/useEmbeds'
 import { useTrackEvent } from '@/hooks/useEvents'
@@ -10,9 +10,16 @@ import { EmbedGallery } from '@/features/fundraisingStudio/embed/widget/EmbedGal
 // nav chrome, see rootRoute.jsx) since it's meant to look native inside
 // someone else's page, not like a page of this app. Renders the exact same
 // EmbedGallery component the Embed Studio's live preview uses.
+//
+// One embed supports every layout -- ?layout=wide/compact/etc. on this
+// same URL overrides the embed's own stored default for this one
+// placement (see EmbedPublicView on the backend), so an org can install
+// the same embed several times across their site with a different layout
+// at each spot instead of needing a separate embed per placement.
 export function EmbedWidgetPage() {
   const { id } = useParams({ strict: false })
-  const { embed, isLoading, error } = usePublicEmbed(id)
+  const { layout } = useSearch({ strict: false })
+  const { embed, isLoading, error } = usePublicEmbed(id, layout)
   const trackEvent = useTrackEvent()
   const hasTrackedView = useRef(false)
 

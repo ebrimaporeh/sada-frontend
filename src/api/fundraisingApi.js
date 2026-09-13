@@ -38,8 +38,10 @@ export const embedApi = {
   // Public, unauthenticated -- backs the /embed/$id widget page. Uses the
   // same apiClient as everything else (it's same-origin to the backend, no
   // token attached since there's none to attach for an anonymous visitor).
-  getPublicEmbed: (id) =>
-    apiClient.get(`/fundraising/embeds/${id}/public/`).then((r) => r.data),
+  // `layout` is an optional override (see EmbedPublicView) -- lets the same
+  // embed be installed elsewhere on a site with a different layout.
+  getPublicEmbed: (id, layout) =>
+    apiClient.get(`/fundraising/embeds/${id}/public/`, { params: layout ? { layout } : undefined }).then((r) => r.data),
 
   updateEmbed: (id, data) =>
     apiClient.patch(`/fundraising/embeds/${id}/`, data).then((r) => r.data),

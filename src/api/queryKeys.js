@@ -115,6 +115,9 @@ export const queryKeys = {
   },
   embeds: {
     forOrganization: (organizationId) => ['embeds', 'organization', organizationId],
-    public: (id) => ['embeds', 'public', id],
+    // `layout` (a ?layout= override, or undefined) is part of the key --
+    // it's a genuinely different response per layout (see
+    // EmbedPublicView), not just a display tweak on the same data.
+    public: (id, layout) => ['embeds', 'public', id, layout],
   },
 }

@@ -18,10 +18,12 @@ export function useOrganizationEmbed(organizationId) {
 // Public, unauthenticated -- backs the /embed/$id widget page. Renders even
 // when the embed is inactive (embed.is_active === false) so the widget can
 // show an explicit "no longer active" state instead of failing to load.
-export function usePublicEmbed(id) {
+// `layout` is an optional per-install override -- see EmbedWidgetPage.jsx
+// (reads it from ?layout=) and EmbedPublicView on the backend.
+export function usePublicEmbed(id, layout) {
   const query = useQuery({
-    queryKey: queryKeys.embeds.public(id),
-    queryFn: () => embedApi.getPublicEmbed(id),
+    queryKey: queryKeys.embeds.public(id, layout),
+    queryFn: () => embedApi.getPublicEmbed(id, layout),
     select: (res) => res?.data?.embed ?? null,
     enabled: Boolean(id),
     retry: false,

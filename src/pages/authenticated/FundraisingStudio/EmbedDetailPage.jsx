@@ -32,6 +32,8 @@ function EmbedCodePanel({ snippet, copied, onCopy }) {
       </div>
       <p className="text-xs text-muted-foreground mt-2">
         Paste this into your website's HTML. It stays live -- content updates here without needing to change the code again.
+        This snippet always renders the layout currently selected on the left -- pick a different one and copy again to
+        install that layout somewhere else on your site. One embed, as many placements and layouts as you like.
       </p>
     </div>
   )
@@ -140,7 +142,11 @@ export function EmbedDetailPage() {
   // height="500" gives the in-place Donate form (see DonateModal.jsx) room
   // to render inside the iframe's own box -- it can't expand past its own
   // bounds on the host page, so an unset/too-short height would clip it.
-  const snippet = `<iframe src="${embed.embed_url}" width="100%" height="500" style="border:0;" loading="lazy" title="${embed.name}"></iframe>`
+  // `?layout=` is always explicit here (never left to the embed's own
+  // stored default) -- see EmbedPublicView on the backend -- so this exact
+  // snippet keeps rendering the layout currently selected even if the
+  // stored default is changed later from a different placement's snippet.
+  const snippet = `<iframe src="${embed.embed_url}?layout=${layout}" width="100%" height="500" style="border:0;" loading="lazy" title="${embed.name}"></iframe>`
 
   return (
     <div>
