@@ -90,6 +90,9 @@ export const queryKeys = {
   legalContent: {
     all: () => ['legal-content'],
   },
+  notificationSettings: {
+    all: () => ['notification-settings'],
+  },
   zakat: {
     settings: () => ['zakat', 'settings'],
     recommendedCampaigns: (limit) => ['zakat', 'recommended-campaigns', limit],

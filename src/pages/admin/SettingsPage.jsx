@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Percent, Save, CheckCircle2, AlertCircle, Image as ImageIcon, Upload, HandHeart, FileText, Palette, CreditCard, Smartphone } from 'lucide-react'
+import { Percent, Save, CheckCircle2, AlertCircle, Image as ImageIcon, Upload, HandHeart, FileText, Palette, CreditCard, Smartphone, Bell, MessageSquare } from 'lucide-react'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
 import { MarkdownEditor } from '@/components/custom/MarkdownEditor'
@@ -8,6 +8,7 @@ import { usePlatformSettings, useUpdatePlatformSettings } from '@/hooks/usePayme
 import { useSiteSettings, useUpdateSiteSettings } from '@/hooks/useSiteSettings'
 import { useZakatSettings, useUpdateZakatSettings } from '@/hooks/useZakat'
 import { useLegalContent, useUpdateLegalContent, useLegalVariables } from '@/hooks/useLegalContent'
+import { useNotificationSettings, useUpdateNotificationSettings } from '@/hooks/useNotificationSettings'
 import { formatGMD } from '@/utils/formatters'
 import { compressImage } from '@/utils/imageCompression'
 
@@ -16,6 +17,7 @@ const PAGE_TABS = [
   { key: 'payments', label: 'Payments', icon: CreditCard },
   { key: 'fees', label: 'Payout Fee', icon: Percent },
   { key: 'zakat', label: 'Zakat', icon: HandHeart },
+  { key: 'notifications', label: 'Notifications', icon: Bell },
   { key: 'legal', label: 'Legal & Help', icon: FileText },
 ]
 
@@ -55,7 +57,7 @@ export function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Platform Settings" description="Branding, fees, and platform-wide configuration" />
+      <PageHeader title="Platform Settings" description="Branding, fees, notifications, and platform-wide configuration" />
 
       {notification && (
         <div
@@ -140,6 +142,8 @@ export function SettingsPage() {
       )}
 
       {activeTab === 'zakat' && <ZakatSettingsCard onNotify={showNotification} />}
+
+      {activeTab === 'notifications' && <NotificationSettingsCard onNotify={showNotification} />}
 
       {activeTab === 'legal' && <LegalContentCard onNotify={showNotification} />}
     </div>
@@ -647,6 +651,73 @@ function ZakatSettingsCard({ onNotify }) {
       >
         <Save className="w-4 h-4" />
         {updateZakatSettings.isPending ? 'Saving…' : 'Save Changes'}
+      </button>
+    </div>
+  )
+}
+
+function NotificationSettingsCard({ onNotify }) {
+  const { settings, isLoading } = useNotificationSettings()
+  const updateSettings = useUpdateNotificationSettings()
+  const [smsEnabled, setSmsEnabled] = useState(false)
+  const [hydrated, setHydrated] = useState(false)
+
+  useEffect(() => {
+    if (settings && !hydrated) {
+      setSmsEnabled(settings.sms_enabled)
+      setHydrated(true)
+    }
+  }, [settings, hydrated])
+
+  const handleSave = () => {
+    updateSettings.mutate(
+      { sms_enabled: smsEnabled },
+      {
+        onSuccess: () => onNotify('success', 'Notification settings updated.'),
+        onError: (err) => onNotify('error', err?.response?.data?.message || 'Could not update notification settings.'),
+      },
+    )
+  }
+
+  if (isLoading || !hydrated) {
+    return (
+      <div className="border rounded-xl bg-card p-5 w-full">
+        <LoadingSpinner />
+      </div>
+    )
+  }
+
+  return (
+    <div className="border rounded-xl bg-card p-5 w-full space-y-5">
+      <div>
+        <h2 className="font-semibold flex items-center gap-2">
+          <Bell className="w-4 h-4" /> Notification Channels
+        </h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          In-app notifications and email always send. SMS is a separate, optional channel layered
+          on top of those - turning it on texts users for the same events (donations, payouts,
+          campaign status, account security) wherever they have a phone number on file.
+        </p>
+      </div>
+
+      <Toggle
+        checked={smsEnabled}
+        onChange={setSmsEnabled}
+        label={
+          <span className="inline-flex items-center gap-1.5">
+            <MessageSquare className="w-3.5 h-3.5" /> SMS notifications
+          </span>
+        }
+        description="Off by default - every message costs money. The SMS provider and its API key are configured on the server, not here; turning this on without a working provider configured means sends will just fail quietly into the server logs, same as a misconfigured email backend."
+      />
+
+      <button
+        onClick={handleSave}
+        disabled={updateSettings.isPending}
+        className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold px-5 py-2.5 rounded-xl hover:bg-primary/90 transition-colors text-sm disabled:opacity-60"
+      >
+        <Save className="w-4 h-4" />
+        {updateSettings.isPending ? 'Saving…' : 'Save Changes'}
       </button>
     </div>
   )

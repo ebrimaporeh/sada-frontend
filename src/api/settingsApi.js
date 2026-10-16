@@ -17,4 +17,7 @@ export const settingsApi = {
 
   getLegalContent: () => apiClient.get('/settings/legal/').then((r) => r.data),
   updateLegalContent: (data) => apiClient.patch('/settings/legal/', data).then((r) => r.data),
+
+  getNotificationSettings: () => apiClient.get('/settings/notifications/').then((r) => r.data),
+  updateNotificationSettings: (data) => apiClient.patch('/settings/notifications/', data).then((r) => r.data),
 }
