@@ -20,7 +20,6 @@ export const settings = {
     enableNotifications: true,
     enableMarketingEmails: false,
     enableSocialLogin: false,
-    demoMode: true,
   },
 
   pagination: {

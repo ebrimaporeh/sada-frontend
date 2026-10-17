@@ -12,25 +12,6 @@ import { cn } from '@/utils/cn'
 // realistically had time to arrive before another one can be requested.
 const RESEND_COOLDOWN_SECONDS = 30
 
-const TEST_ACCOUNTS = [
-  {
-    role: 'Admin',
-    email: 'admin@sada.gm',
-    password: 'Admin@1234',
-    description: 'Full platform access',
-    badge: 'bg-violet-100 text-violet-700',
-    border: 'border-violet-200 hover:border-violet-400',
-  },
-  {
-    role: 'Campaign Owner',
-    email: 'ousman@sada.gm',
-    password: 'User@1234',
-    description: 'Campaign management',
-    badge: 'bg-sky-100 text-sky-700',
-    border: 'border-sky-200 hover:border-sky-400',
-  },
-]
-
 export function LoginForm() {
   // Prefilled when arriving from an organization invitation link
   // (InvitationPage sends the invited email along) so the person doesn't
@@ -43,7 +24,6 @@ export function LoginForm() {
   const [email, setEmail] = useState(search?.email || '')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [activeDemo, setActiveDemo] = useState(null)
   const [resendSent, setResendSent] = useState(false)
   const [resendCooldown, setResendCooldown] = useState(0)
   const login = useLogin()
@@ -71,13 +51,6 @@ export function LoginForm() {
     })
   }
 
-  const handleDemoLogin = (account) => {
-    setActiveDemo(account.role)
-    setEmail(account.email)
-    setPassword(account.password)
-    login.mutate({ email: account.email, password: account.password })
-  }
-
   return (
     <div className="w-full space-y-6">
       {/* Bridges the gap between the Google consent popup closing and the
@@ -95,44 +68,6 @@ export function LoginForm() {
       <div className="space-y-1 text-center">
         <h1 className="text-2xl font-bold">Sign in</h1>
         <p className="text-sm text-muted-foreground">Enter your credentials to continue</p>
-      </div>
-
-      {/* Test account quick login */}
-      <div className="space-y-2">
-        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Quick login - test accounts
-        </p>
-        <div className="grid grid-cols-2 gap-2">
-          {TEST_ACCOUNTS.map((account) => {
-            const isLoading = login.isPending && activeDemo === account.role
-            return (
-              <button
-                key={account.role}
-                type="button"
-                onClick={() => handleDemoLogin(account)}
-                disabled={login.isPending}
-                className={[
-                  'relative flex flex-col items-center gap-1.5 rounded-lg border bg-card p-3',
-                  'text-center transition-all duration-150',
-                  'disabled:cursor-not-allowed disabled:opacity-60',
-                  account.border,
-                ].join(' ')}
-              >
-                {isLoading && (
-                  <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-background/60">
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-muted border-t-primary" />
-                  </div>
-                )}
-                <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${account.badge}`}>
-                  {account.role}
-                </span>
-                <span className="text-[10px] leading-tight text-muted-foreground">
-                  {account.description}
-                </span>
-              </button>
-            )
-          })}
-        </div>
       </div>
 
       {googleOAuth.isError && (
@@ -195,7 +130,7 @@ export function LoginForm() {
           <input
             type="email"
             value={email}
-            onChange={(e) => { setEmail(e.target.value); setActiveDemo(null) }}
+            onChange={(e) => setEmail(e.target.value)}
             required
             readOnly={emailLocked}
             placeholder="you@example.com"
@@ -215,7 +150,7 @@ export function LoginForm() {
             <input
               type={showPassword ? 'text' : 'password'}
               value={password}
-              onChange={(e) => { setPassword(e.target.value); setActiveDemo(null) }}
+              onChange={(e) => setPassword(e.target.value)}
               required
               autoComplete="current-password"
               className="w-full rounded-md border bg-background px-3 py-2 pr-10 text-sm focus:outline-hidden focus:ring-2 focus:ring-ring"
@@ -242,7 +177,7 @@ export function LoginForm() {
           disabled={login.isPending}
           className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
         >
-          {login.isPending && !activeDemo ? 'Signing in...' : 'Sign in'}
+          {login.isPending ? 'Signing in...' : 'Sign in'}
         </button>
       </form>
 

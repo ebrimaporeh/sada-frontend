@@ -44,15 +44,6 @@ describe('LoginForm', () => {
     expect(loginMutate).toHaveBeenCalledWith({ email: 'donor@example.com', password: 'StrongPass@1' })
   })
 
-  it('a quick-login demo account button submits its own credentials', async () => {
-    const user = userEvent.setup()
-    render(<LoginForm />)
-
-    await user.click(screen.getByText('Admin'))
-
-    expect(loginMutate).toHaveBeenCalledWith({ email: 'admin@sada.gm', password: 'Admin@1234' })
-  })
-
   it('shows a resend-verification link only when the error is about an unverified email', () => {
     loginState = {
       isPending: false,
