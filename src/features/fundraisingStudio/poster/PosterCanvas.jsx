@@ -2,14 +2,19 @@ import { useEffect, useRef, useState } from 'react'
 import { Layer, Rect, Stage, Transformer } from 'react-konva'
 import { PosterElementNode } from './PosterElementNode'
 
-// Design-space stays fixed at the poster's own design.width/height (set
-// once at creation from the chosen template's size, see
-// posterTemplates.js/templateCompositions.js -- square/story/wide are
-// genuinely different aspect ratios, not just a palette choice); only
-// Konva's own stageScale shrinks it to fit the visible container --
-// deliberately not a CSS transform, since Konva's scaleX/scaleY (unlike a
-// CSS transform on an ancestor) is what correctly keeps pointer/drag/
-// transform coordinates in design space regardless of on-screen zoom.
+// Design-space stays fixed at whichever layout's own pixel size is
+// currently being viewed/edited (`width`/`height`, from posterTemplates.js
+// via PosterEditor.jsx -- square/story/wide are genuinely different aspect
+// ratios, not just a palette choice); only Konva's own stageScale shrinks
+// it to fit the visible container -- deliberately not a CSS transform,
+// since Konva's scaleX/scaleY (unlike a CSS transform on an ancestor) is
+// what correctly keeps pointer/drag/transform coordinates in design space
+// regardless of on-screen zoom. `elements` is already projected for that
+// layout (see layoutProjection.js) -- this component has no opinion on
+// canonical-vs-derived geometry, it just renders whatever pixel values
+// it's handed and reports drag/transform results back as `onElementChange
+// (id, patch)`, leaving PosterEditor.jsx to decide where that patch
+// belongs (the shared element, or that layout's own override).
 //
 // The container is height-bounded by the caller (PosterEditor's wrapper),
 // not sized off a CSS aspect-ratio driven purely by width -- a Story
@@ -18,7 +23,7 @@ import { PosterElementNode } from './PosterElementNode'
 // container dimensions and scaling to *contain* the design within them
 // (like `object-fit: contain`) keeps the entire poster visible regardless
 // of its aspect ratio.
-export function PosterCanvas({ design, destination, selectedId, onSelect, onElementChange, stageRef }) {
+export function PosterCanvas({ elements, width, height, background, destination, selectedId, onSelect, onElementChange, stageRef }) {
   const containerRef = useRef(null)
   const transformerRef = useRef(null)
   const nodeRefs = useRef({})
@@ -28,12 +33,12 @@ export function PosterCanvas({ design, destination, selectedId, onSelect, onElem
     const el = containerRef.current
     if (!el) return
     const observer = new ResizeObserver((entries) => {
-      const { width, height } = entries[0]?.contentRect ?? {}
-      if (width && height) setStageScale(Math.min(width / design.width, height / design.height))
+      const { width: cw, height: ch } = entries[0]?.contentRect ?? {}
+      if (cw && ch) setStageScale(Math.min(cw / width, ch / height))
     })
     observer.observe(el)
     return () => observer.disconnect()
-  }, [design.width, design.height])
+  }, [width, height])
 
   useEffect(() => {
     const node = selectedId ? nodeRefs.current[selectedId] : null
@@ -41,21 +46,17 @@ export function PosterCanvas({ design, destination, selectedId, onSelect, onElem
       transformerRef.current.nodes(node ? [node] : [])
       transformerRef.current.getLayer()?.batchDraw()
     }
-  }, [selectedId, design.elements.length])
+  }, [selectedId, elements.length])
 
-  function commitElement(id, patch) {
-    onElementChange(design.elements.map((el) => (el.id === id ? { ...el, ...patch } : el)))
-  }
-
-  const selectedElement = design.elements.find((el) => el.id === selectedId)
+  const selectedElement = elements.find((el) => el.id === selectedId)
   const isLineSelected = selectedElement?.shapeType === 'line'
 
   return (
     <div ref={containerRef} className="w-full h-full flex items-center justify-center">
       <Stage
         ref={stageRef}
-        width={design.width * stageScale}
-        height={design.height * stageScale}
+        width={width * stageScale}
+        height={height * stageScale}
         scaleX={stageScale}
         scaleY={stageScale}
         onMouseDown={(e) => {
@@ -63,8 +64,8 @@ export function PosterCanvas({ design, destination, selectedId, onSelect, onElem
         }}
       >
         <Layer>
-          <Rect x={0} y={0} width={design.width} height={design.height} fill={design.background} listening={false} />
-          {design.elements.map((element) => (
+          <Rect x={0} y={0} width={width} height={height} fill={background} listening={false} />
+          {elements.map((element) => (
             <PosterElementNode
               key={element.id}
               element={element}
@@ -74,7 +75,7 @@ export function PosterCanvas({ design, destination, selectedId, onSelect, onElem
                 draggable: true,
                 onClick: () => onSelect(element.id),
                 onTap: () => onSelect(element.id),
-                onDragEnd: (e) => commitElement(element.id, { x: e.target.x(), y: e.target.y() }),
+                onDragEnd: (e) => onElementChange(element.id, { x: e.target.x(), y: e.target.y() }),
                 onTransformEnd: (e) => {
                   const node = e.target
                   const scaleX = node.scaleX()
@@ -96,7 +97,7 @@ export function PosterCanvas({ design, destination, selectedId, onSelect, onElem
                   if (element.shapeType !== 'line') {
                     patch.height = Math.max(20, node.height() * scaleY)
                   }
-                  commitElement(element.id, patch)
+                  onElementChange(element.id, patch)
                 },
               }}
             />

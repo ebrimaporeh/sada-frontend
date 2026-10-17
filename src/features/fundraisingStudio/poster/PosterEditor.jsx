@@ -9,7 +9,11 @@ import { PosterCanvas } from './PosterCanvas'
 import { ElementsPanel } from './ElementsPanel'
 import { PropertiesPanel } from './PropertiesPanel'
 import { exportPosterAsPng } from './exportPoster'
-import { buildInitialDesign, findBackgroundImage, findBackgroundScrim } from './templateCompositions'
+import { findBackgroundImage } from './templateCompositions'
+import {
+  applyElementPatch, clearElementOverride, hasElementOverride, projectElementsForLayout, removeElementEverywhere,
+  CANONICAL_LAYOUT,
+} from './layoutProjection'
 import { POSTER_TEMPLATES } from '../shared/posterTemplates'
 
 const AUTOSAVE_DEBOUNCE_MS = 1200
@@ -73,6 +77,13 @@ export function PosterEditor({ poster }) {
   const exportMenuRef = useRef(null)
   const exportMenuRefLg = useRef(null)
   const [selectedId, setSelectedId] = useState(null)
+  // Purely a view toggle now -- which layout the canvas/properties below
+  // are currently showing -- not design data, and not persisted: it never
+  // mutates `design` (see layoutProjection.js) or regenerates anything.
+  // Opens on the poster's own `template` (its "default layout") so coming
+  // back to an existing poster picks up where its last editor session's
+  // ElementsPanel.jsx size selector left off.
+  const [currentLayout, setCurrentLayout] = useState(poster.template || CANONICAL_LAYOUT)
   const [saveState, setSaveState] = useState('saved') // 'saved' | 'unsaved' | 'saving'
   const [isExporting, setIsExporting] = useState(false)
   const [isExportMenuOpen, setIsExportMenuOpen] = useState(false)
@@ -124,25 +135,35 @@ export function PosterEditor({ poster }) {
     if (!isFirstRun.current) setSaveState('unsaved')
   }, [design])
 
-  const selectedElement = design.elements.find((el) => el.id === selectedId) || null
-  const currentSize = POSTER_TEMPLATES.find((t) => t.width === design.width && t.height === design.height)?.value
+  // The elements actually shown/edited below -- Square (canonical) is
+  // `design.elements` untouched; story/wide are derived from it (plus any
+  // layout-specific override) by layoutProjection.js. Content edits
+  // (text/color/binding/add/delete/reorder) below always go through
+  // `design`/`commit` directly -- only geometry (position/size/rotation/
+  // font size) needs to know which layout is currently active, via
+  // handleElementChange.
+  const layoutDims = POSTER_TEMPLATES.find((t) => t.value === currentLayout) ?? POSTER_TEMPLATES[0]
+  const viewElements = projectElementsForLayout(design, currentLayout)
+  const selectedElement = viewElements.find((el) => el.id === selectedId) || null
 
   function handleAdd(element) {
     commit({ ...design, elements: [...design.elements, element] })
     setSelectedId(element.id)
   }
 
-  function handleElementsChange(nextElements) {
-    commit({ ...design, elements: nextElements })
-  }
-
-  function handlePropertyChange(updated) {
-    commit({ ...design, elements: design.elements.map((el) => (el.id === updated.id ? updated : el)) })
+  // Single entry point for both the canvas (drag/transform end) and the
+  // Properties panel -- layoutProjection.js decides whether `patch` is a
+  // geometry tweak for the currently-active layout only (goes into
+  // layoutOverrides) or a content change that belongs on the shared
+  // element (text/color/binding/opacity/...), which is what keeps those
+  // changes visible across every layout immediately.
+  function handleElementChange(id, patch) {
+    commit(applyElementPatch(design, currentLayout, id, patch))
   }
 
   function handleDelete() {
     if (!selectedId) return
-    commit({ ...design, elements: design.elements.filter((el) => el.id !== selectedId) })
+    commit(removeElementEverywhere(design, selectedId))
     setSelectedId(null)
   }
 
@@ -151,52 +172,6 @@ export function PosterEditor({ poster }) {
     const elements = design.elements.filter((el) => el.id !== selectedId)
     const element = design.elements.find((el) => el.id === selectedId)
     commit({ ...design, elements: direction === 'front' ? [...elements, element] : [element, ...elements] })
-  }
-
-  // Regenerates the template's own starting elements at the new size rather
-  // than rescaling them -- a linear x/y/font transform can't reproduce the
-  // same bottom-anchored layout math templateCompositions.js uses across
-  // wildly different aspect ratios (e.g. Story's 9:16 down to Wide's
-  // ~1.9:1) without producing visibly broken results. Anything the user
-  // added themselves (unmarked by `fromTemplate`) isn't template-generated
-  // in the first place, so there's no such layout math to reproduce for it
-  // -- it's kept and proportionally rescaled onto the new canvas instead of
-  // being thrown away. Undo remains the safety net for the template part.
-  function handleSizeChange(nextTemplate) {
-    const size = POSTER_TEMPLATES.find((t) => t.value === nextTemplate)
-    if (!size || (design.width === size.width && design.height === size.height)) return
-    const scaleX = size.width / design.width
-    const scaleY = size.height / design.height
-    const scale = Math.min(scaleX, scaleY) // uniform, so rescaled elements keep their own proportions
-    const customElements = design.elements
-      .filter((el) => !el.fromTemplate)
-      .map((el) => ({
-        ...el,
-        x: Math.round(el.x * scaleX),
-        y: Math.round(el.y * scaleY),
-        ...(typeof el.width === 'number' ? { width: Math.round(el.width * scale) } : {}),
-        ...(typeof el.height === 'number' ? { height: Math.round(el.height * scale) } : {}),
-        ...(typeof el.fontSize === 'number' ? { fontSize: Math.round(el.fontSize * scale) } : {}),
-      }))
-    const next = buildInitialDesign(nextTemplate, poster.destination?.type)
-    // Background choice (which image, or a flat color instead) is a design-
-    // wide setting, not per-size layout -- carry it onto the freshly
-    // regenerated background-image/scrim elements rather than resetting to
-    // the template default every time the size changes.
-    const oldBackgroundImage = findBackgroundImage(design)
-    const oldScrim = findBackgroundScrim(design)
-    const nextElements = next.elements.map((el) => {
-      // `src` too, not just `binding` -- a background promoted from a plain
-      // uploaded image (handleSetImageAsBackground) has no binding at all.
-      if (el.role === 'background-image' && oldBackgroundImage) {
-        return { ...el, binding: oldBackgroundImage.binding, src: oldBackgroundImage.src }
-      }
-      if (el.role === 'scrim' && oldScrim) return { ...el, opacity: oldScrim.opacity }
-      return el
-    })
-    commit({ ...next, background: design.background, elements: [...nextElements, ...customElements] })
-    setSelectedId(null)
-    updatePoster.mutate({ id: poster.id, template: nextTemplate })
   }
 
   // binding: which image the background shows ('cover_image_url' /
@@ -257,7 +232,7 @@ export function PosterEditor({ poster }) {
     // clear off the canvas before rasterizing -- otherwise they'd get
     // baked into the exported PNG.
     requestAnimationFrame(() => {
-      exportPosterAsPng(stageRef.current, { pixelRatio, filename: `${poster.name}.png`, width: design.width, height: design.height })
+      exportPosterAsPng(stageRef.current, { pixelRatio, filename: `${poster.name}.png`, width: layoutDims.width, height: layoutDims.height })
       setIsExporting(false)
     })
   }
@@ -282,7 +257,7 @@ export function PosterEditor({ poster }) {
         <div className="hidden lg:flex flex-wrap items-center gap-2 rounded-xl border bg-card px-3 py-2">
           <UndoRedoControls canUndo={canUndo} canRedo={canRedo} undo={undo} redo={redo} />
           <div className="w-px h-8 bg-border" />
-          <ElementsPanel posterId={poster.id} onAdd={handleAdd} currentSize={currentSize} onSizeChange={handleSizeChange} />
+          <ElementsPanel posterId={poster.id} onAdd={handleAdd} currentSize={currentLayout} onSizeChange={setCurrentLayout} />
           <div className="flex items-center gap-2 ml-auto">
             <SaveStateIndicator saveState={saveState} />
             <ExportMenu
@@ -291,7 +266,7 @@ export function PosterEditor({ poster }) {
               onToggle={toggleExportMenu}
               isExporting={isExporting}
               onExport={handleExport}
-              width={design.width}
+              width={layoutDims.width}
             />
             {shareButton}
           </div>
@@ -308,24 +283,27 @@ export function PosterEditor({ poster }) {
                 onToggle={toggleExportMenu}
                 isExporting={isExporting}
                 onExport={handleExport}
-                width={design.width}
+                width={layoutDims.width}
               />
               {shareButton}
             </div>
           </div>
 
           <div className="rounded-xl border bg-card px-2 py-1.5 overflow-x-auto">
-            <ElementsPanel posterId={poster.id} onAdd={handleAdd} currentSize={currentSize} onSizeChange={handleSizeChange} />
+            <ElementsPanel posterId={poster.id} onAdd={handleAdd} currentSize={currentLayout} onSizeChange={setCurrentLayout} />
           </div>
         </div>
 
         <div className="rounded-xl border bg-muted/30 p-4 h-[70vh] max-h-[820px] min-h-[360px]">
           <PosterCanvas
-            design={design}
+            elements={viewElements}
+            width={layoutDims.width}
+            height={layoutDims.height}
+            background={design.background}
             destination={poster.destination}
             selectedId={selectedId}
             onSelect={setSelectedId}
-            onElementChange={handleElementsChange}
+            onElementChange={handleElementChange}
             stageRef={stageRef}
           />
         </div>
@@ -334,13 +312,15 @@ export function PosterEditor({ poster }) {
       <aside className="rounded-xl border bg-card p-3 h-fit">
         <PropertiesPanel
           element={selectedElement}
-          onChange={handlePropertyChange}
+          onChange={handleElementChange}
           onDelete={handleDelete}
           onBringToFront={() => reorder('front')}
           onSendToBack={() => reorder('back')}
           design={design}
           onBackgroundChange={handleBackgroundChange}
           onSetAsBackground={handleSetImageAsBackground}
+          hasLayoutOverride={selectedId ? hasElementOverride(design, currentLayout, selectedId) : false}
+          onResetLayoutOverride={() => commit(clearElementOverride(design, currentLayout, selectedId))}
         />
       </aside>
     </div>

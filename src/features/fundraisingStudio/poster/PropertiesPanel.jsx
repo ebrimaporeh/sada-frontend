@@ -1,4 +1,4 @@
-import { AlertTriangle, ArrowDownToLine, ArrowUpToLine, Trash2 } from 'lucide-react'
+import { AlertTriangle, ArrowDownToLine, ArrowUpToLine, RotateCcw, Trash2 } from 'lucide-react'
 import { SearchSelect } from '@/components/custom/SearchSelect'
 import { BINDING_FIELDS, FONT_FAMILIES } from './designSchema'
 import { findBackgroundImage } from './templateCompositions'
@@ -70,6 +70,7 @@ function BackgroundPanel({ design, onChange }) {
 
 export function PropertiesPanel({
   element, onChange, onDelete, onBringToFront, onSendToBack, design, onBackgroundChange, onSetAsBackground,
+  hasLayoutOverride, onResetLayoutOverride,
 }) {
   if (!element) {
     return (
@@ -81,7 +82,7 @@ export function PropertiesPanel({
   }
 
   function set(patch) {
-    onChange({ ...element, ...patch })
+    onChange(element.id, patch)
   }
 
   return (
@@ -100,6 +101,19 @@ export function PropertiesPanel({
           </button>
         </div>
       </div>
+
+      {/* Position/size here were manually adjusted for this one layout
+          (square/story/wide) and no longer track the shared default --
+          see layoutProjection.js. This is the way back to it. */}
+      {hasLayoutOverride && (
+        <button
+          type="button"
+          onClick={onResetLayoutOverride}
+          className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground w-full px-2.5 py-1.5 rounded-md border hover:bg-accent transition-colors"
+        >
+          <RotateCcw className="w-3.5 h-3.5" /> Reset position for this layout
+        </button>
+      )}
 
       {element.type === 'text' && (
         <>

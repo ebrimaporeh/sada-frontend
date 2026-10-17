@@ -3,21 +3,21 @@ import {
 } from './designSchema'
 import { POSTER_TEMPLATES } from '../shared/posterTemplates'
 
-// Every template is the same composition at a different aspect ratio (see
-// posterTemplates.js for why sizes, not styles) -- the destination's cover
+// One poster now covers all three layouts (square/story/wide) at once --
+// this builds the single shared composition, expressed at the canonical
+// Square reference size (see layoutProjection.js for how story/wide derive
+// their own geometry from it at render time). The destination's cover
 // photo fills the frame, a dark scrim sits over it for legibility, and
 // title/org/description/QR are anchored to the bottom-left, sized as a
-// fraction of canvas width so square/story/wide all read consistently at
-// their own scale. Not five bespoke palettes anymore (see the old
-// TEMPLATE_STYLES this replaced) -- what differs between templates now is
-// pure geometry. Still "a configurable starting composition, not a locked
-// design" -- once created, every element below is freely moved/edited/
-// deleted like any other (PosterEditor.jsx).
+// fraction of canvas width. Not five bespoke palettes anymore (see the old
+// TEMPLATE_STYLES this replaced) -- still "a configurable starting
+// composition, not a locked design": once created, every element below is
+// freely moved/edited/deleted like any other (PosterEditor.jsx).
 const OVERLAY_COLOR = 'rgba(8, 11, 20, 0.55)'
 const BACKGROUND_FALLBACK = '#0f172a'
 
-export function buildInitialDesign(template, destinationType) {
-  const size = POSTER_TEMPLATES.find((t) => t.value === template) ?? POSTER_TEMPLATES[0]
+export function buildInitialDesign(destinationType) {
+  const size = POSTER_TEMPLATES.find((t) => t.value === 'square')
   const { width, height } = size
   const hasStats = destinationType === 'campaign'
   // Organizations don't have a cover photo (that's a campaign-only field) --

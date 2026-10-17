@@ -62,13 +62,3 @@ export function useUploadPosterImage() {
     mutationFn: ({ id, file }) => posterApi.uploadPosterImage(id, file),
   })
 }
-
-export function useDuplicatePoster() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (id) => posterApi.duplicatePoster(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.posters.mine() })
-    },
-  })
-}

@@ -3,25 +3,20 @@ import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { ChevronLeft, Loader2, Image as ImageIcon, QrCode } from 'lucide-react'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
-import { cn } from '@/utils/cn'
 import { ROUTES } from '@/constants'
 import { useFundraisingDestinations } from '@/features/fundraisingStudio/shared/useFundraisingDestinations'
 import { DestinationPicker } from '@/features/fundraisingStudio/shared/DestinationPicker'
-import { POSTER_TEMPLATES } from '@/features/fundraisingStudio/shared/posterTemplates'
 import { buildInitialDesign } from '@/features/fundraisingStudio/poster/templateCompositions'
 import { useCreatePoster } from '@/hooks/usePosters'
 
-// Real stand-in for the actual composition (templateCompositions.js) --
-// destination's cover photo full-bleed, dark overlay, title/subtitle
-// caption at the bottom, QR corner -- at the template's own aspect ratio,
-// so picking a size shows what *this* destination will actually look like
-// instead of an abstract shape chip.
-function TemplatePreviewThumb({ template, destination }) {
+// A poster now covers all three layouts (square/story/wide) at once --
+// see .claude/backend/fundraising.md -- so there's no "pick a size" step
+// here anymore, just this one Square preview (the canonical layout every
+// poster is built at, see templateCompositions.js) to confirm what the
+// chosen destination will actually look like before creating it.
+function DestinationPreviewThumb({ destination }) {
   return (
-    <div
-      className="relative w-full rounded-md overflow-hidden border bg-slate-900"
-      style={{ aspectRatio: `${template.width} / ${template.height}` }}
-    >
+    <div className="relative w-full aspect-square rounded-md overflow-hidden border bg-slate-900">
       {destination?.coverImageUrl ? (
         <img src={destination.coverImageUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
       ) : (
@@ -56,7 +51,6 @@ export function PosterNewPage() {
   const createPoster = useCreatePoster()
 
   const [destination, setDestination] = useState(null)
-  const [template, setTemplate] = useState(null)
 
   useEffect(() => {
     if (destination || isLoading || !search?.destinationType || !search?.destinationId) return
@@ -66,14 +60,14 @@ export function PosterNewPage() {
   }, [destination, isLoading, search?.destinationType, search?.destinationId, campaignDestinations, organizationDestinations])
 
   function handleCreate() {
-    if (!destination || !template) return
+    if (!destination) return
     createPoster.mutate(
       {
         destination_type: destination.type,
         ...(destination.type === 'campaign' ? { campaign_id: destination.id } : { organization_id: destination.id }),
         name: `${destination.title} Poster`,
-        template,
-        design: buildInitialDesign(template, destination.type),
+        template: 'square',
+        design: buildInitialDesign(destination.type),
       },
       { onSuccess: (res) => navigate({ to: ROUTES.FUNDRAISING_POSTER_DETAIL, params: { id: res.data.poster.id } }) },
     )
@@ -89,11 +83,11 @@ export function PosterNewPage() {
       >
         <ChevronLeft className="w-4 h-4" /> Posters
       </Link>
-      <PageHeader title="Create Poster" description="Choose what you're promoting, then a size." />
+      <PageHeader title="Create Poster" description="Choose what you're promoting -- the editor covers every layout from there." />
 
       <div className="grid lg:grid-cols-[320px_1fr] gap-8 items-start">
         <section className="lg:sticky lg:top-6">
-          <p className="font-medium mb-3">1. Destination</p>
+          <p className="font-medium mb-3">Destination</p>
           <DestinationPicker
             campaignDestinations={campaignDestinations}
             organizationDestinations={organizationDestinations}
@@ -104,32 +98,14 @@ export function PosterNewPage() {
         </section>
 
         <section>
-          <p className="font-medium mb-3">2. Size</p>
-          <div
-            className={cn(
-              'grid grid-cols-3 gap-3 sm:gap-4 transition-opacity',
-              !destination && 'opacity-50 pointer-events-none',
+          <p className="font-medium mb-3">Preview</p>
+          <div className="max-w-xs">
+            {destination ? (
+              <DestinationPreviewThumb destination={destination} />
+            ) : (
+              <p className="text-sm text-muted-foreground">Choose a destination first.</p>
             )}
-          >
-            {POSTER_TEMPLATES.map((t) => (
-              <button
-                key={t.value}
-                type="button"
-                onClick={() => setTemplate(t.value)}
-                className={cn(
-                  'text-left rounded-lg border p-2 transition-colors',
-                  template === t.value ? 'border-primary bg-primary/5' : 'hover:bg-accent',
-                )}
-              >
-                <TemplatePreviewThumb template={t} destination={destination} />
-                <p className="text-sm font-medium mt-2">{t.label}</p>
-                <p className="text-xs text-muted-foreground">{t.description}</p>
-              </button>
-            ))}
           </div>
-          {!destination && (
-            <p className="text-sm text-muted-foreground mt-3">Choose a destination first.</p>
-          )}
 
           {createPoster.isError && (
             <p className="text-sm text-destructive mt-6">
@@ -139,7 +115,7 @@ export function PosterNewPage() {
 
           <button
             type="button"
-            disabled={!destination || !template || createPoster.isPending}
+            disabled={!destination || createPoster.isPending}
             onClick={handleCreate}
             className="mt-6 inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
           >

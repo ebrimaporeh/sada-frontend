@@ -9,8 +9,9 @@ import { useCreatePoster } from '@/hooks/usePosters'
 import { campaignShareUrl } from '@/utils/shareUrls'
 import { ROUTES } from '@/constants'
 
-// Square reads best in a narrow column and needs the least cropping of a
-// typical cover photo -- see posterTemplates.js for the other shapes.
+// Square (the canonical layout every poster is built at, see
+// templateCompositions.js/layoutProjection.js) reads best in a narrow
+// column and needs the least cropping of a typical cover photo anyway.
 const DEFAULT_TEMPLATE = 'square'
 
 export function CampaignLaunchedScreen({ campaign, onManage }) {
@@ -42,7 +43,7 @@ export function CampaignLaunchedScreen({ campaign, onManage }) {
     public_url: shareUrl,
     donation_url: shareUrl,
   }
-  const design = buildInitialDesign(DEFAULT_TEMPLATE, 'campaign')
+  const design = buildInitialDesign('campaign')
 
   function handleCopyLink() {
     navigator.clipboard.writeText(shareUrl)

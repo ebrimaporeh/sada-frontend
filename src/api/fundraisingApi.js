@@ -16,9 +16,6 @@ export const posterApi = {
   deletePoster: (id) =>
     apiClient.delete(`/fundraising/posters/${id}/`).then((r) => r.data),
 
-  duplicatePoster: (id) =>
-    apiClient.post(`/fundraising/posters/${id}/duplicate/`).then((r) => r.data),
-
   uploadPosterImage: (id, file) => {
     const form = new FormData()
     form.append('image', file)

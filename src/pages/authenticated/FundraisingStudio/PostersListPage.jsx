@@ -1,16 +1,16 @@
 import { useRef, useState } from 'react'
 import { Link } from '@tanstack/react-router'
-import { ChevronLeft, Copy, Download, ExternalLink, Image, PlusCircle, SquarePen, Trash2 } from 'lucide-react'
+import { ChevronLeft, Download, ExternalLink, Image, PlusCircle, SquarePen, Trash2 } from 'lucide-react'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { EmptyState } from '@/components/custom/EmptyState'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
 import { ConfirmModal } from '@/components/custom/ConfirmModal'
 import { ROUTES } from '@/constants'
-import { usePosters, useDeletePoster, useDuplicatePoster } from '@/hooks/usePosters'
+import { usePosters, useDeletePoster } from '@/hooks/usePosters'
 import { PosterThumbnail } from '@/features/fundraisingStudio/poster/PosterThumbnail'
 import { exportPosterAsPng } from '@/features/fundraisingStudio/poster/exportPoster'
 
-function PosterCard({ poster, onDuplicate, onDelete }) {
+function PosterCard({ poster, onDelete }) {
   const stageRef = useRef(null)
 
   function handleDownload() {
@@ -61,14 +61,6 @@ function PosterCard({ poster, onDuplicate, onDelete }) {
           >
             <Download className="w-3 h-3" />
           </button>
-          <button
-            type="button"
-            title="Duplicate"
-            onClick={onDuplicate}
-            className="p-1 rounded-md border hover:bg-accent transition-colors"
-          >
-            <Copy className="w-3 h-3" />
-          </button>
           {poster.share_url && (
             <a
               href={poster.share_url}
@@ -96,7 +88,6 @@ function PosterCard({ poster, onDuplicate, onDelete }) {
 
 export function PostersListPage() {
   const { posters, isLoading } = usePosters()
-  const duplicatePoster = useDuplicatePoster()
   const deletePoster = useDeletePoster()
   const [pendingDeleteId, setPendingDeleteId] = useState(null)
 
@@ -136,7 +127,6 @@ export function PostersListPage() {
             <PosterCard
               key={poster.id}
               poster={poster}
-              onDuplicate={() => duplicatePoster.mutate(poster.id)}
               onDelete={() => setPendingDeleteId(poster.id)}
             />
           ))}
