@@ -1,5 +1,7 @@
 import { X } from 'lucide-react'
 import { useEffect } from 'react'
+import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut'
+import { KeyHint } from './KeyHint'
 
 export function Sheet({ isOpen, onClose, title, children, footer, header }) {
   useEffect(() => {
@@ -12,6 +14,8 @@ export function Sheet({ isOpen, onClose, title, children, footer, header }) {
       document.body.style.overflow = 'auto'
     }
   }, [isOpen])
+
+  useKeyboardShortcut('Escape', onClose, { enabled: isOpen })
 
   if (!isOpen) return null
 
@@ -30,6 +34,7 @@ export function Sheet({ isOpen, onClose, title, children, footer, header }) {
           <h2 className="text-lg font-bold">{title}</h2>
           <div className="flex items-center gap-2">
             {header}
+            <KeyHint combo="Escape" />
             <button
               onClick={onClose}
               className="p-1 rounded-lg hover:bg-accent transition-colors"

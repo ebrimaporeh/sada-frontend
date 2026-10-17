@@ -1,5 +1,7 @@
 import { AlertTriangle, Loader2, X } from 'lucide-react'
 import { cn } from '@/utils/cn'
+import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut'
+import { KeyHint } from './KeyHint'
 
 export function ConfirmModal({
   isOpen,
@@ -13,6 +15,13 @@ export function ConfirmModal({
   variant = 'destructive',
   errorMessage,
 }) {
+  // Enter only ever reaches onConfirm once this modal is already open --
+  // i.e. after whatever explicit click opened it (a row's delete button,
+  // say) -- never as a standalone global binding that could fire a
+  // destructive action from a list view by itself.
+  useKeyboardShortcut('Escape', onClose, { enabled: isOpen && !isLoading })
+  useKeyboardShortcut('Enter', onConfirm, { enabled: isOpen && !isLoading })
+
   if (!isOpen) return null
 
   return (
@@ -54,9 +63,10 @@ export function ConfirmModal({
           <button
             onClick={onClose}
             disabled={isLoading}
-            className="flex-1 px-4 py-2 rounded-lg border hover:bg-accent transition-colors text-sm font-medium disabled:opacity-50"
+            className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border hover:bg-accent transition-colors text-sm font-medium disabled:opacity-50"
           >
             {cancelLabel}
+            {!isLoading && <KeyHint combo="Escape" />}
           </button>
           <button
             onClick={onConfirm}
@@ -70,6 +80,10 @@ export function ConfirmModal({
           >
             {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
             {isLoading ? 'Please wait…' : confirmLabel}
+            {/* Light/translucent, not the muted-background default --
+                KeyHint's own bg-muted would be nearly invisible against
+                this button's solid destructive/primary fill. */}
+            {!isLoading && <KeyHint combo="Enter" className="bg-white/15 text-current border-white/25" />}
           </button>
         </div>
       </div>

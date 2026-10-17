@@ -1,6 +1,10 @@
 import { X } from 'lucide-react'
+import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut'
+import { KeyHint } from './KeyHint'
 
 export function ImageZoomModal({ isOpen, onClose, src, alt }) {
+  useKeyboardShortcut('Escape', onClose, { enabled: isOpen })
+
   if (!isOpen) return null
 
   return (
@@ -10,9 +14,10 @@ export function ImageZoomModal({ isOpen, onClose, src, alt }) {
     >
       <button
         onClick={onClose}
-        className="absolute top-4 right-4 p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors"
+        className="absolute top-4 right-4 p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors flex items-center gap-1.5"
       >
         <X className="w-5 h-5" />
+        <KeyHint combo="Escape" className="bg-white/10 text-white/80 border-white/20" />
       </button>
       <img
         src={src}

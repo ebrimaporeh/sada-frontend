@@ -96,7 +96,11 @@ export function PropertiesPanel({
           <button type="button" title="Send to back" onClick={onSendToBack} className="p-1.5 rounded-md hover:bg-accent">
             <ArrowDownToLine className="w-3.5 h-3.5" />
           </button>
-          <button type="button" title="Delete" onClick={onDelete} className="p-1.5 rounded-md hover:bg-destructive/10 hover:text-destructive">
+          {/* Backspace/Delete do the same thing -- see PosterEditor.jsx's
+              useKeyboardShortcut calls -- surfaced here in the tooltip
+              since this is a small icon-only button with no room for a
+              visible KeyHint badge. */}
+          <button type="button" title="Delete (Backspace)" onClick={onDelete} className="p-1.5 rounded-md hover:bg-destructive/10 hover:text-destructive">
             <Trash2 className="w-3.5 h-3.5" />
           </button>
         </div>

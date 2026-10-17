@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Search, Loader2, SearchX } from 'lucide-react'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { AdminPagination } from '@/components/custom/AdminPagination'
 import { Sheet } from '@/components/custom/Sheet'
 import { Select } from '@/components/custom/Select'
+import { KeyHint } from '@/components/custom/KeyHint'
+import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut'
 import { formatDateTime } from '@/utils/formatters'
 import { useAuditLogs, useAuditActions, useAuditActors } from '@/hooks/useAudit'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
@@ -20,6 +22,8 @@ const DEFAULT_VERB_COLOR = 'bg-green-100 text-green-700'
 
 export function AuditPage() {
   const [search, setSearch] = useState('')
+  const searchInputRef = useRef(null)
+  useKeyboardShortcut('mod+k', () => searchInputRef.current?.focus(), { allowInEditable: true })
   const [actionFilter, setActionFilter] = useState('')
   const [actorFilter, setActorFilter] = useState('')
   const [page, setPage] = useState(1)
@@ -58,12 +62,14 @@ export function AuditPage() {
           <div className="relative flex-1 min-w-52">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
+              ref={searchInputRef}
               type="text"
               placeholder="Search activity…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
+              className="w-full pl-9 pr-12 py-2 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
             />
+            <KeyHint combo="mod+k" className="absolute right-2.5 top-1/2 -translate-y-1/2" />
           </div>
           <Select
             value={actionFilter}

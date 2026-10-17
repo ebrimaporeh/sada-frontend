@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Loader2, Search, SearchX, Plus, Edit2, Trash2, Upload, X, CheckCircle2, AlertCircle, FolderOpen } from 'lucide-react'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { EmptyState } from '@/components/custom/EmptyState'
 import { AdminPagination } from '@/components/custom/AdminPagination'
 import { ConfirmModal } from '@/components/custom/ConfirmModal'
+import { KeyHint } from '@/components/custom/KeyHint'
+import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut'
 import { compressImage } from '@/utils/imageCompression'
 import {
   useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory, useUploadCategoryImage,
@@ -30,6 +32,8 @@ function CategoryCardSkeleton() {
 
 export function CategoriesPage() {
   const [search, setSearch] = useState('')
+  const searchInputRef = useRef(null)
+  useKeyboardShortcut('mod+k', () => searchInputRef.current?.focus(), { allowInEditable: true })
   const [page, setPage] = useState(1)
   const [editingId, setEditingId] = useState(null)
   const [isCreating, setIsCreating] = useState(false)
@@ -184,19 +188,22 @@ export function CategoriesPage() {
         <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
+            ref={searchInputRef}
             type="text"
             placeholder="Search categories..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm focus:outline-hidden focus:ring-2 focus:ring-ring bg-background"
+            className="w-full pl-10 pr-12 py-2 border rounded-lg text-sm focus:outline-hidden focus:ring-2 focus:ring-ring bg-background"
           />
-          {search && (
+          {search ? (
             <button
               onClick={() => setSearch('')}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
             >
               <SearchX className="w-4 h-4" />
             </button>
+          ) : (
+            <KeyHint combo="mod+k" className="absolute right-2.5 top-1/2 -translate-y-1/2" />
           )}
         </div>
       </div>

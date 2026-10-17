@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { AlertCircle, Flag, TrendingUp, CheckCircle, Clock, Loader2, Eye, EyeOff, Search, SearchX } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import { useAdminReports, useReportsStats, useAdminReportedCampaigns } from '@/hooks/useAdmin'
@@ -8,6 +8,8 @@ import { StatSkeleton } from '@/components/custom/StatSkeleton'
 import { ReportSheet } from '@/components/custom/ReportSheet'
 import { AdminPagination } from '@/components/custom/AdminPagination'
 import { Select } from '@/components/custom/Select'
+import { KeyHint } from '@/components/custom/KeyHint'
+import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut'
 import { formatDate } from '@/utils/formatters'
 
 const reasonLabels = {
@@ -30,6 +32,8 @@ export function ReportsPage() {
   const [filter, setFilter] = useState('all')
   const [campaignFilter, setCampaignFilter] = useState('')
   const [search, setSearch] = useState('')
+  const searchInputRef = useRef(null)
+  useKeyboardShortcut('mod+k', () => searchInputRef.current?.focus(), { allowInEditable: true })
   const [selectedReport, setSelectedReport] = useState(null)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [page, setPage] = useState(1)
@@ -150,13 +154,14 @@ export function ReportsPage() {
           <div className="relative w-full sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
+              ref={searchInputRef}
               type="text"
               placeholder="Search reporter or campaign..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-8 py-2 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
+              className="w-full pl-9 pr-12 py-2 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
             />
-            {search && (
+            {search ? (
               <button
                 onClick={() => setSearch('')}
                 className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
@@ -164,6 +169,8 @@ export function ReportsPage() {
               >
                 <SearchX className="w-4 h-4" />
               </button>
+            ) : (
+              <KeyHint combo="mod+k" className="absolute right-2.5 top-1/2 -translate-y-1/2" />
             )}
           </div>
         </div>

@@ -1,9 +1,18 @@
 import { ShieldCheck, X } from 'lucide-react'
 import { useNavigate } from '@tanstack/react-router'
 import { ROUTES } from '@/constants'
+import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut'
+import { KeyHint } from './KeyHint'
 
 export function VerifyPromptModal({ isOpen, onClose }) {
   const navigate = useNavigate()
+
+  function goVerify() {
+    navigate({ to: ROUTES.VERIFICATION })
+  }
+
+  useKeyboardShortcut('Escape', onClose, { enabled: isOpen })
+  useKeyboardShortcut('Enter', goVerify, { enabled: isOpen })
 
   if (!isOpen) return null
 
@@ -31,15 +40,17 @@ export function VerifyPromptModal({ isOpen, onClose }) {
         <div className="flex gap-2 pt-2">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2 rounded-lg border hover:bg-accent transition-colors text-sm font-medium"
+            className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border hover:bg-accent transition-colors text-sm font-medium"
           >
             Maybe Later
+            <KeyHint combo="Escape" />
           </button>
           <button
-            onClick={() => navigate({ to: ROUTES.VERIFICATION })}
+            onClick={goVerify}
             className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium"
           >
             <ShieldCheck className="w-4 h-4" /> Verify Now
+            <KeyHint combo="Enter" className="bg-white/15 text-current border-white/25" />
           </button>
         </div>
       </div>

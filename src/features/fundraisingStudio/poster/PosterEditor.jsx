@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Check, Download, Loader2, Redo2, Undo2 } from 'lucide-react'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
+import { useKeyboardShortcut, isMac } from '@/hooks/useKeyboardShortcut'
 import { useUpdatePoster } from '@/hooks/usePosters'
 import { ShareCampaign } from '@/components/custom/ShareCampaign'
 import { emptyDesign } from './designSchema'
@@ -18,13 +19,19 @@ import { POSTER_TEMPLATES } from '../shared/posterTemplates'
 
 const AUTOSAVE_DEBOUNCE_MS = 1200
 
+// Keyboard shortcuts (mod+Z / shift+mod+Z) are wired once at the editor
+// level (see PosterEditor's own useKeyboardShortcut calls) -- this is
+// still the click target, just with the combo surfaced in its tooltip too
+// (these are small icon-only buttons with no room for a visible KeyHint
+// badge the way ConfirmModal's/search inputs' labeled controls get one).
+const MOD_LABEL = isMac ? '⌘' : 'Ctrl+'
 function UndoRedoControls({ canUndo, canRedo, undo, redo }) {
   return (
     <div className="flex items-center gap-1">
-      <button type="button" disabled={!canUndo} onClick={undo} className="p-1.5 rounded-md hover:bg-accent disabled:opacity-30" title="Undo">
+      <button type="button" disabled={!canUndo} onClick={undo} className="p-1.5 rounded-md hover:bg-accent disabled:opacity-30" title={`Undo (${MOD_LABEL}Z)`}>
         <Undo2 className="w-4 h-4" />
       </button>
-      <button type="button" disabled={!canRedo} onClick={redo} className="p-1.5 rounded-md hover:bg-accent disabled:opacity-30" title="Redo">
+      <button type="button" disabled={!canRedo} onClick={redo} className="p-1.5 rounded-md hover:bg-accent disabled:opacity-30" title={`Redo (${MOD_LABEL}⇧Z)`}>
         <Redo2 className="w-4 h-4" />
       </button>
     </div>
@@ -176,6 +183,20 @@ export function PosterEditor({ poster }) {
     commit(removeElementEverywhere(design, selectedId))
     setSelectedId(null)
   }
+
+  // Backspace/Delete remove the selected canvas element -- not the poster
+  // itself, and `allowInEditable` deliberately stays false (the default)
+  // so Backspace while typing the poster's own name, or inside one of
+  // PropertiesPanel's text/textarea fields, edits that text instead of
+  // deleting whatever happens to be selected on the canvas.
+  useKeyboardShortcut('Backspace', handleDelete)
+  useKeyboardShortcut('Delete', handleDelete)
+  // Escape deselects -- also clears whatever the Transformer handles were
+  // showing, same as clicking empty canvas (PosterCanvas.jsx's own
+  // onMouseDown already does that for a literal click).
+  useKeyboardShortcut('Escape', () => setSelectedId(null))
+  useKeyboardShortcut('mod+z', undo)
+  useKeyboardShortcut('shift+mod+z', redo)
 
   function reorder(direction) {
     if (!selectedId) return

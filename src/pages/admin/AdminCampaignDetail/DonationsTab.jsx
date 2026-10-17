@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Search, Loader2, SearchX } from 'lucide-react'
 import { useAdminDonations } from '@/hooks/useDonations'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { AdminPagination } from '@/components/custom/AdminPagination'
 import { DonationSheet } from '@/components/custom/DonationSheet'
+import { KeyHint } from '@/components/custom/KeyHint'
+import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut'
 import { formatGMD, formatDateTime } from '@/utils/formatters'
 import { DONATION_STATUS } from '@/constants'
 import { cn } from '@/utils/cn'
@@ -17,6 +19,8 @@ const STATUS_COLORS = {
 
 export function DonationsTab({ campaign }) {
   const [search, setSearch] = useState('')
+  const searchInputRef = useRef(null)
+  useKeyboardShortcut('mod+k', () => searchInputRef.current?.focus(), { allowInEditable: true })
   const [statusFilter, setStatusFilter] = useState('all')
   const [page, setPage] = useState(1)
   const [selectedDonation, setSelectedDonation] = useState(null)
@@ -47,12 +51,14 @@ export function DonationsTab({ campaign }) {
         <div className="relative flex-1 min-w-52">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
+            ref={searchInputRef}
             type="text"
             placeholder="Search donor..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
+            className="w-full pl-9 pr-12 py-2 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
           />
+          <KeyHint combo="mod+k" className="absolute right-2.5 top-1/2 -translate-y-1/2" />
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {statuses.map((s) => (

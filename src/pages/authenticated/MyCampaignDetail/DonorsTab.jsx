@@ -1,11 +1,15 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Users, SearchX, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
 import { formatGMD, timeAgo } from '@/utils/formatters'
 import { useMyCampaignDonors } from '@/hooks/useDonations'
+import { KeyHint } from '@/components/custom/KeyHint'
+import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut'
 
 export function DonorsTab({ slug, donorsCount, totalRaised }) {
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
+  const searchInputRef = useRef(null)
+  useKeyboardShortcut('mod+k', () => searchInputRef.current?.focus(), { allowInEditable: true })
 
   const { data, isLoading } = useMyCampaignDonors(slug, { page })
   const donors = data?.donations ?? []
@@ -40,13 +44,15 @@ export function DonorsTab({ slug, donorsCount, totalRaised }) {
 
       <div className="relative">
         <input
+          ref={searchInputRef}
           type="text"
           placeholder="Search donors or messages…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-2.5 border rounded-xl text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
+          className="w-full pl-10 pr-12 py-2.5 border rounded-xl text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
         />
         <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <KeyHint combo="mod+k" className="absolute right-2.5 top-1/2 -translate-y-1/2" />
       </div>
 
       <div className="border rounded-2xl bg-card divide-y overflow-hidden">

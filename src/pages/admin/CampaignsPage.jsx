@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { CheckCircle2, XCircle, Eye, Search, Loader2, SearchX, EyeOff } from 'lucide-react'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { ProgressBar } from '@/components/custom/ProgressBar'
 import { AdminPagination } from '@/components/custom/AdminPagination'
+import { KeyHint } from '@/components/custom/KeyHint'
+import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut'
 import { formatGMD, formatDate, progressPercent } from '@/utils/formatters'
 import { useAdminCampaigns, useAdminCampaignAction } from '@/hooks/useCampaigns'
 import { useCampaignsStats } from '@/hooks/useAdmin'
@@ -29,6 +31,8 @@ export function CampaignsPage() {
   const { data: me } = useMe()
   const canModerate = hasResourceAccess(me?.resources, Resource.CAMPAIGNS_MODERATE)
   const [search, setSearch] = useState('')
+  const searchInputRef = useRef(null)
+  useKeyboardShortcut('mod+k', () => searchInputRef.current?.focus(), { allowInEditable: true })
   const [statusFilter, setStatusFilter] = useState('all')
   const [actioningId, setActioningId] = useState(null)
   const [page, setPage] = useState(1)
@@ -119,12 +123,14 @@ export function CampaignsPage() {
         <div className="relative flex-1 min-w-52">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
+            ref={searchInputRef}
             type="text"
             placeholder="Search campaigns..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
+            className="w-full pl-9 pr-12 py-2 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
           />
+          <KeyHint combo="mod+k" className="absolute right-2.5 top-1/2 -translate-y-1/2" />
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {statuses.map((s) => (
