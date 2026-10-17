@@ -26,11 +26,21 @@ export function buildInitialDesign(destinationType) {
   const defaultBackgroundBinding = destinationType === 'organization' ? 'organization_logo_url' : 'cover_image_url'
 
   const pad = Math.round(width * 0.055)
-  const qrSize = Math.round(Math.min(width, height) * 0.16)
+  // +15% over the original 0.16-of-min-dimension sizing, kept explicit
+  // (rather than folded into a changed constant) so the bump is traceable.
+  const qrSize = Math.round(Math.min(width, height) * 0.16 * 1.15)
   const titleFontSize = Math.round(width * 0.048)
   const orgFontSize = Math.round(width * 0.024)
   const descFontSize = Math.round(width * 0.02)
   const textWidth = width - pad * 2 - qrSize - Math.round(pad * 0.4)
+  // The caption block (title/org/description/goal/deadline) and the QR
+  // deliberately get *different* bottom offsets now, not a shared one --
+  // raises the text block clear of the QR's row instead of both sitting
+  // at the same baseline, separated only by the horizontal gap between
+  // them (see layoutProjection.js's own comment on why that horizontal gap
+  // alone isn't a reliable guarantee once a layout's own text wraps onto
+  // more lines than it did at the canonical size).
+  const textLift = Math.round(height * 0.04)
 
   // Stacked bottom-up: figure out the total block height first, then place
   // each row from there down to `pad` above the bottom edge -- keeps the
@@ -43,8 +53,6 @@ export function buildInitialDesign(destinationType) {
   ]
   if (hasStats) {
     rows.push(
-      { key: 'divider', fontSize: Math.round(width * 0.011), gap: Math.round(descFontSize * 0.8) },
-      { key: 'raised', fontSize: Math.round(titleFontSize * 0.55), gap: Math.round(descFontSize * 0.3) },
       { key: 'goal', fontSize: descFontSize, gap: Math.round(descFontSize * 0.25) },
       { key: 'deadline', fontSize: descFontSize, gap: 0 },
     )
@@ -52,7 +60,7 @@ export function buildInitialDesign(destinationType) {
   const contentHeight = rows.reduce((sum, row) => sum + row.fontSize + row.gap, 0)
 
   const y = {}
-  let cursor = height - pad - contentHeight
+  let cursor = height - pad - contentHeight - textLift
   for (const row of rows) {
     y[row.key] = cursor
     cursor += row.fontSize + row.gap
@@ -86,16 +94,14 @@ export function buildInitialDesign(destinationType) {
     createTextElement({ x: pad, y: y.title, width: textWidth, binding: 'title', fontSize: titleFontSize, fontWeight: 'bold', color: '#ffffff', fromTemplate: true }),
     createTextElement({ x: pad, y: y.org, width: textWidth, binding: 'organization_name', fontSize: orgFontSize, color: '#e2e8f0', fromTemplate: true }),
     createTextElement({ x: pad, y: y.desc, width: textWidth, binding: 'description', fontSize: descFontSize, color: '#cbd5e1', fromTemplate: true }),
+    // No lift here, unlike the caption block above -- stays at its
+    // original bottom-right baseline, which is what actually creates the
+    // separation from the (now-raised) text above it.
     createQrElement({ x: width - pad - qrSize, y: height - pad - qrSize, width: qrSize, height: qrSize, fromTemplate: true }),
   ]
 
   if (hasStats) {
     elements.push(
-      createShapeElement({
-        x: pad, y: y.divider, width: textWidth, height: Math.round(width * 0.011),
-        shapeType: 'rect', fill: 'rgba(255, 255, 255, 0.25)', cornerRadius: 999, fromTemplate: true,
-      }),
-      createTextElement({ x: pad, y: y.raised, width: textWidth, binding: 'raised', fontSize: Math.round(titleFontSize * 0.55), fontWeight: 'bold', color: '#ffffff', fromTemplate: true }),
       createTextElement({ x: pad, y: y.goal, width: textWidth, binding: 'goal', fontSize: descFontSize, color: '#cbd5e1', fromTemplate: true }),
       createTextElement({ x: pad, y: y.deadline, width: textWidth, binding: 'deadline', fontSize: descFontSize, color: '#cbd5e1', fromTemplate: true }),
     )

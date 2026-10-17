@@ -22,20 +22,36 @@ function layoutDims(layoutKey) {
 // y/height -- so a bottom-anchored element stays anchored near the bottom
 // regardless of how much taller/shorter the target layout is, without
 // needing per-template bespoke math (see the old templateCompositions.js
-// comment this replaces). `fontSize` scales by sx only, same convention
-// the original per-template composition used (never stretched vertically).
-// QR codes scale width/height uniformly (by the smaller of sx/sy) instead
-// of independently -- an independently-scaled QR would stop being square
-// and could stop scanning reliably. Anything that still looks wrong for a
-// given element/layout combination (that QR-position tradeoff included) is
-// exactly what a manual per-layout override (see applyElementPatch below)
-// is for.
+// comment this replaces). Box width always scales by sx, same as every
+// other element -- NOT by a bigger text-specific factor (an earlier
+// version tried that, scaling a text box's width in lockstep with a
+// bigger font size; it widened description boxes enough in Story to
+// overlap the QR code, which sits at an sx-based x position that never
+// moved to match -- confirmed as the actual cause of that overlap, not a
+// hypothetical).
+//
+// QR codes are the one exception to the independent-per-axis rule, scaling
+// width/height by the smaller of sx/sy -- an independently-scaled QR would
+// stop being square and could stop scanning reliably.
+//
+// Font size is also an exception: it scales by the *geometric mean* of
+// sx/sy, not sx alone. sx-only scaling left Story's text sized for a
+// much-taller frame than it actually is (sx is ~1 there, so the font
+// barely grew while the canvas got far taller -- reads tiny) and Wide's
+// sized for a much shorter one (sx grows slightly while the canvas gets
+// far shorter -- reads oversized/cramped). The geometric mean tracks the
+// actual change in available space much more evenly across both axes,
+// without touching box width -- a bigger font in an unchanged-width box
+// just wraps onto more lines, which is what keeps it clear of the QR.
+// Anything that still looks wrong for a given element/layout combination
+// is exactly what a manual per-layout override (see applyElementPatch
+// below) is for.
 function defaultGeometryForLayout(element, sx, sy) {
   const sizeScale = element.type === 'qr' ? Math.min(sx, sy) : null
   const geometry = { x: element.x * sx, y: element.y * sy, rotation: element.rotation }
   if (typeof element.width === 'number') geometry.width = element.width * (sizeScale ?? sx)
   if (typeof element.height === 'number') geometry.height = element.height * (sizeScale ?? sy)
-  if (typeof element.fontSize === 'number') geometry.fontSize = element.fontSize * sx
+  if (typeof element.fontSize === 'number') geometry.fontSize = element.fontSize * Math.sqrt(sx * sy)
   return geometry
 }
 

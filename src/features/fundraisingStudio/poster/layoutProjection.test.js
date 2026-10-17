@@ -27,17 +27,32 @@ describe('projectElementsForLayout', () => {
     expect(projectElementsForLayout(design, 'square')).toBe(elements)
   })
 
-  it('scales a text element independently per axis for a non-canonical layout', () => {
+  it('scales a text element\'s position and box width per axis, but its fontSize by the geometric mean', () => {
     const elements = [{ id: 'a', type: 'text', x: 100, y: 900, width: 200, height: 50, fontSize: 40, rotation: 0 }]
     const design = makeDesign(elements)
     const sx = STORY.width / SQUARE.width
     const sy = STORY.height / SQUARE.height
+    const textScale = Math.sqrt(sx * sy)
     const [projected] = projectElementsForLayout(design, 'story')
     expect(projected.x).toBeCloseTo(100 * sx)
     expect(projected.y).toBeCloseTo(900 * sy)
+    // Width scales with sx, like every other element -- NOT with the same
+    // factor as fontSize, or a bigger font in a box widened to match would
+    // shift where its right edge lands relative to anything positioned by
+    // its own sx (the QR code included -- this is what caused it to
+    // overlap the description in Story).
+    expect(projected.width).toBeCloseTo(200 * sx)
+    expect(projected.fontSize).toBeCloseTo(40 * textScale)
+  })
+
+  it('scales a non-text element\'s width/height independently per axis', () => {
+    const elements = [{ id: 'a', type: 'shape', x: 0, y: 0, width: 200, height: 50, rotation: 0 }]
+    const design = makeDesign(elements)
+    const sx = STORY.width / SQUARE.width
+    const sy = STORY.height / SQUARE.height
+    const [projected] = projectElementsForLayout(design, 'story')
     expect(projected.width).toBeCloseTo(200 * sx)
     expect(projected.height).toBeCloseTo(50 * sy)
-    expect(projected.fontSize).toBeCloseTo(40 * sx)
   })
 
   it('keeps a QR element square by scaling its width/height uniformly, not per-axis', () => {

@@ -47,9 +47,12 @@ describe('formatBindingValue', () => {
     expect(formatBindingValue('title', null)).toBe('')
   })
 
-  it('formats money bindings with the D prefix', () => {
+  it('formats the raised amount with the D prefix, with no label', () => {
     expect(formatBindingValue('raised', destination)).toBe('D 2,500')
-    expect(formatBindingValue('goal', destination)).toBe('D 10,000')
+  })
+
+  it('labels the goal amount, unlike raised', () => {
+    expect(formatBindingValue('goal', destination)).toBe('Goal: D 10,000')
   })
 
   it('formats progress_percent with a % suffix', () => {

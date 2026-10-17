@@ -8,7 +8,7 @@ import { useDesignHistory } from './useDesignHistory'
 import { PosterCanvas } from './PosterCanvas'
 import { ElementsPanel } from './ElementsPanel'
 import { PropertiesPanel } from './PropertiesPanel'
-import { exportPosterAsPng } from './exportPoster'
+import { exportPosterAsPng, exportQrAsPng } from './exportPoster'
 import { findBackgroundImage } from './templateCompositions'
 import {
   applyElementPatch, clearElementOverride, hasElementOverride, projectElementsForLayout, removeElementEverywhere,
@@ -45,7 +45,7 @@ function SaveStateIndicator({ saveState }) {
 // twice -- once in the stacked (<lg) toolbar, once in the merged (lg+) one
 // -- and the outside-click effect below needs to recognize a click inside
 // whichever copy is actually visible.
-function ExportMenu({ menuRef, isOpen, onToggle, isExporting, onExport, width }) {
+function ExportMenu({ menuRef, isOpen, onToggle, isExporting, onExport, width, onExportQr, qrAvailable }) {
   return (
     <div className="relative" ref={menuRef}>
       <button
@@ -65,6 +65,16 @@ function ExportMenu({ menuRef, isOpen, onToggle, isExporting, onExport, width })
           <button type="button" onClick={() => onExport(2)} className="w-full text-left px-3 py-1.5 text-xs hover:bg-accent">
             High-res ({width * 2}px)
           </button>
+          {/* A clean, dedicated QR image -- not a crop of the poster, see
+              exportQrAsPng -- for printing/sharing just the scannable
+              code on its own (a business card, a flyer footer, ...).
+              Hidden rather than disabled when the poster has no QR
+              element at all (deleted it) -- there's nothing to export. */}
+          {qrAvailable && (
+            <button type="button" onClick={onExportQr} className="w-full text-left px-3 py-1.5 text-xs hover:bg-accent border-t">
+              QR code only
+            </button>
+          )}
         </div>
       )}
     </div>
@@ -237,6 +247,23 @@ export function PosterEditor({ poster }) {
     })
   }
 
+  // Content (fgColor/bgColor), not geometry -- read straight off the
+  // shared `design.elements`, same value regardless of currentLayout.
+  // Regenerated directly through the qrcode library rather than cropped
+  // out of the stage (see exportQrAsPng), so this doesn't need the
+  // Transformer-clearing tick handleExport above does.
+  const qrElement = design.elements.find((el) => el.type === 'qr')
+  function handleExportQr() {
+    if (!qrElement) return
+    setIsExportMenuOpen(false)
+    exportQrAsPng({
+      value: poster.destination?.public_url,
+      fgColor: qrElement.fgColor,
+      bgColor: qrElement.bgColor,
+      filename: `${poster.name} QR Code.png`,
+    })
+  }
+
   const toggleExportMenu = () => setIsExportMenuOpen((v) => !v)
   const shareButton = poster.share_url && (
     <ShareCampaign
@@ -267,6 +294,8 @@ export function PosterEditor({ poster }) {
               isExporting={isExporting}
               onExport={handleExport}
               width={layoutDims.width}
+              onExportQr={handleExportQr}
+              qrAvailable={Boolean(qrElement)}
             />
             {shareButton}
           </div>
@@ -284,6 +313,8 @@ export function PosterEditor({ poster }) {
                 isExporting={isExporting}
                 onExport={handleExport}
                 width={layoutDims.width}
+                onExportQr={handleExportQr}
+                qrAvailable={Boolean(qrElement)}
               />
               {shareButton}
             </div>

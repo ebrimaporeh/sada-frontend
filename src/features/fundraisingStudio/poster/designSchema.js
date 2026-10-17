@@ -66,7 +66,7 @@ export function createTextElement(overrides = {}) {
     width: 400,
     text: 'Edit this text',
     binding: '',
-    fontFamily: 'sans-serif',
+    fontFamily: 'Times New Roman',
     fontSize: 40,
     fontWeight: 'normal',
     align: 'left',
@@ -117,8 +117,9 @@ export function formatBindingValue(binding, destination) {
   const value = destination[binding]
   switch (binding) {
     case 'raised':
-    case 'goal':
       return value == null ? '' : `D ${Math.round(Number(value)).toLocaleString('en-US')}`
+    case 'goal':
+      return value == null ? '' : `Goal: D ${Math.round(Number(value)).toLocaleString('en-US')}`
     case 'progress_percent':
       return value == null ? '' : `${value}%`
     case 'deadline':
