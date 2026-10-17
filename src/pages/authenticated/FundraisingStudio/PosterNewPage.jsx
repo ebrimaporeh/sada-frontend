@@ -10,7 +10,7 @@ import { buildInitialDesign } from '@/features/fundraisingStudio/poster/template
 import { useCreatePoster } from '@/hooks/usePosters'
 
 // A poster now covers all three layouts (square/story/wide) at once --
-// see .claude/backend/fundraising.md -- so there's no "pick a size" step
+// see .claude/backend/design-studio.md -- so there's no "pick a size" step
 // here anymore, just this one Square preview (the canonical layout every
 // poster is built at, see templateCompositions.js) to confirm what the
 // chosen destination will actually look like before creating it.

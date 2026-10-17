@@ -10,7 +10,7 @@ vi.mock('@tanstack/react-router', () => ({
 }))
 
 // No canvas 2D context polyfill in this project's jsdom setup (see
-// .claude/frontend/fundraising.md's "Known gaps") -- same reason no test
+// .claude/frontend/design-studio.md's "Known gaps") -- same reason no test
 // renders the real Konva <Stage> tree. A shallow stand-in is enough to
 // prove the hub page actually reaches for a poster's real design/thumbnail
 // instead of a generic icon.

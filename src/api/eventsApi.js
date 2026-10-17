@@ -1,7 +1,7 @@
 import { apiClient } from './client'
 
 // Thin wrapper around the existing, already-public POST /events/track/
-// endpoint (apps.events.TrackEventView) -- see .claude/backend/fundraising.md
+// endpoint (apps.events.TrackEventView) -- see .claude/backend/design-studio.md
 // for why Fundraising Studio reuses this instead of adding a new one.
 export const eventsApi = {
   track: ({ type, campaignSlug, metadata }) =>

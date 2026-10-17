@@ -106,7 +106,7 @@ export function MyCampaignDetailPage() {
                           <Image className="w-3.5 h-3.5" /> Design Poster
                         </Link>
                         {/* Embeds are organization-scoped now (one per
-                            org, see .claude/backend/fundraising.md) -- an
+                            org, see .claude/backend/design-studio.md) -- an
                             individually-owned campaign has no embed of its
                             own to link to. Org-owned campaigns link
                             straight to their organization's single embed;

@@ -1,7 +1,7 @@
 import { POSTER_TEMPLATES } from '../shared/posterTemplates'
 
 // One poster now covers all three layouts (square/story/wide) at once --
-// see .claude/backend/fundraising.md and Poster's own model docstring.
+// see .claude/backend/design-studio.md and Poster's own model docstring.
 // Square is the canonical reference every element's own x/y/width/height/
 // fontSize is expressed in; this file is the one place both the editor
 // (reading a projected view, writing geometry back) and the exporter agree

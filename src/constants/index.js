@@ -108,16 +108,18 @@ export const ROUTES = {
   ORGANIZATION_SETTINGS: '/organizations/$id/settings',
   INVITATIONS: '/invitations',
 
-  // Fundraising Studio -- Poster Studio and Embed Studio, two independent
-  // submodules under one authenticated area. See sada-backend
-  // .claude/backend/fundraising.md (or apps.fundraising) for the API this
-  // talks to.
-  FUNDRAISING_STUDIO: '/fundraising-studio',
-  FUNDRAISING_POSTERS: '/fundraising-studio/posters',
-  FUNDRAISING_POSTER_NEW: '/fundraising-studio/posters/new',
-  FUNDRAISING_POSTER_DETAIL: '/fundraising-studio/posters/$id',
-  FUNDRAISING_EMBEDS: '/fundraising-studio/embeds',
-  FUNDRAISING_EMBED_DETAIL: '/fundraising-studio/embeds/$organizationId',
+  // Design Studio -- Poster Studio and Embed Studio, two independent
+  // submodules under one authenticated area. URL is /design-studio (not
+  // /fundraising-studio) to match the renamed apps.design_studio backend
+  // app -- see sada-backend .claude/backend/design-studio.md for the API
+  // this talks to. Constant names here keep the FUNDRAISING_ prefix
+  // (an internal identifier, not a label) -- only the URL values changed.
+  FUNDRAISING_STUDIO: '/design-studio',
+  FUNDRAISING_POSTERS: '/design-studio/posters',
+  FUNDRAISING_POSTER_NEW: '/design-studio/posters/new',
+  FUNDRAISING_POSTER_DETAIL: '/design-studio/posters/$id',
+  FUNDRAISING_EMBEDS: '/design-studio/embeds',
+  FUNDRAISING_EMBED_DETAIL: '/design-studio/embeds/$organizationId',
   // Public, unauthenticated iframe target -- not under publicLayout (no
   // header/footer/nav chrome, see rootRoute.jsx), since this is meant to be
   // embedded on a third-party site, not browsed directly.

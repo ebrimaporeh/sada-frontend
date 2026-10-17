@@ -2,25 +2,25 @@ import { apiClient } from './client'
 
 export const posterApi = {
   getMyPosters: (params) =>
-    apiClient.get('/fundraising/posters/', { params }).then((r) => r.data),
+    apiClient.get('/design-studio/posters/', { params }).then((r) => r.data),
 
   getPoster: (id) =>
-    apiClient.get(`/fundraising/posters/${id}/`).then((r) => r.data),
+    apiClient.get(`/design-studio/posters/${id}/`).then((r) => r.data),
 
   createPoster: (data) =>
-    apiClient.post('/fundraising/posters/', data).then((r) => r.data),
+    apiClient.post('/design-studio/posters/', data).then((r) => r.data),
 
   updatePoster: (id, data) =>
-    apiClient.patch(`/fundraising/posters/${id}/`, data).then((r) => r.data),
+    apiClient.patch(`/design-studio/posters/${id}/`, data).then((r) => r.data),
 
   deletePoster: (id) =>
-    apiClient.delete(`/fundraising/posters/${id}/`).then((r) => r.data),
+    apiClient.delete(`/design-studio/posters/${id}/`).then((r) => r.data),
 
   uploadPosterImage: (id, file) => {
     const form = new FormData()
     form.append('image', file)
     return apiClient
-      .post(`/fundraising/posters/${id}/images/`, form, { headers: { 'Content-Type': 'multipart/form-data' } })
+      .post(`/design-studio/posters/${id}/images/`, form, { headers: { 'Content-Type': 'multipart/form-data' } })
       .then((r) => r.data)
   },
 }
@@ -30,7 +30,7 @@ export const embedApi = {
   // first visit, see services/embed_service.py::get_or_create_org_embed.
   // There's no separate create call: exactly one embed per organization.
   getOrganizationEmbed: (organizationId) =>
-    apiClient.get(`/fundraising/organizations/${organizationId}/embed/`).then((r) => r.data),
+    apiClient.get(`/design-studio/organizations/${organizationId}/embed/`).then((r) => r.data),
 
   // Public, unauthenticated -- backs the /embed/$id widget page. Uses the
   // same apiClient as everything else (it's same-origin to the backend, no
@@ -38,14 +38,14 @@ export const embedApi = {
   // `layout` is an optional override (see EmbedPublicView) -- lets the same
   // embed be installed elsewhere on a site with a different layout.
   getPublicEmbed: (id, layout) =>
-    apiClient.get(`/fundraising/embeds/${id}/public/`, { params: layout ? { layout } : undefined }).then((r) => r.data),
+    apiClient.get(`/design-studio/embeds/${id}/public/`, { params: layout ? { layout } : undefined }).then((r) => r.data),
 
   updateEmbed: (id, data) =>
-    apiClient.patch(`/fundraising/embeds/${id}/`, data).then((r) => r.data),
+    apiClient.patch(`/design-studio/embeds/${id}/`, data).then((r) => r.data),
 
   activateEmbed: (id) =>
-    apiClient.post(`/fundraising/embeds/${id}/activate/`).then((r) => r.data),
+    apiClient.post(`/design-studio/embeds/${id}/activate/`).then((r) => r.data),
 
   deactivateEmbed: (id) =>
-    apiClient.post(`/fundraising/embeds/${id}/deactivate/`).then((r) => r.data),
+    apiClient.post(`/design-studio/embeds/${id}/deactivate/`).then((r) => r.data),
 }

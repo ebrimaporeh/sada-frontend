@@ -294,7 +294,7 @@ function DonationPageSettings({ organization, canManage }) {
 }
 
 // Toggling this adds a general "Donate to us" card to the organization's
-// single embed widget (see .claude/backend/fundraising.md) -- not tied to
+// single embed widget (see .claude/backend/design-studio.md) -- not tied to
 // any one campaign, alongside whichever campaigns have their own
 // show_in_embed toggle on (see MyCampaignDetail/EditTab.jsx).
 function EmbedSettings({ organization, canManage }) {

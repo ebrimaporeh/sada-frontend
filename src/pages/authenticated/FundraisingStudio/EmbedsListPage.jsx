@@ -7,7 +7,7 @@ import { ROUTES, OrganizationPermission } from '@/constants'
 import { useMe } from '@/hooks/useAuth'
 
 // There's exactly one embed per organization now (see
-// .claude/backend/fundraising.md) -- no more list-of-embeds, no more
+// .claude/backend/design-studio.md) -- no more list-of-embeds, no more
 // destination picker. This page's job shrinks to "which of your
 // organizations' embeds do you want to manage" -- skipping straight to it
 // when there's only one, same as any single-choice picker would.
