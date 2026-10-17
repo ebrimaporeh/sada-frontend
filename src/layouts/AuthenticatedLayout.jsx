@@ -32,7 +32,7 @@ const BASE_NAV_ITEMS = [
   // backend). Not split into two top-level entries here to keep the
   // sidebar as lean as the rest of this nav -- Posters/Embeds are
   // sub-navigation on the hub page itself.
-  { label: 'Fundraising Studio', to: ROUTES.FUNDRAISING_STUDIO, icon: LayoutTemplate },
+  { label: 'Design Studio', to: ROUTES.FUNDRAISING_STUDIO, icon: LayoutTemplate },
 ]
 
 // The org list only makes sense while acting as yourself -- once an org

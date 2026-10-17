@@ -30,7 +30,7 @@ export function EmbedsListPage() {
         to={ROUTES.FUNDRAISING_STUDIO}
         className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors"
       >
-        <ChevronLeft className="w-4 h-4" /> Fundraising Studio
+        <ChevronLeft className="w-4 h-4" /> Design Studio
       </Link>
       <PageHeader title="Embeds" description="Each organization has one embeddable donation widget you can customize and install." />
 
