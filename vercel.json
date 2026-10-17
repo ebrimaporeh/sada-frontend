@@ -1,5 +1,6 @@
 {
   "rewrites": [
+    { "source": "/share/:path*", "destination": "https://api.dolelma.org/share/:path*" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
