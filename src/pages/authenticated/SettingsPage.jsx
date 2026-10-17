@@ -2,10 +2,12 @@ import { useState, useEffect, useRef } from 'react'
 import { GoogleLogin } from '@react-oauth/google'
 import { CheckCircle2, AlertCircle, Eye, EyeOff, Bell, Shield, Trash2, Loader2, Moon, Sun, Monitor, Smartphone, CreditCard } from 'lucide-react'
 import { PageHeader } from '@/components/custom/PageHeader'
+import { PhoneInput } from '@/components/custom/PhoneInput'
 import { useChangePassword, useSetPassword, useLinkGoogleAccount, useLogout, useDeleteAccount, useMe, useUpdateMe } from '@/hooks/useAuth'
 import { usePayoutMethods } from '@/hooks/usePayments'
 import { useActiveProfile } from '@/hooks/useActiveProfile'
 import { cn } from '@/utils/cn'
+import { GAMBIA_PHONE_ERROR, isValidGambiaPhone, normalizeGambiaPhone, toGambiaE164 } from '@/utils/validators'
 
 function Section({ title, description, children, className }) {
   return (
@@ -102,7 +104,7 @@ export function SettingsPage() {
       paymentSeeded.current = true
       setPaymentForm({
         default_payment_provider: me.default_payment_provider || '',
-        default_payment_phone: (me.default_payment_phone || '').replace(/^\+220/, ''),
+        default_payment_phone: normalizeGambiaPhone(me.default_payment_phone),
       })
     }
   }, [me])
@@ -111,18 +113,13 @@ export function SettingsPage() {
     e.preventDefault()
     setPaymentError('')
     const rawPhone = paymentForm.default_payment_phone.trim()
-    // PURA's numbering reform (effective 4 Sept 2026) moves every Gambian
-    // number from 7 to 9 digits, with both formats valid through a
-    // transition period ending 30 Nov 2026 -- accept either length here
-    // rather than only the old (or only the new) format.
-    if (rawPhone) {
-      const digitCount = rawPhone.replace(/\D/g, '').length
-      if (digitCount !== 7 && digitCount !== 9) {
-        setPaymentError('Enter a valid Gambian phone number -- 7 digits (old format) or 9 digits (new format), after +220.')
-        return
-      }
+    // PURA's numbering reform is complete -- see utils/validators.js's own
+    // docstring (mirrors the backend's validate_gambia_phone exactly).
+    if (rawPhone && !isValidGambiaPhone(rawPhone)) {
+      setPaymentError(GAMBIA_PHONE_ERROR)
+      return
     }
-    const phone = rawPhone ? `+220${rawPhone}` : ''
+    const phone = rawPhone ? toGambiaE164(rawPhone) : ''
     updateMe.mutate(
       { default_payment_provider: paymentForm.default_payment_provider, default_payment_phone: phone },
       {
@@ -310,19 +307,13 @@ export function SettingsPage() {
             <label className="text-sm font-medium flex items-center gap-1.5">
               <Smartphone className="w-4 h-4" /> Default Phone Number
             </label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">+220</span>
-              <input
-                type="tel"
-                value={paymentForm.default_payment_phone.replace(/^\+220/, '')}
-                onChange={(e) => setPaymentForm((f) => ({ ...f, default_payment_phone: e.target.value }))}
-                placeholder="7XXXXXXX"
-                className="w-full pl-14 pr-4 py-2.5 border rounded-xl text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
-              />
-            </div>
+            <PhoneInput
+              value={paymentForm.default_payment_phone}
+              onChange={(v) => setPaymentForm((f) => ({ ...f, default_payment_phone: v }))}
+              showError={false}
+            />
             <p className="text-xs text-muted-foreground">
-              This number will be pre-filled when you request a withdrawal. 7-digit (old) and 9-digit (new) formats
-              are both accepted during the transition to Gambia's new numbering system.
+              This number will be pre-filled when you request a withdrawal.
             </p>
           </div>
 

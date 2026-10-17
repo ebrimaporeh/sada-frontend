@@ -6,17 +6,11 @@ import { useUpdateMe, useUploadAvatar } from '@/hooks/useUsers'
 import { compressImage } from '@/utils/imageCompression'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { Select } from '@/components/custom/Select'
+import { PhoneInput } from '@/components/custom/PhoneInput'
 import { initials } from '@/utils/formatters'
 import { GAMBIA_REGIONS, ROUTES } from '@/constants'
 import { hasResourceAccess, Resource } from '@/utils/permissions'
-
-// Stored phone numbers aren't consistently formatted (some carry a leading
-// "+220", some don't -- see seed data vs. the donate flow) -- strip it so
-// the field's own "+220" prefix badge never doubles up with a value that
-// already has it.
-function stripCountryCode(phone) {
-  return (phone || '').replace(/^\+220\s*/, '')
-}
+import { isValidGambiaPhone, normalizeGambiaPhone, toGambiaE164 } from '@/utils/validators'
 
 function Field({ label, hint, error, children }) {
   return (
@@ -73,7 +67,7 @@ export function UserProfile() {
   const [form, setForm] = useState({
     first_name: user?.first_name || '',
     last_name: user?.last_name || '',
-    phone: stripCountryCode(user?.phone),
+    phone: normalizeGambiaPhone(user?.phone),
     region: user?.region || '',
     bio: user?.bio || '',
   })
@@ -94,7 +88,7 @@ export function UserProfile() {
   function handleSubmit(e) {
     e.preventDefault()
     const payload = { ...form }
-    if (payload.phone) payload.phone = `+220${payload.phone.trim()}`
+    if (payload.phone) payload.phone = toGambiaE164(payload.phone.trim())
     updateMe.mutate(payload, {
       onSuccess: () => {
         setSaved(true)
@@ -183,13 +177,7 @@ export function UserProfile() {
         </div>
 
         <Field label="Phone Number" hint="Used for mobile money contact and account security">
-          <Input
-            value={form.phone}
-            onChange={set('phone')}
-            type="tel"
-            placeholder="7XXXXXXX"
-            prefix="+220"
-          />
+          <PhoneInput value={form.phone} onChange={(phone) => setForm((f) => ({ ...f, phone }))} />
         </Field>
 
         <Field label="Region" hint="Your region in The Gambia">
@@ -222,7 +210,7 @@ export function UserProfile() {
 
           <button
             type="submit"
-            disabled={updateMe.isPending}
+            disabled={updateMe.isPending || !isValidGambiaPhone(form.phone)}
             className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold px-6 py-2.5 rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50 text-sm"
           >
             {updateMe.isPending ? 'Saving…' : 'Save Changes'}

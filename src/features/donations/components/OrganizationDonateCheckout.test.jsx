@@ -70,7 +70,7 @@ describe('OrganizationDonateCheckout', () => {
 
     await user.click(screen.getByText('D 100'))
     await user.click(screen.getByText('Donate anonymously'))
-    await user.type(screen.getByPlaceholderText('7XXXXXXX'), '7123456')
+    await user.type(screen.getByPlaceholderText('8XXXXXXXX'), '877123456')
     await user.click(screen.getByRole('button', { name: /donate/i }))
 
     expect(mutate).toHaveBeenCalledTimes(1)

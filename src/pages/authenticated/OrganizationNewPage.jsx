@@ -3,6 +3,8 @@ import { useNavigate, Link } from '@tanstack/react-router'
 import { AlertCircle, ChevronLeft, Loader2 } from 'lucide-react'
 import { PageHeader } from '@/components/custom/PageHeader'
 import { Select } from '@/components/custom/Select'
+import { PhoneInput } from '@/components/custom/PhoneInput'
+import { isValidGambiaPhone } from '@/utils/validators'
 import { useOrganizationTypes, useCreateOrganization } from '@/hooks/useOrganizations'
 import { useActiveProfile } from '@/hooks/useActiveProfile'
 import { ROUTES } from '@/constants'
@@ -91,11 +93,11 @@ export function OrganizationNewPage() {
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
             <label className={labelClass}>Phone Number</label>
-            <input type="tel" value={form.phone} onChange={set('phone')} placeholder="+220 7XXXXXXX" className={inputClass} />
+            <PhoneInput value={form.phone} onChange={(phone) => setForm((f) => ({ ...f, phone }))} />
           </div>
           <div>
             <label className={labelClass}>Second Phone Number</label>
-            <input type="tel" value={form.phone_2} onChange={set('phone_2')} placeholder="Optional" className={inputClass} />
+            <PhoneInput value={form.phone_2} onChange={(phone_2) => setForm((f) => ({ ...f, phone_2 }))} />
           </div>
         </div>
 
@@ -107,7 +109,10 @@ export function OrganizationNewPage() {
 
         <button
           type="submit"
-          disabled={createOrganization.isPending || !form.organization_name.trim() || !form.organization_type_slug}
+          disabled={
+            createOrganization.isPending || !form.organization_name.trim() || !form.organization_type_slug
+            || !isValidGambiaPhone(form.phone) || !isValidGambiaPhone(form.phone_2)
+          }
           className="w-full inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground font-semibold px-6 py-2.5 rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50 text-sm"
         >
           {createOrganization.isPending && <Loader2 className="w-4 h-4 animate-spin" />}

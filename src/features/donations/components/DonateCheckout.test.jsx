@@ -93,7 +93,7 @@ describe('DonateCheckout', () => {
 
     await user.type(screen.getByPlaceholderText('Amount'), '500')
     await user.click(screen.getByText('Donate anonymously'))
-    await user.type(screen.getByPlaceholderText('7XXXXXXX'), '7123456')
+    await user.type(screen.getByPlaceholderText('8XXXXXXXX'), '877123456')
     await user.click(screen.getByRole('button', { name: /donate/i }))
 
     expect(screen.queryByText(/enter your name/i)).not.toBeInTheDocument()
@@ -114,7 +114,7 @@ describe('DonateCheckout', () => {
     await user.type(screen.getByPlaceholderText('Full name'), 'Amie Jallow')
     await user.click(screen.getByRole('button', { name: /donate/i }))
 
-    expect(await screen.findByText(/enter a valid phone number/i)).toBeInTheDocument()
+    expect(await screen.findByText(/enter a valid gambian phone number/i)).toBeInTheDocument()
     expect(mutate).not.toHaveBeenCalled()
   })
 
@@ -124,13 +124,13 @@ describe('DonateCheckout', () => {
 
     await user.type(screen.getByPlaceholderText('Amount'), '750')
     await user.type(screen.getByPlaceholderText('Full name'), 'Amie Jallow')
-    await user.type(screen.getByPlaceholderText('7XXXXXXX'), '7123456')
+    await user.type(screen.getByPlaceholderText('8XXXXXXXX'), '877123456')
     await user.click(screen.getByRole('button', { name: /donate/i }))
 
     expect(mutate).toHaveBeenCalledTimes(1)
     expect(mutate.mock.calls[0][0]).toMatchObject({
       amount: 750,
-      phone: '+2207123456',
+      phone: '+220877123456',
       donor_name: 'Amie Jallow',
       gateway: 'modempay',
     })
@@ -154,7 +154,7 @@ describe('DonateCheckout', () => {
 
     await user.type(screen.getByPlaceholderText('Amount'), '500')
     await user.click(screen.getByText('Donate anonymously'))
-    await user.type(screen.getByPlaceholderText('7XXXXXXX'), '7123456')
+    await user.type(screen.getByPlaceholderText('8XXXXXXXX'), '877123456')
     await user.click(screen.getByRole('button', { name: /donate/i }))
 
     expect(mutate).toHaveBeenCalledTimes(1)
@@ -167,7 +167,7 @@ describe('DonateCheckout', () => {
 
     await user.type(screen.getByPlaceholderText('Amount'), '500')
     await user.click(screen.getByText('Donate anonymously'))
-    await user.type(screen.getByPlaceholderText('7XXXXXXX'), '7123456')
+    await user.type(screen.getByPlaceholderText('8XXXXXXXX'), '877123456')
     await user.click(screen.getByRole('button', { name: /donate/i }))
 
     expect(mutate.mock.calls[0][0].embed_id).toBeUndefined()

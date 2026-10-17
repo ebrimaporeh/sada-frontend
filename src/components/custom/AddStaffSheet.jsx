@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react'
 import { Loader2, CheckCircle2, AlertCircle, ShieldCheck } from 'lucide-react'
 import { Sheet } from './Sheet'
 import { ConfirmModal } from './ConfirmModal'
+import { PhoneInput } from './PhoneInput'
 import { useCreateUser } from '@/hooks/useUsers'
 import { useRolePermissions } from '@/hooks/usePermissions'
 import { cn } from '@/utils/cn'
+import { isValidGambiaPhone } from '@/utils/validators'
 
 const EMPTY_FORM = { email: '', first_name: '', last_name: '', phone: '', role: '' }
 
@@ -91,7 +93,7 @@ export function AddStaffSheet({ isOpen, onClose }) {
           <button
             type="submit"
             form="add-staff-form"
-            disabled={createUser.isPending || !form.email.trim() || !form.role}
+            disabled={createUser.isPending || !form.email.trim() || !form.role || !isValidGambiaPhone(form.phone)}
             className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium disabled:opacity-50"
           >
             {createUser.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
@@ -138,13 +140,7 @@ export function AddStaffSheet({ isOpen, onClose }) {
 
         <div className="space-y-1.5">
           <label className="text-sm font-medium">Phone</label>
-          <input
-            type="tel"
-            value={form.phone}
-            onChange={set('phone')}
-            placeholder="7XXXXXXX"
-            className="w-full px-3 py-2.5 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
-          />
+          <PhoneInput value={form.phone} onChange={(phone) => setForm((f) => ({ ...f, phone }))} />
         </div>
 
         <div className="space-y-1.5">

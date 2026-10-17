@@ -64,6 +64,33 @@ describe('RegisterForm', () => {
     )
   })
 
+  it('includes a valid phone number in the submitted payload', async () => {
+    const { container } = render(<RegisterForm />)
+    const user = await fillForm(container, { email: 'new@example.com', password: 'StrongPass@1', passwordConfirm: 'StrongPass@1' })
+    await user.type(container.querySelector('input[type="tel"]'), '877000000')
+    await user.click(screen.getByRole('checkbox'))
+    await user.click(screen.getByRole('button', { name: /create account/i }))
+
+    expect(registerMutate).toHaveBeenCalledWith(expect.objectContaining({ phone: '877000000' }))
+  })
+
+  it('leaves submit disabled while the phone number is only partially entered', async () => {
+    const { container } = render(<RegisterForm />)
+    const user = await fillForm(container, { email: 'new@example.com', password: 'StrongPass@1', passwordConfirm: 'StrongPass@1' })
+    await user.type(container.querySelector('input[type="tel"]'), '8770')
+    await user.click(screen.getByRole('checkbox'))
+
+    expect(screen.getByRole('button', { name: /create account/i })).toBeDisabled()
+  })
+
+  it('does not require a phone number at all', async () => {
+    const { container } = render(<RegisterForm />)
+    const user = await fillForm(container, { email: 'new@example.com', password: 'StrongPass@1', passwordConfirm: 'StrongPass@1' })
+    await user.click(screen.getByRole('checkbox'))
+
+    expect(screen.getByRole('button', { name: /create account/i })).not.toBeDisabled()
+  })
+
   it('surfaces a server-side registration error', () => {
     registerState = {
       isPending: false,

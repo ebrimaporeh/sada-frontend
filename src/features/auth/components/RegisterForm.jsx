@@ -4,17 +4,23 @@ import { GoogleLogin } from '@react-oauth/google'
 import { Eye, EyeOff } from 'lucide-react'
 import { useRegister, useGoogleOAuth } from '@/hooks/useAuth'
 import { LoadingSpinner } from '@/components/custom/LoadingSpinner'
+import { PhoneInput } from '@/components/custom/PhoneInput'
 import { ROUTES } from '@/constants'
 import { cn } from '@/utils/cn'
+import { isValidGambiaPhone } from '@/utils/validators'
 
 // Registration only ever creates an individual account now -- an
 // organization is something you create/join afterward from your profile
 // (see src/features/organizations), not a signup-time choice, so there's
-// no account-type toggle here any more.
+// no account-type toggle here any more. `phone` is the one optional
+// exception to "deliberately minimal" (see RegisterSerializer's own
+// docstring on the backend) -- costs nothing to collect up front, and
+// useful before someone sets a payment phone or joins an organization.
 const INITIAL_FORM = {
   email: '',
   password: '',
   password_confirm: '',
+  phone: '',
   terms_accepted: false,
 }
 
@@ -149,6 +155,11 @@ export function RegisterForm() {
           )
         })}
 
+        <div className="space-y-1">
+          <label className="text-sm font-medium">Phone number <span className="text-muted-foreground font-normal">(optional)</span></label>
+          <PhoneInput value={form.phone} onChange={(phone) => setForm((f) => ({ ...f, phone }))} />
+        </div>
+
         {/* Terms acceptance -- gates the submit button right below it */}
         <label className="flex items-start gap-2.5 text-sm cursor-pointer">
           <input
@@ -171,7 +182,7 @@ export function RegisterForm() {
 
         <button
           type="submit"
-          disabled={register.isPending || !form.terms_accepted}
+          disabled={register.isPending || !form.terms_accepted || !isValidGambiaPhone(form.phone)}
           className="w-full py-2 px-4 bg-primary text-primary-foreground rounded-md text-sm font-medium disabled:opacity-50"
         >
           {register.isPending ? 'Creating account...' : 'Create account'}

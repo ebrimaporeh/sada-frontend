@@ -3,7 +3,9 @@ import { Link, useSearch } from '@tanstack/react-router'
 import { Heart, ChevronLeft, CheckCircle2, AlertCircle, Lock, Smartphone, CreditCard } from 'lucide-react'
 import { ProgressBar } from '@/components/custom/ProgressBar'
 import { ShareCampaign } from '@/components/custom/ShareCampaign'
+import { PhoneInput } from '@/components/custom/PhoneInput'
 import { formatGMD, progressPercent, daysLeft, isOngoingCampaign } from '@/utils/formatters'
+import { isValidGambiaPhone } from '@/utils/validators'
 import { useDonateToCampaign } from '@/hooks/useDonations'
 import { useDonationMethods } from '@/hooks/usePayments'
 import { useMe } from '@/hooks/useAuth'
@@ -155,8 +157,8 @@ export function DonateCheckout({ campaign, embedded = false, onCancel, embedId, 
       setError('Please select a payment method')
       return
     }
-    if (requiresPhone && (!phone.trim() || phone.trim().length < 7)) {
-      setError('Please enter a valid phone number')
+    if (requiresPhone && (!phone.trim() || !isValidGambiaPhone(phone))) {
+      setError('Enter a valid Gambian phone number -- 9 digits, starting with 8.')
       return
     }
     setError('')
@@ -290,16 +292,7 @@ export function DonateCheckout({ campaign, embedded = false, onCancel, embedId, 
             <Smartphone className="w-4 h-4 inline mr-1" />
             Your phone number
           </label>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">+220</span>
-            <input
-              type="tel"
-              value={phone}
-              onChange={(e) => { setPhone(e.target.value); setError('') }}
-              placeholder="7XXXXXXX"
-              className="w-full pl-14 pr-4 py-2.5 border rounded-lg text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
-            />
-          </div>
+          <PhoneInput value={phone} onChange={(v) => { setPhone(v); setError('') }} showError={false} />
           <p className="text-xs text-muted-foreground mt-1">You'll receive a payment prompt on this number</p>
         </div>
       )}
